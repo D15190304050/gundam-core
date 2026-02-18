@@ -1,5 +1,8 @@
 package stark.dataworks.coderaider.gundam.core.runner;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +16,7 @@ import stark.dataworks.coderaider.gundam.core.result.RunItem;
  * RunnerContext implements end-to-end run orchestration including retries, guardrails, handoffs, and events.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class RunnerContext
 {
 
@@ -39,6 +43,7 @@ public class RunnerContext
     /**
      * Internal state for current agent; used while coordinating runtime behavior.
      */
+    @Setter
     private IAgent currentAgent;
 
     /**
@@ -55,69 +60,6 @@ public class RunnerContext
     {
         this.currentAgent = currentAgent;
         this.memory = memory;
-    }
-
-    /**
-     * Returns the current events value maintained by this RunnerContext.
-     * @return The value produced by this operation.
-     */
-    public List<RunEvent> getEvents()
-    {
-        return events;
-    }
-
-    /**
-     * Returns the current items value maintained by this RunnerContext.
-     * @return The value produced by this operation.
-     */
-    public List<RunItem> getItems()
-    {
-        return items;
-    }
-
-    /**
-     * Returns the current memory value maintained by this RunnerContext.
-     * @return The value produced by this operation.
-     */
-    public IAgentMemory getMemory()
-    {
-        return memory;
-    }
-
-    /**
-     * Returns the current usage tracker value maintained by this RunnerContext.
-     * @return The value produced by this operation.
-     */
-    public TokenUsageTracker getUsageTracker()
-    {
-        return usageTracker;
-    }
-
-    /**
-     * Returns the current current agent value maintained by this RunnerContext.
-     * @return The value produced by this operation.
-     */
-    public IAgent getCurrentAgent()
-    {
-        return currentAgent;
-    }
-
-    /**
-     * Updates the current agent value used by this RunnerContext for later operations.
-     * @param currentAgent The current agent used by this operation.
-     */
-    public void setCurrentAgent(IAgent currentAgent)
-    {
-        this.currentAgent = currentAgent;
-    }
-
-    /**
-     * Returns the current turns value maintained by this RunnerContext.
-     * @return The value produced by this operation.
-     */
-    public int getTurns()
-    {
-        return turns;
     }
 
     /**

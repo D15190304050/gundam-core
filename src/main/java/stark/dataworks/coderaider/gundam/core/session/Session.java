@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.session;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -10,6 +12,7 @@ import stark.dataworks.coderaider.gundam.core.model.Message;
  * Session implements session persistence and restoration.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class Session
 {
 
@@ -32,23 +35,5 @@ public class Session
     {
         this.id = Objects.requireNonNull(id, "id");
         this.messages = Collections.unmodifiableList(Objects.requireNonNull(messages, "messages"));
-    }
-
-    /**
-     * Returns the current id value maintained by this Session.
-     * @return The value produced by this operation.
-     */
-    public String getId()
-    {
-        return id;
-    }
-
-    /**
-     * Returns the current messages value maintained by this Session.
-     * @return The value produced by this operation.
-     */
-    public List<Message> getMessages()
-    {
-        return messages;
     }
 }

@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.tool;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -8,6 +10,7 @@ import java.util.Objects;
  * ToolDefinition implements tool contracts, schema metadata, and executable tool registration.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class ToolDefinition
 {
 
@@ -37,32 +40,5 @@ public class ToolDefinition
         this.name = Objects.requireNonNull(name, "name");
         this.description = description == null ? "" : description;
         this.parameters = Collections.unmodifiableList(Objects.requireNonNull(parameters, "parameters"));
-    }
-
-    /**
-     * Returns the current name value maintained by this ToolDefinition.
-     * @return The value produced by this operation.
-     */
-    public String getName()
-    {
-        return name;
-    }
-
-    /**
-     * Returns the current description value maintained by this ToolDefinition.
-     * @return The value produced by this operation.
-     */
-    public String getDescription()
-    {
-        return description;
-    }
-
-    /**
-     * Returns the current parameters value maintained by this ToolDefinition.
-     * @return The value produced by this operation.
-     */
-    public List<ToolParameterSchema> getParameters()
-    {
-        return parameters;
     }
 }

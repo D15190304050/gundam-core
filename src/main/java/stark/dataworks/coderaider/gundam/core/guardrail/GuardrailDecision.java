@@ -1,11 +1,14 @@
 package stark.dataworks.coderaider.gundam.core.guardrail;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 /**
  * GuardrailDecision implements input/output policy evaluation around model responses.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class GuardrailDecision
 {
 
@@ -47,23 +50,5 @@ public class GuardrailDecision
     public static GuardrailDecision deny(String reason)
     {
         return new GuardrailDecision(false, Objects.requireNonNull(reason, "reason"));
-    }
-
-    /**
-     * Reports whether allowed is currently satisfied.
-     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
-     */
-    public boolean isAllowed()
-    {
-        return allowed;
-    }
-
-    /**
-     * Returns the current reason value maintained by this GuardrailDecision.
-     * @return The value produced by this operation.
-     */
-    public String getReason()
-    {
-        return reason;
     }
 }

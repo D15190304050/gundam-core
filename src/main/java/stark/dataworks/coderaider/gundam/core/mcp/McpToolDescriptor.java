@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.mcp;
 
+import lombok.Getter;
+
 import java.util.Map;
 import java.util.Objects;
 
@@ -7,6 +9,7 @@ import java.util.Objects;
  * McpToolDescriptor implements MCP server integration and tool bridging.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class McpToolDescriptor
 {
 
@@ -36,32 +39,5 @@ public class McpToolDescriptor
         this.name = Objects.requireNonNull(name, "name");
         this.description = description == null ? "" : description;
         this.inputSchema = inputSchema == null ? Map.of() : Map.copyOf(inputSchema);
-    }
-
-    /**
-     * Returns the current name value maintained by this McpToolDescriptor.
-     * @return The value produced by this operation.
-     */
-    public String getName()
-    {
-        return name;
-    }
-
-    /**
-     * Returns the current description value maintained by this McpToolDescriptor.
-     * @return The value produced by this operation.
-     */
-    public String getDescription()
-    {
-        return description;
-    }
-
-    /**
-     * Returns the current input schema value maintained by this McpToolDescriptor.
-     * @return The value produced by this operation.
-     */
-    public Map<String, Object> getInputSchema()
-    {
-        return inputSchema;
     }
 }

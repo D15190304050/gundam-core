@@ -1,5 +1,8 @@
 package stark.dataworks.coderaider.gundam.core.llmspi;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +16,7 @@ import stark.dataworks.coderaider.gundam.core.model.ToolCall;
  * LlmResponse implements provider-agnostic model invocation contracts.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class LlmResponse
 {
 
@@ -29,6 +33,7 @@ public class LlmResponse
     /**
      * Internal state for handoff agent id; used while coordinating runtime behavior.
      */
+    @Getter(AccessLevel.NONE)
     private final String handoffAgentId;
 
     /**
@@ -82,23 +87,7 @@ public class LlmResponse
         this.structuredOutput = Collections.unmodifiableMap(structuredOutput == null ? Map.of() : structuredOutput);
     }
 
-    /**
-     * Returns the current content value maintained by this LlmResponse.
-     * @return The value produced by this operation.
-     */
-    public String getContent()
-    {
-        return content;
-    }
 
-    /**
-     * Returns the current tool calls value maintained by this LlmResponse.
-     * @return The value produced by this operation.
-     */
-    public List<ToolCall> getToolCalls()
-    {
-        return toolCalls;
-    }
 
     /**
      * Returns the current handoff agent id value maintained by this LlmResponse.
@@ -109,32 +98,8 @@ public class LlmResponse
         return Optional.ofNullable(handoffAgentId);
     }
 
-    /**
-     * Returns the current token usage value maintained by this LlmResponse.
-     * @return The value produced by this operation.
-     */
-    public TokenUsage getTokenUsage()
-    {
-        return tokenUsage;
-    }
 
-    /**
-     * Returns the current finish reason value maintained by this LlmResponse.
-     * @return The value produced by this operation.
-     */
-    public String getFinishReason()
-    {
-        return finishReason;
-    }
 
-    /**
-     * Returns the current structured output value maintained by this LlmResponse.
-     * @return The value produced by this operation.
-     */
-    public Map<String, Object> getStructuredOutput()
-    {
-        return structuredOutput;
-    }
 
     /**
      * Reports whether final is currently satisfied.

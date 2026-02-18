@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.runner;
 
+import lombok.Getter;
+
 import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.policy.RetryPolicy;
@@ -11,6 +13,7 @@ import stark.dataworks.coderaider.gundam.core.runerror.RunErrorHandlers;
  * The configuration centralizes turn limits, generation settings, retry behavior, and error-handler strategy so each
  * run can be controlled without changing code.
  */
+@Getter
 public class RunConfig
 {
 
@@ -134,86 +137,5 @@ public class RunConfig
     public static RunConfig defaults()
     {
         return new RunConfig(12, null, 0.2, 512, "auto", "text", Map.of());
-    }
-
-    /**
-     * Returns the current max turns value maintained by this RunConfig.
-     * @return The value produced by this operation.
-     */
-    public int getMaxTurns()
-    {
-        return maxTurns;
-    }
-
-    /**
-     * Returns the current session id value maintained by this RunConfig.
-     * @return The value produced by this operation.
-     */
-    public String getSessionId()
-    {
-        return sessionId;
-    }
-
-    /**
-     * Returns the current temperature value maintained by this RunConfig.
-     * @return The value produced by this operation.
-     */
-    public double getTemperature()
-    {
-        return temperature;
-    }
-
-    /**
-     * Returns the current max output tokens value maintained by this RunConfig.
-     * @return The value produced by this operation.
-     */
-    public int getMaxOutputTokens()
-    {
-        return maxOutputTokens;
-    }
-
-    /**
-     * Returns the current tool choice value maintained by this RunConfig.
-     * @return The value produced by this operation.
-     */
-    public String getToolChoice()
-    {
-        return toolChoice;
-    }
-
-    /**
-     * Returns the current response format value maintained by this RunConfig.
-     * @return The value produced by this operation.
-     */
-    public String getResponseFormat()
-    {
-        return responseFormat;
-    }
-
-    /**
-     * Returns the current provider options value maintained by this RunConfig.
-     * @return The value produced by this operation.
-     */
-    public Map<String, Object> getProviderOptions()
-    {
-        return providerOptions;
-    }
-
-    /**
-     * Returns the current retry policy value maintained by this RunConfig.
-     * @return The value produced by this operation.
-     */
-    public RetryPolicy getRetryPolicy()
-    {
-        return retryPolicy;
-    }
-
-    /**
-     * Returns the current run error handlers value maintained by this RunConfig.
-     * @return The value produced by this operation.
-     */
-    public RunErrorHandlers getRunErrorHandlers()
-    {
-        return runErrorHandlers;
     }
 }

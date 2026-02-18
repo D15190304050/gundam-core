@@ -1,9 +1,12 @@
 package stark.dataworks.coderaider.gundam.core.runerror;
 
+import lombok.Getter;
+
 /**
  * RunErrorHandlerResult implements error classification and handler dispatch.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class RunErrorHandlerResult
 {
 
@@ -45,23 +48,5 @@ public class RunErrorHandlerResult
     public static RunErrorHandlerResult handled(String finalOutput)
     {
         return new RunErrorHandlerResult(true, finalOutput);
-    }
-
-    /**
-     * Reports whether handled is currently satisfied.
-     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
-     */
-    public boolean isHandled()
-    {
-        return handled;
-    }
-
-    /**
-     * Returns the current final output value maintained by this RunErrorHandlerResult.
-     * @return The value produced by this operation.
-     */
-    public String getFinalOutput()
-    {
-        return finalOutput;
     }
 }

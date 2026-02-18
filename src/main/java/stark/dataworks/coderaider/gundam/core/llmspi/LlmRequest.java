@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.llmspi;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -11,6 +13,7 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
  * LlmRequest implements provider-agnostic model invocation contracts.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class LlmRequest
 {
 
@@ -47,41 +50,5 @@ public class LlmRequest
         this.messages = Collections.unmodifiableList(Objects.requireNonNull(messages, "messages"));
         this.tools = Collections.unmodifiableList(Objects.requireNonNull(tools, "tools"));
         this.options = Objects.requireNonNull(options, "options");
-    }
-
-    /**
-     * Returns the current model value maintained by this LlmRequest.
-     * @return The value produced by this operation.
-     */
-    public String getModel()
-    {
-        return model;
-    }
-
-    /**
-     * Returns the current messages value maintained by this LlmRequest.
-     * @return The value produced by this operation.
-     */
-    public List<Message> getMessages()
-    {
-        return messages;
-    }
-
-    /**
-     * Returns the current tools value maintained by this LlmRequest.
-     * @return The value produced by this operation.
-     */
-    public List<ToolDefinition> getTools()
-    {
-        return tools;
-    }
-
-    /**
-     * Returns the current options value maintained by this LlmRequest.
-     * @return The value produced by this operation.
-     */
-    public LlmOptions getOptions()
-    {
-        return options;
     }
 }

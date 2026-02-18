@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.runtime;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
@@ -8,6 +10,7 @@ import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
  * AgentRunResult implements single-step execution that binds model calls, tool calls, and memory updates.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class AgentRunResult
 {
 
@@ -37,32 +40,5 @@ public class AgentRunResult
         this.output = Objects.requireNonNull(output, "output");
         this.usage = Objects.requireNonNull(usage, "usage");
         this.finalAgentId = Objects.requireNonNull(finalAgentId, "finalAgentId");
-    }
-
-    /**
-     * Returns the current output value maintained by this AgentRunResult.
-     * @return The value produced by this operation.
-     */
-    public String getOutput()
-    {
-        return output;
-    }
-
-    /**
-     * Returns the current usage value maintained by this AgentRunResult.
-     * @return The value produced by this operation.
-     */
-    public TokenUsage getUsage()
-    {
-        return usage;
-    }
-
-    /**
-     * Returns the current final agent id value maintained by this AgentRunResult.
-     * @return The value produced by this operation.
-     */
-    public String getFinalAgentId()
-    {
-        return finalAgentId;
     }
 }

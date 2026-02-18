@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.model;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -8,6 +10,7 @@ import java.util.Objects;
  * ToolCall implements core runtime responsibilities.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class ToolCall
 {
 
@@ -30,23 +33,5 @@ public class ToolCall
     {
         this.toolName = Objects.requireNonNull(toolName, "toolName");
         this.arguments = Collections.unmodifiableMap(Objects.requireNonNull(arguments, "arguments"));
-    }
-
-    /**
-     * Returns the current tool name value maintained by this ToolCall.
-     * @return The value produced by this operation.
-     */
-    public String getToolName()
-    {
-        return toolName;
-    }
-
-    /**
-     * Returns the current arguments value maintained by this ToolCall.
-     * @return The value produced by this operation.
-     */
-    public Map<String, Object> getArguments()
-    {
-        return arguments;
     }
 }
