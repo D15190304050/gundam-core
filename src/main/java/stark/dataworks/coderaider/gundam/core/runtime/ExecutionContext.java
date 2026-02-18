@@ -83,7 +83,7 @@ public class ExecutionContext
     }
 
     /**
-     * Returns the current current step value maintained by this ExecutionContext.
+     * Returns the current step value maintained by this ExecutionContext.
      * @return The value produced by this operation.
      */
     public int getCurrentStep()
