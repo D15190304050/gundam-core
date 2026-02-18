@@ -1,4 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.tool;
+/**
+ * Enum ToolCategory.
+ */
 
 public enum ToolCategory
 {

@@ -1,4 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.result;
+/**
+ * Enum RunItemType.
+ */
 
 public enum RunItemType
 {

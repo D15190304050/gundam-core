@@ -3,12 +3,21 @@ package stark.dataworks.coderaider.gundam.core.tool;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+/**
+ * Class ToolSchemaJson.
+ */
 
 public final class ToolSchemaJson
 {
+    /**
+     * Creates a new ToolSchemaJson instance.
+     */
     private ToolSchemaJson()
     {
     }
+    /**
+     * Executes toJsonSchema.
+     */
 
     public static Map<String, Object> toJsonSchema(ToolDefinition definition)
     {

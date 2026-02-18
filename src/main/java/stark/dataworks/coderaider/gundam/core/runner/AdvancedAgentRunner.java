@@ -53,18 +53,57 @@ import stark.dataworks.coderaider.gundam.core.tracing.TraceSpan;
 
 public class AdvancedAgentRunner
 {
+    /**
+     * Field llmClient.
+     */
     private final ILlmClient llmClient;
+    /**
+     * Field toolRegistry.
+     */
     private final IToolRegistry toolRegistry;
+    /**
+     * Field agentRegistry.
+     */
     private final IAgentRegistry agentRegistry;
+    /**
+     * Field contextBuilder.
+     */
     private final IContextBuilder contextBuilder;
+    /**
+     * Field hookManager.
+     */
     private final HookManager hookManager;
+    /**
+     * Field guardrailEngine.
+     */
     private final GuardrailEngine guardrailEngine;
+    /**
+     * Field handoffRouter.
+     */
     private final HandoffRouter handoffRouter;
+    /**
+     * Field sessionStore.
+     */
     private final SessionStore sessionStore;
+    /**
+     * Field traceProvider.
+     */
     private final TraceProvider traceProvider;
+    /**
+     * Field toolApprovalPolicy.
+     */
     private final ToolApprovalPolicy toolApprovalPolicy;
+    /**
+     * Field outputSchemaRegistry.
+     */
     private final OutputSchemaRegistry outputSchemaRegistry;
+    /**
+     * Field outputValidator.
+     */
     private final OutputValidator outputValidator;
+    /**
+     * Field eventPublisher.
+     */
     private final RunEventPublisher eventPublisher;
 
     public AdvancedAgentRunner(ILlmClient llmClient,

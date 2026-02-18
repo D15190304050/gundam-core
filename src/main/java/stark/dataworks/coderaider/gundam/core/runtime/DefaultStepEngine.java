@@ -17,14 +17,35 @@ import stark.dataworks.coderaider.gundam.core.model.ToolCall;
 import stark.dataworks.coderaider.gundam.core.tool.ITool;
 import stark.dataworks.coderaider.gundam.core.tool.IToolRegistry;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
+/**
+ * Class DefaultStepEngine.
+ */
 
 public class DefaultStepEngine implements IStepEngine
 {
+    /**
+     * Field llmClient.
+     */
     private final ILlmClient llmClient;
+    /**
+     * Field toolRegistry.
+     */
     private final IToolRegistry toolRegistry;
+    /**
+     * Field agentRegistry.
+     */
     private final IAgentRegistry agentRegistry;
+    /**
+     * Field contextBuilder.
+     */
     private final IContextBuilder contextBuilder;
+    /**
+     * Field hooks.
+     */
     private final HookManager hooks;
+    /**
+     * Creates a new DefaultStepEngine instance.
+     */
 
     public DefaultStepEngine(ILlmClient llmClient,
                              IToolRegistry toolRegistry,
@@ -39,6 +60,9 @@ public class DefaultStepEngine implements IStepEngine
         this.hooks = hooks;
     }
 
+    /**
+     * Executes run.
+     */
     @Override
     public AgentRunResult run(ExecutionContext context, String userInput)
     {

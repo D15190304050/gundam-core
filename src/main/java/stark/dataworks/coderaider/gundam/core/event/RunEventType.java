@@ -1,4 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.event;
+/**
+ * Enum RunEventType.
+ */
 
 public enum RunEventType
 {

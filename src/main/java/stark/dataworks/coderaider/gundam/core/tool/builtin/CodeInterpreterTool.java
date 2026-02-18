@@ -4,14 +4,23 @@ import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.tool.ToolCategory;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
+/**
+ * Class CodeInterpreterTool.
+ */
 
 public class CodeInterpreterTool extends AbstractBuiltinTool
 {
+    /**
+     * Creates a new CodeInterpreterTool instance.
+     */
     public CodeInterpreterTool(ToolDefinition definition)
     {
         super(definition, ToolCategory.CODE_INTERPRETER);
     }
 
+    /**
+     * Executes execute.
+     */
     @Override
     public String execute(Map<String, Object> input)
     {

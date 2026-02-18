@@ -1,4 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.mcp.approval;
+/**
+ * Record McpToolApprovalResult.
+ */
 
 public record McpToolApprovalResult(boolean approved, String reason)
 {

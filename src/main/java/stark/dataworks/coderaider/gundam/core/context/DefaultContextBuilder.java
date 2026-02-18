@@ -7,9 +7,15 @@ import stark.dataworks.coderaider.gundam.core.agent.IAgent;
 import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
 import stark.dataworks.coderaider.gundam.core.model.Message;
 import stark.dataworks.coderaider.gundam.core.model.Role;
+/**
+ * Class DefaultContextBuilder.
+ */
 
 public class DefaultContextBuilder implements IContextBuilder
 {
+    /**
+     * Executes build.
+     */
     @Override
     public List<Message> build(IAgent agent, IAgentMemory memory, String userInput)
     {
