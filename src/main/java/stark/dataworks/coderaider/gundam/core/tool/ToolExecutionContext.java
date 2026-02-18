@@ -2,21 +2,24 @@ package stark.dataworks.coderaider.gundam.core.tool;
 
 import java.util.Map;
 /**
- * Class ToolExecutionContext.
+ * ToolExecutionContext implements tool contracts, schema metadata, and executable tool registration.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class ToolExecutionContext
 {
     /**
-     * Field agentId.
+     * Internal state for agent id; used while coordinating runtime behavior.
      */
     private final String agentId;
     /**
-     * Field runtimeMetadata.
+     * Internal state for runtime metadata; used while coordinating runtime behavior.
      */
     private final Map<String, Object> runtimeMetadata;
     /**
-     * Creates a new ToolExecutionContext instance.
+     * Performs tool execution context as part of ToolExecutionContext runtime responsibilities.
+     * @param agentId The agent id used by this operation.
+     * @param runtimeMetadata The runtime metadata used by this operation.
      */
 
     public ToolExecutionContext(String agentId, Map<String, Object> runtimeMetadata)
@@ -25,7 +28,8 @@ public class ToolExecutionContext
         this.runtimeMetadata = runtimeMetadata == null ? Map.of() : Map.copyOf(runtimeMetadata);
     }
     /**
-     * Executes getAgentId.
+     * Returns the current agent id value maintained by this ToolExecutionContext.
+     * @return The value produced by this operation.
      */
 
     public String getAgentId()
@@ -33,7 +37,8 @@ public class ToolExecutionContext
         return agentId;
     }
     /**
-     * Executes getRuntimeMetadata.
+     * Returns the current runtime metadata value maintained by this ToolExecutionContext.
+     * @return The value produced by this operation.
      */
 
     public Map<String, Object> getRuntimeMetadata()

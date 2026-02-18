@@ -3,17 +3,19 @@ package stark.dataworks.coderaider.gundam.core.handoff;
 import java.util.ArrayList;
 import java.util.List;
 /**
- * Class HandoffRouter.
+ * HandoffRouter implements agent transfer rules between specialized agents.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class HandoffRouter
 {
     /**
-     * Field filters.
+     * Internal state for filters used while coordinating runtime behavior.
      */
     private final List<HandoffFilter> filters = new ArrayList<>();
     /**
-     * Executes addFilter.
+     * Adds data to internal state consumed by later runtime steps.
+     * @param filter The filter used by this operation.
      */
 
     public void addFilter(HandoffFilter filter)
@@ -21,7 +23,9 @@ public class HandoffRouter
         filters.add(filter);
     }
     /**
-     * Executes canRoute.
+     * Performs can route as part of HandoffRouter runtime responsibilities.
+     * @param handoff The handoff used by this operation.
+     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
      */
 
     public boolean canRoute(Handoff handoff)

@@ -4,25 +4,29 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 /**
- * Class RunItem.
+ * RunItem implements normalized run result structures.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class RunItem
 {
     /**
-     * Field type.
+     * Internal state for type; used while coordinating runtime behavior.
      */
     private final RunItemType type;
     /**
-     * Field content.
+     * Internal state for content; used while coordinating runtime behavior.
      */
     private final String content;
     /**
-     * Field metadata.
+     * Internal state for metadata; used while coordinating runtime behavior.
      */
     private final Map<String, Object> metadata;
     /**
-     * Creates a new RunItem instance.
+     * Performs run item as part of RunItem runtime responsibilities.
+     * @param type The type used by this operation.
+     * @param content The content used by this operation.
+     * @param metadata The metadata used by this operation.
      */
 
     public RunItem(RunItemType type, String content, Map<String, Object> metadata)
@@ -32,7 +36,8 @@ public class RunItem
         this.metadata = Collections.unmodifiableMap(metadata == null ? Map.of() : metadata);
     }
     /**
-     * Executes getType.
+     * Returns the current type value maintained by this RunItem.
+     * @return The value produced by this operation.
      */
 
     public RunItemType getType()
@@ -40,7 +45,8 @@ public class RunItem
         return type;
     }
     /**
-     * Executes getContent.
+     * Returns the current content value maintained by this RunItem.
+     * @return The value produced by this operation.
      */
 
     public String getContent()
@@ -48,7 +54,8 @@ public class RunItem
         return content;
     }
     /**
-     * Executes getMetadata.
+     * Returns the current metadata value maintained by this RunItem.
+     * @return The value produced by this operation.
      */
 
     public Map<String, Object> getMetadata()

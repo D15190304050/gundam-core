@@ -2,17 +2,19 @@ package stark.dataworks.coderaider.gundam.core.agent;
 
 import java.util.Objects;
 /**
- * Class Agent.
+ * Agent implements agent definitions and lookup used by runners and handoff resolution.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class Agent implements IAgent
 {
     /**
-     * Field definition.
+     * Internal state for definition; used while coordinating runtime behavior.
      */
     private final AgentDefinition definition;
     /**
-     * Creates a new Agent instance.
+     * Performs agent as part of Agent runtime responsibilities.
+     * @param definition The definition used by this operation.
      */
 
     public Agent(AgentDefinition definition)
@@ -22,7 +24,8 @@ public class Agent implements IAgent
     }
 
     /**
-     * Executes definition.
+     * Performs definition as part of Agent runtime responsibilities.
+     * @return The value produced by this operation.
      */
     @Override
     public AgentDefinition definition()

@@ -2,25 +2,29 @@ package stark.dataworks.coderaider.gundam.core.runerror;
 
 import java.util.Objects;
 /**
- * Class RunErrorData.
+ * RunErrorData implements error classification and handler dispatch.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class RunErrorData
 {
     /**
-     * Field kind.
+     * Internal state for kind; used while coordinating runtime behavior.
      */
     private final RunErrorKind kind;
     /**
-     * Field message.
+     * Internal state for message; used while coordinating runtime behavior.
      */
     private final String message;
     /**
-     * Field cause.
+     * Internal state for cause; used while coordinating runtime behavior.
      */
     private final Throwable cause;
     /**
-     * Creates a new RunErrorData instance.
+     * Performs run error data as part of RunErrorData runtime responsibilities.
+     * @param kind The kind used by this operation.
+     * @param message The message used by this operation.
+     * @param cause The cause used by this operation.
      */
 
     public RunErrorData(RunErrorKind kind, String message, Throwable cause)
@@ -30,7 +34,8 @@ public class RunErrorData
         this.cause = cause;
     }
     /**
-     * Executes getKind.
+     * Returns the current kind value maintained by this RunErrorData.
+     * @return The value produced by this operation.
      */
 
     public RunErrorKind getKind()
@@ -38,7 +43,8 @@ public class RunErrorData
         return kind;
     }
     /**
-     * Executes getMessage.
+     * Returns the current message value maintained by this RunErrorData.
+     * @return The value produced by this operation.
      */
 
     public String getMessage()
@@ -46,7 +52,8 @@ public class RunErrorData
         return message;
     }
     /**
-     * Executes getCause.
+     * Returns the current cause value maintained by this RunErrorData.
+     * @return The value produced by this operation.
      */
 
     public Throwable getCause()

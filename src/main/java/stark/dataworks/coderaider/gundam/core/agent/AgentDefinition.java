@@ -5,61 +5,63 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 /**
- * Class AgentDefinition.
+ * AgentDefinition implements agent definitions and lookup used by runners and handoff resolution.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class AgentDefinition
 {
     /**
-     * Field id.
+     * Internal state for id; used while coordinating runtime behavior.
      */
     private String id;
     /**
-     * Field name.
+     * Internal state for name; used while coordinating runtime behavior.
      */
     private String name;
     /**
-     * Field systemPrompt.
+     * Internal state for system prompt; used while coordinating runtime behavior.
      */
     private String systemPrompt;
     /**
-     * Field model.
+     * Internal state for model; used while coordinating runtime behavior.
      */
     private String model;
     /**
-     * Field toolNames.
+     * Internal state for tool names used while coordinating runtime behavior.
      */
     private List<String> toolNames = new ArrayList<>();
     /**
-     * Field handoffAgentIds.
+     * Internal state for handoff agent ids used while coordinating runtime behavior.
      */
     private List<String> handoffAgentIds = new ArrayList<>();
     /**
-     * Field maxSteps.
+     * Internal state for max steps used while coordinating runtime behavior.
      */
     private int maxSteps = 8;
     /**
-     * Field resetInputAfterToolCall.
+     * Internal state for reset input after tool call used while coordinating runtime behavior.
      */
     private boolean resetInputAfterToolCall = true;
     /**
-     * Field resetInputAfterHandoff.
+     * Internal state for reset input after handoff used while coordinating runtime behavior.
      */
     private boolean resetInputAfterHandoff = true;
     /**
-     * Field requireToolApproval.
+     * Internal state for require tool approval used while coordinating runtime behavior.
      */
     private boolean requireToolApproval = false;
     /**
-     * Field outputSchemaName.
+     * Internal state for output schema name; used while coordinating runtime behavior.
      */
     private String outputSchemaName;
     /**
-     * Field metadata.
+     * Internal state for metadata used while coordinating runtime behavior.
      */
     private Map<String, Object> metadata = Map.of();
     /**
-     * Executes getId.
+     * Returns the current id value maintained by this AgentDefinition.
+     * @return The value produced by this operation.
      */
 
     public String getId()
@@ -67,7 +69,8 @@ public class AgentDefinition
         return id;
     }
     /**
-     * Executes setId.
+     * Updates the id value used by this AgentDefinition for later operations.
+     * @param id The id used by this operation.
      */
 
     public void setId(String id)
@@ -75,7 +78,8 @@ public class AgentDefinition
         this.id = id;
     }
     /**
-     * Executes getName.
+     * Returns the current name value maintained by this AgentDefinition.
+     * @return The value produced by this operation.
      */
 
     public String getName()
@@ -83,7 +87,8 @@ public class AgentDefinition
         return name;
     }
     /**
-     * Executes setName.
+     * Updates the name value used by this AgentDefinition for later operations.
+     * @param name The name used by this operation.
      */
 
     public void setName(String name)
@@ -91,7 +96,8 @@ public class AgentDefinition
         this.name = name;
     }
     /**
-     * Executes getSystemPrompt.
+     * Returns the current system prompt value maintained by this AgentDefinition.
+     * @return The value produced by this operation.
      */
 
     public String getSystemPrompt()
@@ -99,7 +105,8 @@ public class AgentDefinition
         return systemPrompt;
     }
     /**
-     * Executes setSystemPrompt.
+     * Updates the system prompt value used by this AgentDefinition for later operations.
+     * @param systemPrompt The system prompt used by this operation.
      */
 
     public void setSystemPrompt(String systemPrompt)
@@ -107,7 +114,8 @@ public class AgentDefinition
         this.systemPrompt = systemPrompt;
     }
     /**
-     * Executes getModel.
+     * Returns the current model value maintained by this AgentDefinition.
+     * @return The value produced by this operation.
      */
 
     public String getModel()
@@ -115,7 +123,8 @@ public class AgentDefinition
         return model;
     }
     /**
-     * Executes setModel.
+     * Updates the model value used by this AgentDefinition for later operations.
+     * @param model The model used by this operation.
      */
 
     public void setModel(String model)
@@ -123,7 +132,8 @@ public class AgentDefinition
         this.model = model;
     }
     /**
-     * Executes getToolNames.
+     * Returns the current tool names value maintained by this AgentDefinition.
+     * @return The value produced by this operation.
      */
 
     public List<String> getToolNames()
@@ -131,7 +141,8 @@ public class AgentDefinition
         return toolNames;
     }
     /**
-     * Executes setToolNames.
+     * Updates the tool names value used by this AgentDefinition for later operations.
+     * @param toolNames The tool names used by this operation.
      */
 
     public void setToolNames(List<String> toolNames)
@@ -139,7 +150,8 @@ public class AgentDefinition
         this.toolNames = toolNames == null ? new ArrayList<>() : toolNames;
     }
     /**
-     * Executes getHandoffAgentIds.
+     * Returns the current handoff agent ids value maintained by this AgentDefinition.
+     * @return The value produced by this operation.
      */
 
     public List<String> getHandoffAgentIds()
@@ -147,7 +159,8 @@ public class AgentDefinition
         return handoffAgentIds;
     }
     /**
-     * Executes setHandoffAgentIds.
+     * Updates the handoff agent ids value used by this AgentDefinition for later operations.
+     * @param handoffAgentIds The handoff agent ids used by this operation.
      */
 
     public void setHandoffAgentIds(List<String> handoffAgentIds)
@@ -155,7 +168,8 @@ public class AgentDefinition
         this.handoffAgentIds = handoffAgentIds == null ? new ArrayList<>() : handoffAgentIds;
     }
     /**
-     * Executes getMaxSteps.
+     * Returns the current max steps value maintained by this AgentDefinition.
+     * @return The value produced by this operation.
      */
 
     public int getMaxSteps()
@@ -163,7 +177,8 @@ public class AgentDefinition
         return maxSteps;
     }
     /**
-     * Executes setMaxSteps.
+     * Updates the max steps value used by this AgentDefinition for later operations.
+     * @param maxSteps The max steps used by this operation.
      */
 
     public void setMaxSteps(int maxSteps)
@@ -171,7 +186,8 @@ public class AgentDefinition
         this.maxSteps = maxSteps;
     }
     /**
-     * Executes isResetInputAfterToolCall.
+     * Reports whether reset input after tool call is currently satisfied.
+     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
      */
 
     public boolean isResetInputAfterToolCall()
@@ -179,7 +195,8 @@ public class AgentDefinition
         return resetInputAfterToolCall;
     }
     /**
-     * Executes setResetInputAfterToolCall.
+     * Updates the reset input after tool call value used by this AgentDefinition for later operations.
+     * @param resetInputAfterToolCall The reset input after tool call used by this operation.
      */
 
     public void setResetInputAfterToolCall(boolean resetInputAfterToolCall)
@@ -187,7 +204,8 @@ public class AgentDefinition
         this.resetInputAfterToolCall = resetInputAfterToolCall;
     }
     /**
-     * Executes isResetInputAfterHandoff.
+     * Reports whether reset input after handoff is currently satisfied.
+     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
      */
 
     public boolean isResetInputAfterHandoff()
@@ -195,7 +213,8 @@ public class AgentDefinition
         return resetInputAfterHandoff;
     }
     /**
-     * Executes setResetInputAfterHandoff.
+     * Updates the reset input after handoff value used by this AgentDefinition for later operations.
+     * @param resetInputAfterHandoff The reset input after handoff used by this operation.
      */
 
     public void setResetInputAfterHandoff(boolean resetInputAfterHandoff)
@@ -203,7 +222,8 @@ public class AgentDefinition
         this.resetInputAfterHandoff = resetInputAfterHandoff;
     }
     /**
-     * Executes isRequireToolApproval.
+     * Reports whether require tool approval is currently satisfied.
+     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
      */
 
     public boolean isRequireToolApproval()
@@ -211,7 +231,8 @@ public class AgentDefinition
         return requireToolApproval;
     }
     /**
-     * Executes setRequireToolApproval.
+     * Updates the require tool approval value used by this AgentDefinition for later operations.
+     * @param requireToolApproval The require tool approval used by this operation.
      */
 
     public void setRequireToolApproval(boolean requireToolApproval)
@@ -219,7 +240,8 @@ public class AgentDefinition
         this.requireToolApproval = requireToolApproval;
     }
     /**
-     * Executes getOutputSchemaName.
+     * Returns the current output schema name value maintained by this AgentDefinition.
+     * @return The value produced by this operation.
      */
 
     public String getOutputSchemaName()
@@ -227,7 +249,8 @@ public class AgentDefinition
         return outputSchemaName;
     }
     /**
-     * Executes setOutputSchemaName.
+     * Updates the output schema name value used by this AgentDefinition for later operations.
+     * @param outputSchemaName The output schema name used by this operation.
      */
 
     public void setOutputSchemaName(String outputSchemaName)
@@ -235,7 +258,8 @@ public class AgentDefinition
         this.outputSchemaName = outputSchemaName;
     }
     /**
-     * Executes getMetadata.
+     * Returns the current metadata value maintained by this AgentDefinition.
+     * @return The value produced by this operation.
      */
 
     public Map<String, Object> getMetadata()
@@ -243,7 +267,8 @@ public class AgentDefinition
         return metadata;
     }
     /**
-     * Executes setMetadata.
+     * Updates the metadata value used by this AgentDefinition for later operations.
+     * @param metadata The metadata used by this operation.
      */
 
     public void setMetadata(Map<String, Object> metadata)
@@ -251,7 +276,7 @@ public class AgentDefinition
         this.metadata = metadata == null ? Map.of() : metadata;
     }
     /**
-     * Executes validate.
+     * Validates  and throws when required constraints are violated.
      */
 
     public void validate()

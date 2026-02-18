@@ -1,20 +1,23 @@
 package stark.dataworks.coderaider.gundam.core.output;
 /**
- * Class OutputValidationResult.
+ * OutputValidationResult implements structured output schema validation.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class OutputValidationResult
 {
     /**
-     * Field valid.
+     * Internal state for valid; used while coordinating runtime behavior.
      */
     private final boolean valid;
     /**
-     * Field reason.
+     * Internal state for reason; used while coordinating runtime behavior.
      */
     private final String reason;
     /**
-     * Creates a new OutputValidationResult instance.
+     * Performs output validation result as part of OutputValidationResult runtime responsibilities.
+     * @param valid The valid used by this operation.
+     * @param reason The reason used by this operation.
      */
 
     private OutputValidationResult(boolean valid, String reason)
@@ -23,7 +26,8 @@ public class OutputValidationResult
         this.reason = reason == null ? "" : reason;
     }
     /**
-     * Executes ok.
+     * Performs ok as part of OutputValidationResult runtime responsibilities.
+     * @return The value produced by this operation.
      */
 
     public static OutputValidationResult ok()
@@ -31,7 +35,9 @@ public class OutputValidationResult
         return new OutputValidationResult(true, "");
     }
     /**
-     * Executes fail.
+     * Performs fail as part of OutputValidationResult runtime responsibilities.
+     * @param reason The reason used by this operation.
+     * @return The value produced by this operation.
      */
 
     public static OutputValidationResult fail(String reason)
@@ -39,7 +45,8 @@ public class OutputValidationResult
         return new OutputValidationResult(false, reason);
     }
     /**
-     * Executes isValid.
+     * Reports whether valid is currently satisfied.
+     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
      */
 
     public boolean isValid()
@@ -47,7 +54,8 @@ public class OutputValidationResult
         return valid;
     }
     /**
-     * Executes getReason.
+     * Returns the current reason value maintained by this OutputValidationResult.
+     * @return The value produced by this operation.
      */
 
     public String getReason()

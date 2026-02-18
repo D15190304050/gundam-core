@@ -2,8 +2,18 @@ package stark.dataworks.coderaider.gundam.core.output;
 
 import java.util.Map;
 
+/**
+ * OutputValidator implements structured output schema validation.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
+ */
 public class OutputValidator
 {
+    /**
+     * Validates  and throws when required constraints are violated.
+     * @param structuredOutput The structured output used by this operation.
+     * @param schema The schema used by this operation.
+     * @return The value produced by this operation.
+     */
     public OutputValidationResult validate(Map<String, Object> structuredOutput, OutputSchema schema)
     {
         if (schema == null)
@@ -29,6 +39,12 @@ public class OutputValidator
         return OutputValidationResult.ok();
     }
 
+    /**
+     * Reports whether type match is currently satisfied.
+     * @param value The value used by this operation.
+     * @param type The type used by this operation.
+     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
+     */
     private boolean isTypeMatch(Object value, String type)
     {
         return switch (type)

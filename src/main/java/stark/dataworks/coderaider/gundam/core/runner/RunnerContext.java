@@ -9,37 +9,40 @@ import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsageTracker;
 import stark.dataworks.coderaider.gundam.core.result.RunItem;
 /**
- * Class RunnerContext.
+ * RunnerContext implements end-to-end run orchestration including retries, guardrails, handoffs, and events.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class RunnerContext
 {
     /**
-     * Field events.
+     * Accumulated run events emitted during execution.
      */
     private final List<RunEvent> events = new ArrayList<>();
     /**
-     * Field items.
+     * Timeline items describing user/model/tool actions.
      */
     private final List<RunItem> items = new ArrayList<>();
     /**
-     * Field memory.
+     * Internal state for memory; used while coordinating runtime behavior.
      */
     private final IAgentMemory memory;
     /**
-     * Field usageTracker.
+     * Internal state for usage tracker used while coordinating runtime behavior.
      */
     private final TokenUsageTracker usageTracker = new TokenUsageTracker();
     /**
-     * Field currentAgent.
+     * Internal state for current agent; used while coordinating runtime behavior.
      */
     private IAgent currentAgent;
     /**
-     * Field turns.
+     * Internal state for turns; used while coordinating runtime behavior.
      */
     private int turns;
     /**
-     * Creates a new RunnerContext instance.
+     * Performs runner context as part of RunnerContext runtime responsibilities.
+     * @param currentAgent The current agent used by this operation.
+     * @param memory The memory used by this operation.
      */
 
     public RunnerContext(IAgent currentAgent, IAgentMemory memory)
@@ -48,7 +51,8 @@ public class RunnerContext
         this.memory = memory;
     }
     /**
-     * Executes getEvents.
+     * Returns the current events value maintained by this RunnerContext.
+     * @return The value produced by this operation.
      */
 
     public List<RunEvent> getEvents()
@@ -56,7 +60,8 @@ public class RunnerContext
         return events;
     }
     /**
-     * Executes getItems.
+     * Returns the current items value maintained by this RunnerContext.
+     * @return The value produced by this operation.
      */
 
     public List<RunItem> getItems()
@@ -64,7 +69,8 @@ public class RunnerContext
         return items;
     }
     /**
-     * Executes getMemory.
+     * Returns the current memory value maintained by this RunnerContext.
+     * @return The value produced by this operation.
      */
 
     public IAgentMemory getMemory()
@@ -72,7 +78,8 @@ public class RunnerContext
         return memory;
     }
     /**
-     * Executes getUsageTracker.
+     * Returns the current usage tracker value maintained by this RunnerContext.
+     * @return The value produced by this operation.
      */
 
     public TokenUsageTracker getUsageTracker()
@@ -80,7 +87,8 @@ public class RunnerContext
         return usageTracker;
     }
     /**
-     * Executes getCurrentAgent.
+     * Returns the current current agent value maintained by this RunnerContext.
+     * @return The value produced by this operation.
      */
 
     public IAgent getCurrentAgent()
@@ -88,7 +96,8 @@ public class RunnerContext
         return currentAgent;
     }
     /**
-     * Executes setCurrentAgent.
+     * Updates the current agent value used by this RunnerContext for later operations.
+     * @param currentAgent The current agent used by this operation.
      */
 
     public void setCurrentAgent(IAgent currentAgent)
@@ -96,7 +105,8 @@ public class RunnerContext
         this.currentAgent = currentAgent;
     }
     /**
-     * Executes getTurns.
+     * Returns the current turns value maintained by this RunnerContext.
+     * @return The value produced by this operation.
      */
 
     public int getTurns()
@@ -104,7 +114,7 @@ public class RunnerContext
         return turns;
     }
     /**
-     * Executes incrementTurns.
+     * Performs increment turns as part of RunnerContext runtime responsibilities.
      */
 
     public void incrementTurns()

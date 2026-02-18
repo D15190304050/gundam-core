@@ -8,13 +8,18 @@ import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
 import stark.dataworks.coderaider.gundam.core.model.Message;
 import stark.dataworks.coderaider.gundam.core.model.Role;
 /**
- * Class DefaultContextBuilder.
+ * DefaultContextBuilder implements prompt/context assembly before model calls.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class DefaultContextBuilder implements IContextBuilder
 {
     /**
-     * Executes build.
+     * Performs build as part of DefaultContextBuilder runtime responsibilities.
+     * @param agent The agent used by this operation.
+     * @param memory The memory used by this operation.
+     * @param userInput The user input used by this operation.
+     * @return The value produced by this operation.
      */
     @Override
     public List<Message> build(IAgent agent, IAgentMemory memory, String userInput)

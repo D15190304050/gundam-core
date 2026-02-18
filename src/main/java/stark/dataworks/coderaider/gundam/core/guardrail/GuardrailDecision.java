@@ -2,21 +2,24 @@ package stark.dataworks.coderaider.gundam.core.guardrail;
 
 import java.util.Objects;
 /**
- * Class GuardrailDecision.
+ * GuardrailDecision implements input/output policy evaluation around model responses.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class GuardrailDecision
 {
     /**
-     * Field allowed.
+     * Internal state for allowed; used while coordinating runtime behavior.
      */
     private final boolean allowed;
     /**
-     * Field reason.
+     * Internal state for reason; used while coordinating runtime behavior.
      */
     private final String reason;
     /**
-     * Creates a new GuardrailDecision instance.
+     * Performs guardrail decision as part of GuardrailDecision runtime responsibilities.
+     * @param allowed The allowed used by this operation.
+     * @param reason The reason used by this operation.
      */
 
     private GuardrailDecision(boolean allowed, String reason)
@@ -25,7 +28,8 @@ public class GuardrailDecision
         this.reason = reason == null ? "" : reason;
     }
     /**
-     * Executes allow.
+     * Performs allow as part of GuardrailDecision runtime responsibilities.
+     * @return The value produced by this operation.
      */
 
     public static GuardrailDecision allow()
@@ -33,7 +37,9 @@ public class GuardrailDecision
         return new GuardrailDecision(true, "");
     }
     /**
-     * Executes deny.
+     * Performs deny as part of GuardrailDecision runtime responsibilities.
+     * @param reason The reason used by this operation.
+     * @return The value produced by this operation.
      */
 
     public static GuardrailDecision deny(String reason)
@@ -41,7 +47,8 @@ public class GuardrailDecision
         return new GuardrailDecision(false, Objects.requireNonNull(reason, "reason"));
     }
     /**
-     * Executes isAllowed.
+     * Reports whether allowed is currently satisfied.
+     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
      */
 
     public boolean isAllowed()
@@ -49,7 +56,8 @@ public class GuardrailDecision
         return allowed;
     }
     /**
-     * Executes getReason.
+     * Returns the current reason value maintained by this GuardrailDecision.
+     * @return The value produced by this operation.
      */
 
     public String getReason()

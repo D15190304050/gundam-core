@@ -9,37 +9,42 @@ import java.util.Optional;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.model.ToolCall;
 /**
- * Class LlmResponse.
+ * LlmResponse implements provider-agnostic model invocation contracts.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class LlmResponse
 {
     /**
-     * Field content.
+     * Internal state for content; used while coordinating runtime behavior.
      */
     private final String content;
     /**
-     * Field toolCalls.
+     * Internal state for tool calls; used while coordinating runtime behavior.
      */
     private final List<ToolCall> toolCalls;
     /**
-     * Field handoffAgentId.
+     * Internal state for handoff agent id; used while coordinating runtime behavior.
      */
     private final String handoffAgentId;
     /**
-     * Field tokenUsage.
+     * Internal state for token usage; used while coordinating runtime behavior.
      */
     private final TokenUsage tokenUsage;
     /**
-     * Field finishReason.
+     * Internal state for finish reason; used while coordinating runtime behavior.
      */
     private final String finishReason;
     /**
-     * Field structuredOutput.
+     * Internal state for structured output; used while coordinating runtime behavior.
      */
     private final Map<String, Object> structuredOutput;
     /**
-     * Creates a new LlmResponse instance.
+     * Performs llm response as part of LlmResponse runtime responsibilities.
+     * @param content The content used by this operation.
+     * @param toolCalls The tool calls used by this operation.
+     * @param handoffAgentId The handoff agent id used by this operation.
+     * @param tokenUsage The token usage used by this operation.
      */
 
     public LlmResponse(String content, List<ToolCall> toolCalls, String handoffAgentId, TokenUsage tokenUsage)
@@ -47,7 +52,13 @@ public class LlmResponse
         this(content, toolCalls, handoffAgentId, tokenUsage, "stop", Map.of());
     }
     /**
-     * Creates a new LlmResponse instance.
+     * Performs llm response as part of LlmResponse runtime responsibilities.
+     * @param content The content used by this operation.
+     * @param toolCalls The tool calls used by this operation.
+     * @param handoffAgentId The handoff agent id used by this operation.
+     * @param tokenUsage The token usage used by this operation.
+     * @param finishReason The finish reason used by this operation.
+     * @param structuredOutput The structured output used by this operation.
      */
 
     public LlmResponse(String content,
@@ -65,7 +76,8 @@ public class LlmResponse
         this.structuredOutput = Collections.unmodifiableMap(structuredOutput == null ? Map.of() : structuredOutput);
     }
     /**
-     * Executes getContent.
+     * Returns the current content value maintained by this LlmResponse.
+     * @return The value produced by this operation.
      */
 
     public String getContent()
@@ -73,7 +85,8 @@ public class LlmResponse
         return content;
     }
     /**
-     * Executes getToolCalls.
+     * Returns the current tool calls value maintained by this LlmResponse.
+     * @return The value produced by this operation.
      */
 
     public List<ToolCall> getToolCalls()
@@ -81,7 +94,8 @@ public class LlmResponse
         return toolCalls;
     }
     /**
-     * Executes getHandoffAgentId.
+     * Returns the current handoff agent id value maintained by this LlmResponse.
+     * @return The value produced by this operation.
      */
 
     public Optional<String> getHandoffAgentId()
@@ -89,7 +103,8 @@ public class LlmResponse
         return Optional.ofNullable(handoffAgentId);
     }
     /**
-     * Executes getTokenUsage.
+     * Returns the current token usage value maintained by this LlmResponse.
+     * @return The value produced by this operation.
      */
 
     public TokenUsage getTokenUsage()
@@ -97,7 +112,8 @@ public class LlmResponse
         return tokenUsage;
     }
     /**
-     * Executes getFinishReason.
+     * Returns the current finish reason value maintained by this LlmResponse.
+     * @return The value produced by this operation.
      */
 
     public String getFinishReason()
@@ -105,7 +121,8 @@ public class LlmResponse
         return finishReason;
     }
     /**
-     * Executes getStructuredOutput.
+     * Returns the current structured output value maintained by this LlmResponse.
+     * @return The value produced by this operation.
      */
 
     public Map<String, Object> getStructuredOutput()
@@ -113,7 +130,8 @@ public class LlmResponse
         return structuredOutput;
     }
     /**
-     * Executes isFinal.
+     * Reports whether final is currently satisfied.
+     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
      */
 
     public boolean isFinal()

@@ -1,12 +1,15 @@
 package stark.dataworks.coderaider.gundam.core.tracing;
 /**
- * Class NoopTraceProvider.
+ * NoopTraceProvider implements run tracing and span publication.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class NoopTraceProvider implements TraceProvider
 {
     /**
-     * Executes startSpan.
+     * Performs start span as part of NoopTraceProvider runtime responsibilities.
+     * @param name The name used by this operation.
+     * @return The value produced by this operation.
      */
     @Override
     public TraceSpan startSpan(String name)
@@ -14,7 +17,9 @@ public class NoopTraceProvider implements TraceProvider
         return new TraceSpan()
         {
             /**
-             * Executes annotate.
+             * Performs annotate as part of NoopTraceProvider runtime responsibilities.
+             * @param key The key used by this operation.
+             * @param value The value used by this operation.
              */
             @Override
             public void annotate(String key, String value)
@@ -22,7 +27,7 @@ public class NoopTraceProvider implements TraceProvider
             }
 
             /**
-             * Executes close.
+             * Performs close as part of NoopTraceProvider runtime responsibilities.
              */
             @Override
             public void close()

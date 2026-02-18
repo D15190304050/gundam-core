@@ -11,25 +11,27 @@ import stark.dataworks.coderaider.gundam.core.mcp.approval.McpToolApprovalReques
 import stark.dataworks.coderaider.gundam.core.tool.ITool;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
 /**
- * Class McpManager.
+ * McpManager implements MCP server integration and tool bridging.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class McpManager
 {
     /**
-     * Field servers.
+     * Internal state for servers used while coordinating runtime behavior.
      */
     private final Map<String, McpServerConfig> servers = new ConcurrentHashMap<>();
     /**
-     * Field client.
+     * Internal state for client; used while coordinating runtime behavior.
      */
     private final McpServerClient client;
     /**
-     * Field approvalPolicy.
+     * Internal state for approval policy; used while coordinating runtime behavior.
      */
     private final McpToolApprovalPolicy approvalPolicy;
     /**
-     * Creates a new McpManager instance.
+     * Performs mcp manager as part of McpManager runtime responsibilities.
+     * @param client The client used by this operation.
      */
 
     public McpManager(McpServerClient client)
@@ -37,7 +39,9 @@ public class McpManager
         this(client, new AllowAllMcpToolApprovalPolicy());
     }
     /**
-     * Creates a new McpManager instance.
+     * Performs mcp manager as part of McpManager runtime responsibilities.
+     * @param client The client used by this operation.
+     * @param approvalPolicy The approval policy used by this operation.
      */
 
     public McpManager(McpServerClient client, McpToolApprovalPolicy approvalPolicy)
@@ -46,7 +50,8 @@ public class McpManager
         this.approvalPolicy = approvalPolicy;
     }
     /**
-     * Executes registerServer.
+     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
+     * @param serverConfig The server config used by this operation.
      */
 
     public void registerServer(McpServerConfig serverConfig)
@@ -54,7 +59,9 @@ public class McpManager
         servers.put(serverConfig.getServerId(), serverConfig);
     }
     /**
-     * Executes listTools.
+     * Performs list tools as part of McpManager runtime responsibilities.
+     * @param serverId The server id used by this operation.
+     * @return The value produced by this operation.
      */
 
     public List<McpToolDescriptor> listTools(String serverId)
@@ -63,7 +70,9 @@ public class McpManager
         return client.listTools(config);
     }
     /**
-     * Executes listResources.
+     * Performs list resources as part of McpManager runtime responsibilities.
+     * @param serverId The server id used by this operation.
+     * @return The value produced by this operation.
      */
 
     public List<McpResource> listResources(String serverId)
@@ -71,7 +80,9 @@ public class McpManager
         return client.listResources(requireServer(serverId));
     }
     /**
-     * Executes listResourceTemplates.
+     * Performs list resource templates as part of McpManager runtime responsibilities.
+     * @param serverId The server id used by this operation.
+     * @return The value produced by this operation.
      */
 
     public List<McpResourceTemplate> listResourceTemplates(String serverId)
@@ -79,7 +90,10 @@ public class McpManager
         return client.listResourceTemplates(requireServer(serverId));
     }
     /**
-     * Executes readResource.
+     * Performs read resource as part of McpManager runtime responsibilities.
+     * @param serverId The server id used by this operation.
+     * @param uri The uri used by this operation.
+     * @return The value produced by this operation.
      */
 
     public McpResource readResource(String serverId, String uri)
@@ -87,7 +101,9 @@ public class McpManager
         return client.readResource(requireServer(serverId), uri);
     }
     /**
-     * Executes resolveToolsAsLocalTools.
+     * Resolves tools as local tools from configured registries before execution continues.
+     * @param serverId The server id used by this operation.
+     * @return The value produced by this operation.
      */
 
     public List<ITool> resolveToolsAsLocalTools(String serverId)
@@ -101,7 +117,9 @@ public class McpManager
         return tools;
     }
     /**
-     * Executes requireServer.
+     * Performs require server as part of McpManager runtime responsibilities.
+     * @param serverId The server id used by this operation.
+     * @return The value produced by this operation.
      */
 
     private McpServerConfig requireServer(String serverId)
@@ -114,29 +132,34 @@ public class McpManager
         return config;
     }
     /**
-     * Class McpProxyTool.
+     * McpProxyTool implements MCP server integration and tool bridging.
+     * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
      */
 
     private static class McpProxyTool implements ITool
     {
         /**
-         * Field config.
+         * Internal state for config; used while coordinating runtime behavior.
          */
         private final McpServerConfig config;
         /**
-         * Field descriptor.
+         * Internal state for descriptor; used while coordinating runtime behavior.
          */
         private final McpToolDescriptor descriptor;
         /**
-         * Field client.
+         * Internal state for client; used while coordinating runtime behavior.
          */
         private final McpServerClient client;
         /**
-         * Field approvalPolicy.
+         * Internal state for approval policy; used while coordinating runtime behavior.
          */
         private final McpToolApprovalPolicy approvalPolicy;
         /**
-         * Creates a new McpProxyTool instance.
+         * Performs mcp proxy tool as part of McpManager runtime responsibilities.
+         * @param config The config used by this operation.
+         * @param descriptor The descriptor used by this operation.
+         * @param client The client used by this operation.
+         * @param approvalPolicy The approval policy used by this operation.
          */
 
         private McpProxyTool(McpServerConfig config, McpToolDescriptor descriptor, McpServerClient client, McpToolApprovalPolicy approvalPolicy)
@@ -148,7 +171,8 @@ public class McpManager
         }
 
         /**
-         * Executes definition.
+         * Performs definition as part of McpManager runtime responsibilities.
+         * @return The value produced by this operation.
          */
         @Override
         public ToolDefinition definition()
@@ -157,7 +181,9 @@ public class McpManager
         }
 
         /**
-         * Executes execute.
+         * Runs the primary execution flow, coordinating model/tool work and runtime policies.
+         * @param input The input used by this operation.
+         * @return The value produced by this operation.
          */
         @Override
         public String execute(Map<String, Object> input)

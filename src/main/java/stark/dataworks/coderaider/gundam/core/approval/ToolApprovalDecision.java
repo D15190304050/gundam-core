@@ -2,21 +2,24 @@ package stark.dataworks.coderaider.gundam.core.approval;
 
 import java.util.Objects;
 /**
- * Class ToolApprovalDecision.
+ * ToolApprovalDecision implements tool approval workflow.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class ToolApprovalDecision
 {
     /**
-     * Field approved.
+     * Internal state for approved; used while coordinating runtime behavior.
      */
     private final boolean approved;
     /**
-     * Field reason.
+     * Internal state for reason; used while coordinating runtime behavior.
      */
     private final String reason;
     /**
-     * Creates a new ToolApprovalDecision instance.
+     * Performs tool approval decision as part of ToolApprovalDecision runtime responsibilities.
+     * @param approved The approved used by this operation.
+     * @param reason The reason used by this operation.
      */
 
     private ToolApprovalDecision(boolean approved, String reason)
@@ -25,7 +28,8 @@ public class ToolApprovalDecision
         this.reason = reason == null ? "" : reason;
     }
     /**
-     * Executes approve.
+     * Performs approve as part of ToolApprovalDecision runtime responsibilities.
+     * @return The value produced by this operation.
      */
 
     public static ToolApprovalDecision approve()
@@ -33,7 +37,9 @@ public class ToolApprovalDecision
         return new ToolApprovalDecision(true, "");
     }
     /**
-     * Executes deny.
+     * Performs deny as part of ToolApprovalDecision runtime responsibilities.
+     * @param reason The reason used by this operation.
+     * @return The value produced by this operation.
      */
 
     public static ToolApprovalDecision deny(String reason)
@@ -41,7 +47,8 @@ public class ToolApprovalDecision
         return new ToolApprovalDecision(false, Objects.requireNonNull(reason, "reason"));
     }
     /**
-     * Executes isApproved.
+     * Reports whether approved is currently satisfied.
+     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
      */
 
     public boolean isApproved()
@@ -49,7 +56,8 @@ public class ToolApprovalDecision
         return approved;
     }
     /**
-     * Executes getReason.
+     * Returns the current reason value maintained by this ToolApprovalDecision.
+     * @return The value produced by this operation.
      */
 
     public String getReason()

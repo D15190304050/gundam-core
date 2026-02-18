@@ -4,17 +4,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 /**
- * Class OutputSchemaRegistry.
+ * OutputSchemaRegistry implements structured output schema validation.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class OutputSchemaRegistry
 {
     /**
-     * Field schemas.
+     * Internal state for schemas used while coordinating runtime behavior.
      */
     private final Map<String, OutputSchema> schemas = new ConcurrentHashMap<>();
     /**
-     * Executes register.
+     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
+     * @param schema The schema used by this operation.
      */
 
     public void register(OutputSchema schema)
@@ -22,7 +24,9 @@ public class OutputSchemaRegistry
         schemas.put(schema.name(), schema);
     }
     /**
-     * Executes get.
+     * Returns the value requested by the caller from this OutputSchemaRegistry.
+     * @param name The name used by this operation.
+     * @return The value produced by this operation.
      */
 
     public Optional<OutputSchema> get(String name)

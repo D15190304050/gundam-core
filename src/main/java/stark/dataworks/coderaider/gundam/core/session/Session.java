@@ -6,21 +6,24 @@ import java.util.Objects;
 
 import stark.dataworks.coderaider.gundam.core.model.Message;
 /**
- * Class Session.
+ * Session implements session persistence and restoration.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class Session
 {
     /**
-     * Field id.
+     * Internal state for id; used while coordinating runtime behavior.
      */
     private final String id;
     /**
-     * Field messages.
+     * Internal state for messages; used while coordinating runtime behavior.
      */
     private final List<Message> messages;
     /**
-     * Creates a new Session instance.
+     * Performs session as part of Session runtime responsibilities.
+     * @param id The id used by this operation.
+     * @param messages The messages used by this operation.
      */
 
     public Session(String id, List<Message> messages)
@@ -29,7 +32,8 @@ public class Session
         this.messages = Collections.unmodifiableList(Objects.requireNonNull(messages, "messages"));
     }
     /**
-     * Executes getId.
+     * Returns the current id value maintained by this Session.
+     * @return The value produced by this operation.
      */
 
     public String getId()
@@ -37,7 +41,8 @@ public class Session
         return id;
     }
     /**
-     * Executes getMessages.
+     * Returns the current messages value maintained by this Session.
+     * @return The value produced by this operation.
      */
 
     public List<Message> getMessages()

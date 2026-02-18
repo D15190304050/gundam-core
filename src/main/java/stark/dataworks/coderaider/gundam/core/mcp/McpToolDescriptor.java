@@ -3,25 +3,29 @@ package stark.dataworks.coderaider.gundam.core.mcp;
 import java.util.Map;
 import java.util.Objects;
 /**
- * Class McpToolDescriptor.
+ * McpToolDescriptor implements MCP server integration and tool bridging.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class McpToolDescriptor
 {
     /**
-     * Field name.
+     * Internal state for name; used while coordinating runtime behavior.
      */
     private final String name;
     /**
-     * Field description.
+     * Internal state for description; used while coordinating runtime behavior.
      */
     private final String description;
     /**
-     * Field inputSchema.
+     * Internal state for input schema; used while coordinating runtime behavior.
      */
     private final Map<String, Object> inputSchema;
     /**
-     * Creates a new McpToolDescriptor instance.
+     * Performs mcp tool descriptor as part of McpToolDescriptor runtime responsibilities.
+     * @param name The name used by this operation.
+     * @param description The description used by this operation.
+     * @param inputSchema The input schema used by this operation.
      */
 
     public McpToolDescriptor(String name, String description, Map<String, Object> inputSchema)
@@ -31,7 +35,8 @@ public class McpToolDescriptor
         this.inputSchema = inputSchema == null ? Map.of() : Map.copyOf(inputSchema);
     }
     /**
-     * Executes getName.
+     * Returns the current name value maintained by this McpToolDescriptor.
+     * @return The value produced by this operation.
      */
 
     public String getName()
@@ -39,7 +44,8 @@ public class McpToolDescriptor
         return name;
     }
     /**
-     * Executes getDescription.
+     * Returns the current description value maintained by this McpToolDescriptor.
+     * @return The value produced by this operation.
      */
 
     public String getDescription()
@@ -47,7 +53,8 @@ public class McpToolDescriptor
         return description;
     }
     /**
-     * Executes getInputSchema.
+     * Returns the current input schema value maintained by this McpToolDescriptor.
+     * @return The value produced by this operation.
      */
 
     public Map<String, Object> getInputSchema()

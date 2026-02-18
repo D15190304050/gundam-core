@@ -7,33 +7,39 @@ import java.util.Objects;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 /**
- * Class RunResult.
+ * RunResult implements normalized run result structures.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class RunResult
 {
     /**
-     * Field finalOutput.
+     * Internal state for final output; used while coordinating runtime behavior.
      */
     private final String finalOutput;
     /**
-     * Field finalAgentId.
+     * Internal state for final agent id; used while coordinating runtime behavior.
      */
     private final String finalAgentId;
     /**
-     * Field usage.
+     * Internal state for usage; used while coordinating runtime behavior.
      */
     private final TokenUsage usage;
     /**
-     * Field items.
+     * Internal state for items; used while coordinating runtime behavior.
      */
     private final List<RunItem> items;
     /**
-     * Field events.
+     * Internal state for events; used while coordinating runtime behavior.
      */
     private final List<RunEvent> events;
     /**
-     * Creates a new RunResult instance.
+     * Performs run result as part of RunResult runtime responsibilities.
+     * @param finalOutput The final output used by this operation.
+     * @param finalAgentId The final agent id used by this operation.
+     * @param usage The usage used by this operation.
+     * @param items The items used by this operation.
+     * @param events The events used by this operation.
      */
 
     public RunResult(String finalOutput,
@@ -49,7 +55,8 @@ public class RunResult
         this.events = Collections.unmodifiableList(Objects.requireNonNull(events, "events"));
     }
     /**
-     * Executes getFinalOutput.
+     * Returns the current final output value maintained by this RunResult.
+     * @return The value produced by this operation.
      */
 
     public String getFinalOutput()
@@ -57,7 +64,8 @@ public class RunResult
         return finalOutput;
     }
     /**
-     * Executes getFinalAgentId.
+     * Returns the current final agent id value maintained by this RunResult.
+     * @return The value produced by this operation.
      */
 
     public String getFinalAgentId()
@@ -65,7 +73,8 @@ public class RunResult
         return finalAgentId;
     }
     /**
-     * Executes getUsage.
+     * Returns the current usage value maintained by this RunResult.
+     * @return The value produced by this operation.
      */
 
     public TokenUsage getUsage()
@@ -73,7 +82,8 @@ public class RunResult
         return usage;
     }
     /**
-     * Executes getItems.
+     * Returns the current items value maintained by this RunResult.
+     * @return The value produced by this operation.
      */
 
     public List<RunItem> getItems()
@@ -81,7 +91,8 @@ public class RunResult
         return items;
     }
     /**
-     * Executes getEvents.
+     * Returns the current events value maintained by this RunResult.
+     * @return The value produced by this operation.
      */
 
     public List<RunEvent> getEvents()

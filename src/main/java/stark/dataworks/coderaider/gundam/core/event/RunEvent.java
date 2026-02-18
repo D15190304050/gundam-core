@@ -5,25 +5,28 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 /**
- * Class RunEvent.
+ * RunEvent implements run event payloads.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class RunEvent
 {
     /**
-     * Field type.
+     * Internal state for type; used while coordinating runtime behavior.
      */
     private final RunEventType type;
     /**
-     * Field timestamp.
+     * Internal state for timestamp; used while coordinating runtime behavior.
      */
     private final Instant timestamp;
     /**
-     * Field attributes.
+     * Internal state for attributes; used while coordinating runtime behavior.
      */
     private final Map<String, Object> attributes;
     /**
-     * Creates a new RunEvent instance.
+     * Performs run event as part of RunEvent runtime responsibilities.
+     * @param type The type used by this operation.
+     * @param attributes The attributes used by this operation.
      */
 
     public RunEvent(RunEventType type, Map<String, Object> attributes)
@@ -33,7 +36,8 @@ public class RunEvent
         this.attributes = Collections.unmodifiableMap(attributes == null ? Map.of() : attributes);
     }
     /**
-     * Executes getType.
+     * Returns the current type value maintained by this RunEvent.
+     * @return The value produced by this operation.
      */
 
     public RunEventType getType()
@@ -41,7 +45,8 @@ public class RunEvent
         return type;
     }
     /**
-     * Executes getTimestamp.
+     * Returns the current timestamp value maintained by this RunEvent.
+     * @return The value produced by this operation.
      */
 
     public Instant getTimestamp()
@@ -49,7 +54,8 @@ public class RunEvent
         return timestamp;
     }
     /**
-     * Executes getAttributes.
+     * Returns the current attributes value maintained by this RunEvent.
+     * @return The value produced by this operation.
      */
 
     public Map<String, Object> getAttributes()

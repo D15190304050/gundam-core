@@ -6,18 +6,20 @@ import java.util.List;
 
 import stark.dataworks.coderaider.gundam.core.model.Message;
 /**
- * Class InMemoryAgentMemory.
+ * InMemoryAgentMemory implements conversation state retention between turns.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class InMemoryAgentMemory implements IAgentMemory
 {
     /**
-     * Field messages.
+     * Ordered conversation transcript retained during a run.
      */
     private final List<Message> messages = new ArrayList<>();
 
     /**
-     * Executes messages.
+     * Performs messages as part of InMemoryAgentMemory runtime responsibilities.
+     * @return The value produced by this operation.
      */
     @Override
     public List<Message> messages()
@@ -26,7 +28,8 @@ public class InMemoryAgentMemory implements IAgentMemory
     }
 
     /**
-     * Executes append.
+     * Adds data to internal state consumed by later runtime steps.
+     * @param message The message used by this operation.
      */
     @Override
     public void append(Message message)

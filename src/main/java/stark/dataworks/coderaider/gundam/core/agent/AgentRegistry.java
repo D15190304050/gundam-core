@@ -4,18 +4,22 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 /**
- * Class AgentRegistry.
+ * Thread-safe in-memory registry of runtime agents.
+ * <p>
+ * The runner and handoff router rely on this registry to resolve agent ids declared in JSON definitions into
+ * executable {@link IAgent} instances.
  */
 
 public class AgentRegistry implements IAgentRegistry
 {
     /**
-     * Field agents.
+     * Thread-safe index of agents keyed by id for fast runtime lookup.
      */
     private final Map<String, IAgent> agents = new ConcurrentHashMap<>();
 
     /**
-     * Executes register.
+     * Registers an agent by its definition id.
+     * @param agent Agent instance to make discoverable by id-based lookup.
      */
     @Override
     public void register(IAgent agent)
@@ -24,7 +28,9 @@ public class AgentRegistry implements IAgentRegistry
     }
 
     /**
-     * Executes get.
+     * Looks up an agent by id.
+     * @param agentId Agent definition id.
+     * @return Matching agent if present; otherwise {@link Optional#empty()}.
      */
     @Override
     public Optional<IAgent> get(String agentId)
