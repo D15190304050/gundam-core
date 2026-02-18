@@ -279,3 +279,34 @@ It is not a convenience layer.
 It is the runtime engine for declarative, extensible, provider-agnostic AI agents.
 
 It is the kernel.
+
+---
+
+# Current Implementation Status (Java Kernel)
+
+The Java kernel now includes the following runtime capabilities aligned with OpenAI Agents SDK concepts:
+
+- Agent + declarative agent definition loading from JSON
+- Agent registry and runtime agent switching
+- Step/turn execution runtime with max-turn stopping
+- Provider-agnostic LLM SPI and configurable generation options
+- Tool abstractions, tool registries, and JSON-schema conversion helpers
+- Tool call execution loop and tool lifecycle hooks
+- Agent lifecycle hooks
+- Agent-to-agent handoff with handoff allow-list + handoff filters/router
+- In-memory conversation memory
+- Session persistence abstraction (`SessionStore`) and in-memory implementation
+- Input and output guardrails
+- Run result model with timeline events and items
+- Token usage tracking
+- Tracing abstractions (`TraceProvider`) with no-op implementation
+- Structured output validation via output schemas
+- Tool approval policy for human-in-the-loop style gating
+- Retry policy for resilient model invocation
+- Event publisher/listener for streaming-like run observability
+- Built-in tool ecosystem stubs (web/file/shell/code/image/function)
+- MCP subsystem foundation (server config/client/manager + proxy tools + resources/templates)
+- Rich run error handling (typed exceptions + handler registry)
+- Tracing processor pipeline (custom processors + emitted trace events)
+
+This repository is designed as a runtime kernel; providers/adapters can plug in through `ILlmClient`, `SessionStore`, tracing providers, and tool implementations.
