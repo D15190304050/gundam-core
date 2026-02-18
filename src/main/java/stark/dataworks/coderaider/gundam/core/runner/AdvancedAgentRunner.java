@@ -216,8 +216,23 @@ public class AdvancedAgentRunner {
             .map(h -> h.onError(new RunErrorData(kind, error.getMessage(), error)))
             .orElse(RunErrorHandlerResult.notHandled());
 
-        String finalOutput = decision.isHandled() ? decision.getFinalOutput() : "Run failed: " + error.getMessage();
+        String finalOutput;
+        if (decision.isHandled()) {
+            finalOutput = decision.getFinalOutput();
+        } else if (kind == RunErrorKind.INPUT_GUARDRAIL) {
+            finalOutput = "Blocked by input guardrail";
+        } else if (kind == RunErrorKind.OUTPUT_GUARDRAIL) {
+            finalOutput = "Blocked by output guardrail";
+        } else {
+            finalOutput = "Run failed: " + error.getMessage();
+        }
+        
         context.getItems().add(new RunItem(RunItemType.SYSTEM_EVENT, finalOutput, Map.of("errorKind", kind.name())));
+        
+        if (kind == RunErrorKind.INPUT_GUARDRAIL || kind == RunErrorKind.OUTPUT_GUARDRAIL) {
+            emit(context, new RunHooks() {}, RunEventType.GUARDRAIL_BLOCKED, Map.of("kind", kind.name(), "message", error.getMessage()));
+        }
+        
         emit(context, new RunHooks() {}, RunEventType.RUN_FAILED, Map.of("kind", kind.name(), "message", error.getMessage()));
         return finalizeResult(context, finalOutput, config);
     }
