@@ -1,11 +1,14 @@
 package stark.dataworks.coderaider.gundam.core.runerror;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 /**
  * RunErrorData implements error classification and handler dispatch.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class RunErrorData
 {
 
@@ -35,32 +38,5 @@ public class RunErrorData
         this.kind = Objects.requireNonNull(kind, "kind");
         this.message = message == null ? "" : message;
         this.cause = cause;
-    }
-
-    /**
-     * Returns the current kind value maintained by this RunErrorData.
-     * @return The value produced by this operation.
-     */
-    public RunErrorKind getKind()
-    {
-        return kind;
-    }
-
-    /**
-     * Returns the current message value maintained by this RunErrorData.
-     * @return The value produced by this operation.
-     */
-    public String getMessage()
-    {
-        return message;
-    }
-
-    /**
-     * Returns the current cause value maintained by this RunErrorData.
-     * @return The value produced by this operation.
-     */
-    public Throwable getCause()
-    {
-        return cause;
     }
 }

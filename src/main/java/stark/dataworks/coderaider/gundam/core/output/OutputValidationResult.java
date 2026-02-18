@@ -1,9 +1,12 @@
 package stark.dataworks.coderaider.gundam.core.output;
 
+import lombok.Getter;
+
 /**
  * OutputValidationResult implements structured output schema validation.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class OutputValidationResult
 {
 
@@ -45,23 +48,5 @@ public class OutputValidationResult
     public static OutputValidationResult fail(String reason)
     {
         return new OutputValidationResult(false, reason);
-    }
-
-    /**
-     * Reports whether valid is currently satisfied.
-     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
-     */
-    public boolean isValid()
-    {
-        return valid;
-    }
-
-    /**
-     * Returns the current reason value maintained by this OutputValidationResult.
-     * @return The value produced by this operation.
-     */
-    public String getReason()
-    {
-        return reason;
     }
 }

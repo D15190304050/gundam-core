@@ -1,11 +1,14 @@
 package stark.dataworks.coderaider.gundam.core.llmspi;
 
+import lombok.Getter;
+
 import java.util.Map;
 
 /**
  * LlmOptions implements provider-agnostic model invocation contracts.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class LlmOptions
 {
 
@@ -63,50 +66,5 @@ public class LlmOptions
         this.toolChoice = toolChoice == null ? "auto" : toolChoice;
         this.responseFormat = responseFormat == null ? "text" : responseFormat;
         this.providerOptions = providerOptions == null ? Map.of() : Map.copyOf(providerOptions);
-    }
-
-    /**
-     * Returns the current temperature value maintained by this LlmOptions.
-     * @return The value produced by this operation.
-     */
-    public double getTemperature()
-    {
-        return temperature;
-    }
-
-    /**
-     * Returns the current max tokens value maintained by this LlmOptions.
-     * @return The value produced by this operation.
-     */
-    public int getMaxTokens()
-    {
-        return maxTokens;
-    }
-
-    /**
-     * Returns the current tool choice value maintained by this LlmOptions.
-     * @return The value produced by this operation.
-     */
-    public String getToolChoice()
-    {
-        return toolChoice;
-    }
-
-    /**
-     * Returns the current response format value maintained by this LlmOptions.
-     * @return The value produced by this operation.
-     */
-    public String getResponseFormat()
-    {
-        return responseFormat;
-    }
-
-    /**
-     * Returns the current provider options value maintained by this LlmOptions.
-     * @return The value produced by this operation.
-     */
-    public Map<String, Object> getProviderOptions()
-    {
-        return providerOptions;
     }
 }

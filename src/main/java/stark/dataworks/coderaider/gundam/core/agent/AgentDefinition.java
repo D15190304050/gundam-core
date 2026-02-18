@@ -1,6 +1,8 @@
 package stark.dataworks.coderaider.gundam.core.agent;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +14,8 @@ import java.util.Objects;
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class AgentDefinition
 {
 

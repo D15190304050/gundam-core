@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.result;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -8,6 +10,7 @@ import java.util.Objects;
  * RunItem implements normalized run result structures.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class RunItem
 {
 
@@ -37,32 +40,5 @@ public class RunItem
         this.type = Objects.requireNonNull(type, "type");
         this.content = content == null ? "" : content;
         this.metadata = Collections.unmodifiableMap(metadata == null ? Map.of() : metadata);
-    }
-
-    /**
-     * Returns the current type value maintained by this RunItem.
-     * @return The value produced by this operation.
-     */
-    public RunItemType getType()
-    {
-        return type;
-    }
-
-    /**
-     * Returns the current content value maintained by this RunItem.
-     * @return The value produced by this operation.
-     */
-    public String getContent()
-    {
-        return content;
-    }
-
-    /**
-     * Returns the current metadata value maintained by this RunItem.
-     * @return The value produced by this operation.
-     */
-    public Map<String, Object> getMetadata()
-    {
-        return metadata;
     }
 }

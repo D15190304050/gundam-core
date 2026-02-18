@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.event;
 
+import lombok.Getter;
+
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
@@ -9,6 +11,7 @@ import java.util.Objects;
  * RunEvent implements run event payloads.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class RunEvent
 {
 
@@ -37,32 +40,5 @@ public class RunEvent
         this.type = Objects.requireNonNull(type, "type");
         this.timestamp = Instant.now();
         this.attributes = Collections.unmodifiableMap(attributes == null ? Map.of() : attributes);
-    }
-
-    /**
-     * Returns the current type value maintained by this RunEvent.
-     * @return The value produced by this operation.
-     */
-    public RunEventType getType()
-    {
-        return type;
-    }
-
-    /**
-     * Returns the current timestamp value maintained by this RunEvent.
-     * @return The value produced by this operation.
-     */
-    public Instant getTimestamp()
-    {
-        return timestamp;
-    }
-
-    /**
-     * Returns the current attributes value maintained by this RunEvent.
-     * @return The value produced by this operation.
-     */
-    public Map<String, Object> getAttributes()
-    {
-        return attributes;
     }
 }

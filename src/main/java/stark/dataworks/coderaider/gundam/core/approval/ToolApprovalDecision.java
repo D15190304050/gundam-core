@@ -1,11 +1,14 @@
 package stark.dataworks.coderaider.gundam.core.approval;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 /**
  * ToolApprovalDecision implements tool approval workflow.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class ToolApprovalDecision
 {
 
@@ -47,23 +50,5 @@ public class ToolApprovalDecision
     public static ToolApprovalDecision deny(String reason)
     {
         return new ToolApprovalDecision(false, Objects.requireNonNull(reason, "reason"));
-    }
-
-    /**
-     * Reports whether approved is currently satisfied.
-     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
-     */
-    public boolean isApproved()
-    {
-        return approved;
-    }
-
-    /**
-     * Returns the current reason value maintained by this ToolApprovalDecision.
-     * @return The value produced by this operation.
-     */
-    public String getReason()
-    {
-        return reason;
     }
 }

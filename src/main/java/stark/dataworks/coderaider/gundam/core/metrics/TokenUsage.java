@@ -1,9 +1,12 @@
 package stark.dataworks.coderaider.gundam.core.metrics;
 
+import lombok.Getter;
+
 /**
  * TokenUsage implements token usage tracking.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class TokenUsage
 {
 
@@ -26,24 +29,6 @@ public class TokenUsage
     {
         this.inputTokens = inputTokens;
         this.outputTokens = outputTokens;
-    }
-
-    /**
-     * Returns the current input tokens value maintained by this TokenUsage.
-     * @return The value produced by this operation.
-     */
-    public int getInputTokens()
-    {
-        return inputTokens;
-    }
-
-    /**
-     * Returns the current output tokens value maintained by this TokenUsage.
-     * @return The value produced by this operation.
-     */
-    public int getOutputTokens()
-    {
-        return outputTokens;
     }
 
     /**

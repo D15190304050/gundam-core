@@ -1,9 +1,12 @@
 package stark.dataworks.coderaider.gundam.core.policy;
 
+import lombok.Getter;
+
 /**
  * RetryPolicy implements core runtime responsibilities.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class RetryPolicy
 {
 
@@ -39,23 +42,5 @@ public class RetryPolicy
     public static RetryPolicy none()
     {
         return new RetryPolicy(1, 0);
-    }
-
-    /**
-     * Returns the current max attempts value maintained by this RetryPolicy.
-     * @return The value produced by this operation.
-     */
-    public int getMaxAttempts()
-    {
-        return maxAttempts;
-    }
-
-    /**
-     * Returns the current backoff millis value maintained by this RetryPolicy.
-     * @return The value produced by this operation.
-     */
-    public long getBackoffMillis()
-    {
-        return backoffMillis;
     }
 }

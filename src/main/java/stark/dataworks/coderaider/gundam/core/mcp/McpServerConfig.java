@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.mcp;
 
+import lombok.Getter;
+
 import java.util.Map;
 import java.util.Objects;
 
@@ -7,6 +9,7 @@ import java.util.Objects;
  * McpServerConfig implements MCP server integration and tool bridging.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class McpServerConfig
 {
 
@@ -36,32 +39,5 @@ public class McpServerConfig
         this.serverId = Objects.requireNonNull(serverId, "serverId");
         this.endpoint = Objects.requireNonNull(endpoint, "endpoint");
         this.options = options == null ? Map.of() : Map.copyOf(options);
-    }
-
-    /**
-     * Returns the current server id value maintained by this McpServerConfig.
-     * @return The value produced by this operation.
-     */
-    public String getServerId()
-    {
-        return serverId;
-    }
-
-    /**
-     * Returns the current endpoint value maintained by this McpServerConfig.
-     * @return The value produced by this operation.
-     */
-    public String getEndpoint()
-    {
-        return endpoint;
-    }
-
-    /**
-     * Returns the current options value maintained by this McpServerConfig.
-     * @return The value produced by this operation.
-     */
-    public Map<String, Object> getOptions()
-    {
-        return options;
     }
 }

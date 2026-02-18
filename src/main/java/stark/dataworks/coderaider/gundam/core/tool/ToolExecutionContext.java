@@ -1,11 +1,14 @@
 package stark.dataworks.coderaider.gundam.core.tool;
 
+import lombok.Getter;
+
 import java.util.Map;
 
 /**
  * ToolExecutionContext implements tool contracts, schema metadata, and executable tool registration.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class ToolExecutionContext
 {
 
@@ -28,23 +31,5 @@ public class ToolExecutionContext
     {
         this.agentId = agentId;
         this.runtimeMetadata = runtimeMetadata == null ? Map.of() : Map.copyOf(runtimeMetadata);
-    }
-
-    /**
-     * Returns the current agent id value maintained by this ToolExecutionContext.
-     * @return The value produced by this operation.
-     */
-    public String getAgentId()
-    {
-        return agentId;
-    }
-
-    /**
-     * Returns the current runtime metadata value maintained by this ToolExecutionContext.
-     * @return The value produced by this operation.
-     */
-    public Map<String, Object> getRuntimeMetadata()
-    {
-        return runtimeMetadata;
     }
 }

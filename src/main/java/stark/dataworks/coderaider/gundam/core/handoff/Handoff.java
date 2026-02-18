@@ -1,11 +1,14 @@
 package stark.dataworks.coderaider.gundam.core.handoff;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 /**
  * Handoff implements agent transfer rules between specialized agents.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
+@Getter
 public class Handoff
 {
 
@@ -35,32 +38,5 @@ public class Handoff
         this.fromAgentId = Objects.requireNonNull(fromAgentId, "fromAgentId");
         this.toAgentId = Objects.requireNonNull(toAgentId, "toAgentId");
         this.reason = reason == null ? "" : reason;
-    }
-
-    /**
-     * Returns the current from agent id value maintained by this Handoff.
-     * @return The value produced by this operation.
-     */
-    public String getFromAgentId()
-    {
-        return fromAgentId;
-    }
-
-    /**
-     * Returns the current to agent id value maintained by this Handoff.
-     * @return The value produced by this operation.
-     */
-    public String getToAgentId()
-    {
-        return toAgentId;
-    }
-
-    /**
-     * Returns the current reason value maintained by this Handoff.
-     * @return The value produced by this operation.
-     */
-    public String getReason()
-    {
-        return reason;
     }
 }
