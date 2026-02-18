@@ -4,13 +4,14 @@ import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.tool.ToolCategory;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
+
 /**
  * ComputerTool implements tool contracts, schema metadata, and executable tool registration.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
-
 public class ComputerTool extends AbstractBuiltinTool
 {
+
     /**
      * Performs computer tool as part of ComputerTool runtime responsibilities.
      * @param definition The definition used by this operation.

@@ -3,13 +3,14 @@ package stark.dataworks.coderaider.gundam.core.session;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * InMemorySessionStore implements session persistence and restoration.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
-
 public class InMemorySessionStore implements SessionStore
 {
+
     /**
      * Internal state for sessions used while coordinating runtime behavior.
      */

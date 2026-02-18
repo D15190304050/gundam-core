@@ -59,54 +59,67 @@ import stark.dataworks.coderaider.gundam.core.tracing.TraceSpan;
  */
 public class AdvancedAgentRunner
 {
+
     /**
      * Internal state for llm client; used while coordinating runtime behavior.
      */
     private final ILlmClient llmClient;
+
     /**
      * Internal state for tool registry; used while coordinating runtime behavior.
      */
     private final IToolRegistry toolRegistry;
+
     /**
      * Internal state for agent registry; used while coordinating runtime behavior.
      */
     private final IAgentRegistry agentRegistry;
+
     /**
      * Internal state for context builder; used while coordinating runtime behavior.
      */
     private final IContextBuilder contextBuilder;
+
     /**
      * Internal state for hook manager; used while coordinating runtime behavior.
      */
     private final HookManager hookManager;
+
     /**
      * Internal state for guardrail engine; used while coordinating runtime behavior.
      */
     private final GuardrailEngine guardrailEngine;
+
     /**
      * Internal state for handoff router; used while coordinating runtime behavior.
      */
     private final HandoffRouter handoffRouter;
+
     /**
      * Internal state for session store; used while coordinating runtime behavior.
      */
     private final SessionStore sessionStore;
+
     /**
      * Internal state for trace provider; used while coordinating runtime behavior.
      */
     private final TraceProvider traceProvider;
+
     /**
      * Internal state for tool approval policy; used while coordinating runtime behavior.
      */
     private final ToolApprovalPolicy toolApprovalPolicy;
+
     /**
      * Internal state for output schema registry; used while coordinating runtime behavior.
      */
     private final OutputSchemaRegistry outputSchemaRegistry;
+
     /**
      * Internal state for output validator; used while coordinating runtime behavior.
      */
     private final OutputValidator outputValidator;
+
     /**
      * Internal state for event publisher; used while coordinating runtime behavior.
      */

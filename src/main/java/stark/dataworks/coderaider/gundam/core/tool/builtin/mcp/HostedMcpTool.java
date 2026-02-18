@@ -5,32 +5,35 @@ import java.util.Map;
 import stark.dataworks.coderaider.gundam.core.mcp.McpManager;
 import stark.dataworks.coderaider.gundam.core.tool.ITool;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
+
 /**
  * HostedMcpTool implements tool contracts, schema metadata, and executable tool registration.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
-
 public class HostedMcpTool implements ITool
 {
+
     /**
      * Internal state for server id; used while coordinating runtime behavior.
      */
     private final String serverId;
+
     /**
      * Internal state for tool name; used while coordinating runtime behavior.
      */
     private final String toolName;
+
     /**
      * Internal state for manager; used while coordinating runtime behavior.
      */
     private final McpManager manager;
+
     /**
      * Performs hosted mcp tool as part of HostedMcpTool runtime responsibilities.
      * @param serverId The server id used by this operation.
      * @param toolName The tool name used by this operation.
      * @param manager The manager used by this operation.
      */
-
     public HostedMcpTool(String serverId, String toolName, McpManager manager)
     {
         this.serverId = serverId;

@@ -5,22 +5,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.tracing.processor.TracingProcessors;
+
 /**
  * ProcessorTraceProvider implements run tracing and span publication.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
-
 public class ProcessorTraceProvider implements TraceProvider
 {
+
     /**
      * Internal state for processors; used while coordinating runtime behavior.
      */
     private final TracingProcessors processors;
+
     /**
      * Performs processor trace provider as part of ProcessorTraceProvider runtime responsibilities.
      * @param processors The processors used by this operation.
      */
-
     public ProcessorTraceProvider(TracingProcessors processors)
     {
         this.processors = processors;
@@ -36,6 +37,7 @@ public class ProcessorTraceProvider implements TraceProvider
     {
         return new TraceSpan()
         {
+
             /**
              * Internal state for attrs used while coordinating runtime behavior.
              */

@@ -8,6 +8,7 @@ import java.util.Map;
  */
 public class OutputValidator
 {
+
     /**
      * Validates  and throws when required constraints are violated.
      * @param structuredOutput The structured output used by this operation.

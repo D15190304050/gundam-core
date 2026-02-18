@@ -17,33 +17,39 @@ import stark.dataworks.coderaider.gundam.core.model.ToolCall;
 import stark.dataworks.coderaider.gundam.core.tool.ITool;
 import stark.dataworks.coderaider.gundam.core.tool.IToolRegistry;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
+
 /**
  * DefaultStepEngine implements single-step execution that binds model calls, tool calls, and memory updates.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
-
 public class DefaultStepEngine implements IStepEngine
 {
+
     /**
      * Internal state for llm client; used while coordinating runtime behavior.
      */
     private final ILlmClient llmClient;
+
     /**
      * Internal state for tool registry; used while coordinating runtime behavior.
      */
     private final IToolRegistry toolRegistry;
+
     /**
      * Internal state for agent registry; used while coordinating runtime behavior.
      */
     private final IAgentRegistry agentRegistry;
+
     /**
      * Internal state for context builder; used while coordinating runtime behavior.
      */
     private final IContextBuilder contextBuilder;
+
     /**
      * Internal state for hooks; used while coordinating runtime behavior.
      */
     private final HookManager hooks;
+
     /**
      * Performs default step engine as part of DefaultStepEngine runtime responsibilities.
      * @param llmClient The llm client used by this operation.
@@ -52,7 +58,6 @@ public class DefaultStepEngine implements IStepEngine
      * @param contextBuilder The context builder used by this operation.
      * @param hooks The hooks used by this operation.
      */
-
     public DefaultStepEngine(ILlmClient llmClient,
                              IToolRegistry toolRegistry,
                              IAgentRegistry agentRegistry,

@@ -7,13 +7,14 @@ import java.util.stream.Collectors;
 
 import stark.dataworks.coderaider.gundam.core.tool.ToolCategory;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
+
 /**
  * LocalShellTool implements tool contracts, schema metadata, and executable tool registration.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
-
 public class LocalShellTool extends AbstractBuiltinTool
 {
+
     /**
      * Performs local shell tool as part of LocalShellTool runtime responsibilities.
      * @param definition The definition used by this operation.

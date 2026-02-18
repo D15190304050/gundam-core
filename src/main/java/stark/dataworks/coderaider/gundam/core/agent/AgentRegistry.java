@@ -3,15 +3,16 @@ package stark.dataworks.coderaider.gundam.core.agent;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Thread-safe in-memory registry of runtime agents.
  * <p>
  * The runner and handoff router rely on this registry to resolve agent ids declared in JSON definitions into
  * executable {@link IAgent} instances.
  */
-
 public class AgentRegistry implements IAgentRegistry
 {
+
     /**
      * Thread-safe index of agents keyed by id for fast runtime lookup.
      */

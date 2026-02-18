@@ -1,9 +1,9 @@
 package stark.dataworks.coderaider.gundam.core.event;
+
 /**
  * RunEventType implements run event payloads.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
-
 public enum RunEventType
 {
     RUN_STARTED,

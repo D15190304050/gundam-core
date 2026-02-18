@@ -4,13 +4,14 @@ import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.tool.ToolCategory;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
+
 /**
  * CodeInterpreterTool implements tool contracts, schema metadata, and executable tool registration.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
-
 public class CodeInterpreterTool extends AbstractBuiltinTool
 {
+
     /**
      * Performs code interpreter tool as part of CodeInterpreterTool runtime responsibilities.
      * @param definition The definition used by this operation.

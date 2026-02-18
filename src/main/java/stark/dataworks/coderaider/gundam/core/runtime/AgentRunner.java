@@ -4,22 +4,23 @@ import stark.dataworks.coderaider.gundam.core.agent.IAgent;
 import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
 import stark.dataworks.coderaider.gundam.core.memory.InMemoryAgentMemory;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsageTracker;
+
 /**
  * AgentRunner implements single-step execution that binds model calls, tool calls, and memory updates.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
-
 public class AgentRunner implements IAgentRunner
 {
+
     /**
      * Internal state for step engine; used while coordinating runtime behavior.
      */
     private final IStepEngine stepEngine;
+
     /**
      * Performs agent runner as part of AgentRunner runtime responsibilities.
      * @param stepEngine The step engine used by this operation.
      */
-
     public AgentRunner(IStepEngine stepEngine)
     {
         this.stepEngine = stepEngine;

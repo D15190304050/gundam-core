@@ -3,13 +3,14 @@ package stark.dataworks.coderaider.gundam.core.tool;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * ToolRegistry implements tool contracts, schema metadata, and executable tool registration.
  * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
-
 public class ToolRegistry implements IToolRegistry
 {
+
     /**
      * Internal state for tools used while coordinating runtime behavior.
      */
