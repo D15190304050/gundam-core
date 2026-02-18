@@ -1,6 +1,8 @@
 package stark.dataworks.coderaider.gundam.core.runtime;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
@@ -13,6 +15,7 @@ import stark.dataworks.coderaider.gundam.core.llmspi.LlmOptions;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmStreamListener;
+import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.model.Message;
 import stark.dataworks.coderaider.gundam.core.model.Role;
 import stark.dataworks.coderaider.gundam.core.model.ToolCall;
@@ -104,28 +107,79 @@ public class DefaultStepEngine implements IStepEngine
                 currentAgent.definition().getModel(),
                 messages,
                 tools,
-                // TODO: make this configurable, temperature & max tokens should be get from agent definition.
-                new LlmOptions(0.2, 512));
-            LlmStreamListener streamListener = delta -> hooks.onModelResponseDelta(context, delta);
+                new LlmOptions(currentAgent.definition().getModelTemperature(),
+                    currentAgent.definition().getModelMaxTokens(),
+                    currentAgent.definition().getModelToolChoice(),
+                    currentAgent.definition().getModelResponseFormat(),
+                    currentAgent.definition().getModelProviderOptions()));
 
-            // TODO: I don't think the stream mode response is working correctly here.
-            // The stream mode should return a stream of deltas, maybe a Flux<String> or something similar, so that we can still get token usage, tool call, etc.
-            // Then we can subscribe to that stream and update the memory with each delta.
-            // And we can return the stream as the output to frontend, to reduce TTFT (time to first token).
+            StringBuilder streamedContent = new StringBuilder();
+            List<ToolCall> streamedToolCalls = new ArrayList<>();
+            TokenUsage[] streamedTokenUsage = new TokenUsage[1];
+            String[] streamedHandoff = new String[1];
+            LlmResponse[] streamedFinalResponse = new LlmResponse[1];
+
+            LlmStreamListener streamListener = new LlmStreamListener()
+            {
+                @Override
+                public void onDelta(String delta)
+                {
+                    streamedContent.append(delta);
+                    hooks.onModelResponseDelta(context, delta);
+                }
+
+                @Override
+                public void onToolCall(ToolCall toolCall)
+                {
+                    if (toolCall != null)
+                    {
+                        streamedToolCalls.add(toolCall);
+                    }
+                }
+
+                @Override
+                public void onTokenUsage(TokenUsage tokenUsage)
+                {
+                    if (tokenUsage != null)
+                    {
+                        streamedTokenUsage[0] = tokenUsage;
+                    }
+                }
+
+                @Override
+                public void onHandoff(String handoffAgentId)
+                {
+                    streamedHandoff[0] = handoffAgentId;
+                }
+
+                @Override
+                public void onCompleted(LlmResponse response)
+                {
+                    streamedFinalResponse[0] = response;
+                }
+            };
+
             LlmResponse response = streamModelResponse
                 ? llmClient.chatStream(request, streamListener)
                 : llmClient.chat(request);
 
-            context.getTokenUsageTracker().add(response.getTokenUsage());
+            LlmResponse effectiveResponse = mergeWithStreamedResponse(response,
+                streamedFinalResponse[0],
+                streamedContent.toString(),
+                streamedToolCalls,
+                streamedHandoff[0],
+                streamedTokenUsage[0]);
 
-            if (!response.getContent().isBlank())
+            context.getTokenUsageTracker().add(effectiveResponse.getTokenUsage());
+
+            if (!effectiveResponse.getContent().isBlank())
             {
-                context.getMemory().append(new Message(Role.ASSISTANT, response.getContent()));
+                context.getMemory().append(new Message(Role.ASSISTANT, effectiveResponse.getContent()));
             }
 
-            if (response.getHandoffAgentId().isPresent())
+            if (effectiveResponse.getHandoffAgentId().isPresent())
             {
-                String handoffId = response.getHandoffAgentId().get();
+                String handoffId = effectiveResponse.getHandoffAgentId().get();
                 IAgent nextAgent = agentRegistry.get(handoffId)
                     .orElseThrow(() -> new IllegalStateException("Handoff target not found: " + handoffId));
                 context.setAgent(nextAgent);
@@ -133,9 +187,9 @@ public class DefaultStepEngine implements IStepEngine
                 continue;
             }
 
-            if (!response.getToolCalls().isEmpty())
+            if (!effectiveResponse.getToolCalls().isEmpty())
             {
-                for (ToolCall toolCall : response.getToolCalls())
+                for (ToolCall toolCall : effectiveResponse.getToolCalls())
                 {
                     ITool tool = toolRegistry.get(toolCall.getToolName())
                         .orElseThrow(() -> new IllegalStateException("Tool not found: " + toolCall.getToolName()));
@@ -150,7 +204,7 @@ public class DefaultStepEngine implements IStepEngine
 
             hooks.afterRun(context);
             return new AgentRunResult(
-                response.getContent(),
+                effectiveResponse.getContent(),
                 context.getTokenUsageTracker().snapshot(),
                 context.getAgent().definition().getId());
         }
@@ -160,5 +214,71 @@ public class DefaultStepEngine implements IStepEngine
             "Stopped: max steps reached",
             context.getTokenUsageTracker().snapshot(),
             context.getAgent().definition().getId());
+    }
+
+    /**
+     * Merges streamed signals with terminal response payload so tool calls and usage are not dropped.
+     * @param response The response used by this operation.
+     * @param streamedFinalResponse The streamed final response used by this operation.
+     * @param streamedContent The streamed content used by this operation.
+     * @param streamedToolCalls The streamed tool calls used by this operation.
+     * @param streamedHandoff The streamed handoff used by this operation.
+     * @param streamedTokenUsage The streamed token usage used by this operation.
+     * @return The value produced by this operation.
+     */
+    private LlmResponse mergeWithStreamedResponse(LlmResponse response,
+                                                  LlmResponse streamedFinalResponse,
+                                                  String streamedContent,
+                                                  List<ToolCall> streamedToolCalls,
+                                                  String streamedHandoff,
+                                                  TokenUsage streamedTokenUsage)
+    {
+        LlmResponse base = response != null ? response : streamedFinalResponse;
+        if (base == null)
+        {
+            return new LlmResponse(
+                streamedContent == null ? "" : streamedContent,
+                streamedToolCalls == null ? List.of() : List.copyOf(streamedToolCalls),
+                streamedHandoff,
+                streamedTokenUsage == null ? new TokenUsage(0, 0) : streamedTokenUsage,
+                "stop",
+                Map.of());
+        }
+
+        String content = base.getContent();
+        if ((content == null || content.isBlank()) && streamedContent != null && !streamedContent.isBlank())
+        {
+            content = streamedContent;
+        }
+
+        List<ToolCall> toolCalls = base.getToolCalls();
+        if ((toolCalls == null || toolCalls.isEmpty()) && streamedToolCalls != null && !streamedToolCalls.isEmpty())
+        {
+            toolCalls = List.copyOf(streamedToolCalls);
+        }
+
+        String handoffAgentId = base.getHandoffAgentId().orElse(streamedHandoff);
+
+        TokenUsage tokenUsage = base.getTokenUsage();
+        if (tokenUsage == null)
+        {
+            tokenUsage = streamedTokenUsage;
+        }
+        else if (streamedTokenUsage != null && tokenUsage.getTotalTokens() == 0 && streamedTokenUsage.getTotalTokens() > 0)
+        {
+            tokenUsage = streamedTokenUsage;
+        }
+        if (tokenUsage == null)
+        {
+            tokenUsage = new TokenUsage(0, 0);
+        }
+
+        return new LlmResponse(
+            content == null ? "" : content,
+            toolCalls == null ? List.of() : toolCalls,
+            handoffAgentId,
+            tokenUsage,
+            base.getFinishReason(),
+            base.getStructuredOutput());
     }
 }

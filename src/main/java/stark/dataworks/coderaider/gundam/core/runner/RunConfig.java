@@ -119,6 +119,18 @@ public class RunConfig
                      RetryPolicy retryPolicy,
                      RunErrorHandlers runErrorHandlers)
     {
+        if (maxTurns < 1)
+        {
+            throw new IllegalArgumentException("maxTurns must be >= 1");
+        }
+        if (temperature < 0 || temperature > 2)
+        {
+            throw new IllegalArgumentException("temperature must be between 0 and 2");
+        }
+        if (maxOutputTokens < 1)
+        {
+            throw new IllegalArgumentException("maxOutputTokens must be >= 1");
+        }
         this.maxTurns = maxTurns;
         this.sessionId = sessionId;
         this.temperature = temperature;

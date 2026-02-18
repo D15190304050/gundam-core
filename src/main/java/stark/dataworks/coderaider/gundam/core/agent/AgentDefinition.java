@@ -40,6 +40,31 @@ public class AgentDefinition
     private String model;
 
     /**
+     * Internal state for model temperature used while coordinating runtime behavior.
+     */
+    private double modelTemperature = 0.2;
+
+    /**
+     * Internal state for max output tokens used while coordinating runtime behavior.
+     */
+    private int modelMaxTokens = 512;
+
+    /**
+     * Internal state for tool choice policy used while coordinating runtime behavior.
+     */
+    private String modelToolChoice = "auto";
+
+    /**
+     * Internal state for response format used while coordinating runtime behavior.
+     */
+    private String modelResponseFormat = "text";
+
+    /**
+     * Internal state for provider model options used while coordinating runtime behavior.
+     */
+    private Map<String, Object> modelProviderOptions = Map.of();
+
+    /**
      * Internal state for tool names used while coordinating runtime behavior.
      */
     private List<String> toolNames = new ArrayList<>();
@@ -94,6 +119,21 @@ public class AgentDefinition
         this.metadata = metadata == null ? Map.of() : metadata;
     }
 
+    public void setModelToolChoice(String modelToolChoice)
+    {
+        this.modelToolChoice = modelToolChoice == null ? "auto" : modelToolChoice;
+    }
+
+    public void setModelResponseFormat(String modelResponseFormat)
+    {
+        this.modelResponseFormat = modelResponseFormat == null ? "text" : modelResponseFormat;
+    }
+
+    public void setModelProviderOptions(Map<String, Object> modelProviderOptions)
+    {
+        this.modelProviderOptions = modelProviderOptions == null ? Map.of() : modelProviderOptions;
+    }
+
     /**
      * Validates and throws when required constraints are violated.
      */
@@ -103,6 +143,14 @@ public class AgentDefinition
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(systemPrompt, "systemPrompt");
         Objects.requireNonNull(model, "model");
+        if (modelTemperature < 0 || modelTemperature > 2)
+        {
+            throw new IllegalArgumentException("modelTemperature must be between 0 and 2");
+        }
+        if (modelMaxTokens < 1)
+        {
+            throw new IllegalArgumentException("modelMaxTokens must be >= 1");
+        }
         if (maxSteps < 1)
         {
             throw new IllegalArgumentException("maxSteps must be >= 1");

@@ -1,7 +1,9 @@
 package stark.dataworks.coderaider.gundam.core.runtime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayDeque;
 import java.util.List;
@@ -181,6 +183,110 @@ class AgentRuntimeTest
         assertEquals(2, stepCounter.get());
     }
 
+
+
+    @Test
+    void rejectsTemperatureOutsideSupportedRange()
+    {
+        AgentDefinition definition = definition("invalid-temperature", "model", List.of());
+        definition.setModelTemperature(2.1);
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, definition::validate);
+
+        assertEquals("modelTemperature must be between 0 and 2", error.getMessage());
+    }
+
+    @Test
+    void usesToolCallsAndTokenUsageFromStreamingEvents()
+    {
+        AgentDefinition definition = definition("stream-meta", "model", List.of("weather"));
+        AgentRegistry registry = new AgentRegistry();
+        registry.register(new Agent(definition));
+
+        ToolRegistry tools = new ToolRegistry();
+        tools.register(new ITool()
+        {
+            @Override
+            public ToolDefinition definition()
+            {
+                return new ToolDefinition("weather", "get weather", List.of(new ToolParameterSchema("city", "string", true, "")));
+            }
+
+            @Override
+            public String execute(Map<String, Object> input)
+            {
+                return "Sunny in " + input.get("city");
+            }
+        });
+
+        AtomicInteger callCount = new AtomicInteger();
+        ILlmClient llmClient = new ILlmClient()
+        {
+            @Override
+            public LlmResponse chat(LlmRequest request)
+            {
+                return new LlmResponse("", List.of(), null, new TokenUsage(0, 0));
+            }
+
+            @Override
+            public LlmResponse chatStream(LlmRequest request, LlmStreamListener listener)
+            {
+                if (callCount.incrementAndGet() == 1)
+                {
+                    listener.onToolCall(new ToolCall("weather", Map.of("city", "Tokyo")));
+                    listener.onTokenUsage(new TokenUsage(3, 4));
+                    return new LlmResponse("", List.of(), null, new TokenUsage(0, 0));
+                }
+
+                listener.onDelta("Done");
+                listener.onTokenUsage(new TokenUsage(1, 2));
+                return new LlmResponse("", List.of(), null, new TokenUsage(0, 0));
+            }
+        };
+
+        AgentRunner runner = new AgentRunner(new DefaultStepEngine(llmClient, tools, registry,
+            new DefaultContextBuilder(), new HookManager()));
+
+        AgentRunResult result = runner.runStreamed(new Agent(definition), "weather please");
+
+        assertEquals("Done", result.getOutput());
+        assertEquals(10, result.getUsage().getTotalTokens());
+    }
+
+    @Test
+    void usesModelOptionsFromAgentDefinitionInStepEngineRequests()
+    {
+        AgentDefinition definition = definition("options", "model", List.of());
+        definition.setModelTemperature(0.7);
+        definition.setModelMaxTokens(1024);
+        definition.setModelToolChoice("required");
+        definition.setModelResponseFormat("json");
+        definition.setModelProviderOptions(Map.of("region", "us-east"));
+
+        AgentRegistry registry = new AgentRegistry();
+        registry.register(new Agent(definition));
+
+        AtomicReference<LlmRequest> captured = new AtomicReference<>();
+        ILlmClient llmClient = request ->
+        {
+            captured.set(request);
+            return new LlmResponse("ok", List.of(), null, new TokenUsage(1, 1));
+        };
+
+        AgentRunner runner = new AgentRunner(new DefaultStepEngine(llmClient, new ToolRegistry(), registry,
+            new DefaultContextBuilder(), new HookManager()));
+
+        runner.run(new Agent(definition), "configure request");
+
+        LlmRequest request = captured.get();
+        assertNotNull(request);
+        assertEquals(0.7, request.getOptions().getTemperature());
+        assertEquals(1024, request.getOptions().getMaxTokens());
+        assertEquals("required", request.getOptions().getToolChoice());
+        assertEquals("json", request.getOptions().getResponseFormat());
+        assertEquals("us-east", request.getOptions().getProviderOptions().get("region"));
+    }
+
     @Test
     void streamsModelDeltasThroughStepEngineAndHooks()
     {
@@ -193,7 +299,7 @@ class AgentRuntimeTest
             @Override
             public LlmResponse chat(LlmRequest request)
             {
-                return new LlmResponse("streamed-response", List.of(), null, new TokenUsage(1, 1));
+                return new LlmResponse("", List.of(), null, new TokenUsage(1, 1));
             }
 
             @Override
@@ -201,7 +307,7 @@ class AgentRuntimeTest
             {
                 listener.onDelta("streamed-");
                 listener.onDelta("response");
-                return new LlmResponse("streamed-response", List.of(), null, new TokenUsage(1, 1));
+                return new LlmResponse("", List.of(), null, new TokenUsage(1, 1));
             }
         };
 

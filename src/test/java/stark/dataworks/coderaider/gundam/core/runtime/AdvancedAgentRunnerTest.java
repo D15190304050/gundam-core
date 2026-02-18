@@ -228,6 +228,81 @@ class AdvancedAgentRunnerTest
         assertEquals("streamed-response", String.join("", deltas));
     }
 
+
+    @Test
+    void streamedRunUsesToolCallsAndTokenUsageFromStreamingEvents()
+    {
+        AgentDefinition def = baseDef("stream-meta");
+        def.setToolNames(List.of("echo"));
+
+        AgentRegistry agents = new AgentRegistry();
+        agents.register(new Agent(def));
+
+        ToolRegistry tools = new ToolRegistry();
+        tools.register(new ITool()
+        {
+            @Override
+            public ToolDefinition definition()
+            {
+                return new ToolDefinition("echo", "", List.of());
+            }
+
+            @Override
+            public String execute(Map<String, Object> input)
+            {
+                return "ok";
+            }
+        });
+
+        AdvancedAgentRunner runner = new AdvancedAgentRunner(
+            new ILlmClient()
+            {
+                int callCount = 0;
+
+                @Override
+                public LlmResponse chat(LlmRequest request)
+                {
+                    return new LlmResponse("", List.of(), null, new TokenUsage(0, 0));
+                }
+
+                @Override
+                public LlmResponse chatStream(LlmRequest request, LlmStreamListener listener)
+                {
+                    callCount++;
+                    if (callCount == 1)
+                    {
+                        listener.onToolCall(new ToolCall("echo", Map.of()));
+                        listener.onTokenUsage(new TokenUsage(2, 3));
+                        return new LlmResponse("", List.of(), null, new TokenUsage(0, 0));
+                    }
+
+                    listener.onDelta("done");
+                    listener.onTokenUsage(new TokenUsage(1, 2));
+                    return new LlmResponse("", List.of(), null, new TokenUsage(0, 0));
+                }
+            },
+            tools,
+            agents,
+            new DefaultContextBuilder(),
+            new HookManager(),
+            new GuardrailEngine(),
+            new HandoffRouter(),
+            new InMemorySessionStore(),
+            new NoopTraceProvider(),
+            new AllowAllToolApprovalPolicy(),
+            new OutputSchemaRegistry(),
+            new OutputValidator(),
+            new RunEventPublisher());
+
+        RunResult result = runner.runStreamed(new Agent(def), "go", RunConfig.defaults(), new RunHooks()
+        {
+        });
+
+        assertEquals("done", result.getFinalOutput());
+        assertEquals(8, result.getUsage().getTotalTokens());
+        assertTrue(result.getItems().stream().anyMatch(i -> i.getType() == RunItemType.TOOL_RESULT));
+    }
+
     @Test
     void streamedRunFallsBackToSyncClientWhenStreamingNotImplemented()
     {

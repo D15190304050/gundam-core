@@ -23,9 +23,22 @@ public interface ILlmClient
     default LlmResponse chatStream(LlmRequest request, LlmStreamListener listener)
     {
         LlmResponse response = chat(request);
-        if (listener != null && response != null && !response.getContent().isBlank())
+        if (listener != null && response != null)
         {
-            listener.onDelta(response.getContent());
+            if (!response.getContent().isBlank())
+            {
+                listener.onDelta(response.getContent());
+            }
+            for (var toolCall : response.getToolCalls())
+            {
+                listener.onToolCall(toolCall);
+            }
+            if (response.getTokenUsage() != null)
+            {
+                listener.onTokenUsage(response.getTokenUsage());
+            }
+            response.getHandoffAgentId().ifPresent(listener::onHandoff);
+            listener.onCompleted(response);
         }
         return response;
     }

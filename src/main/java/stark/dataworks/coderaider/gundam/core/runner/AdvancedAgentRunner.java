@@ -29,6 +29,7 @@ import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
+import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.memory.InMemoryAgentMemory;
 import stark.dataworks.coderaider.gundam.core.model.Message;
 import stark.dataworks.coderaider.gundam.core.model.Role;
@@ -227,26 +228,27 @@ public class AdvancedAgentRunner
                     new LlmOptions(runConfig.getTemperature(), runConfig.getMaxOutputTokens(), runConfig.getToolChoice(), runConfig.getResponseFormat(), runConfig.getProviderOptions()));
 
                 emit(context, runHooks, RunEventType.MODEL_REQUESTED, Map.of("model", request.getModel(), "messages", request.getMessages().size()));
-                LlmResponse response = invokeModel(request, runConfig, streamModelResponse, delta ->
-                    emit(context, runHooks, RunEventType.MODEL_RESPONSE_DELTA, Map.of("delta", delta)));
-                emit(context, runHooks, RunEventType.MODEL_RESPONDED, Map.of("finishReason", response.getFinishReason()));
-                context.getUsageTracker().add(response.getTokenUsage());
+                StreamCapture streamCapture = new StreamCapture();
+                LlmResponse response = invokeModel(request, runConfig, streamModelResponse, streamListenerFor(context, runHooks, streamCapture));
+                LlmResponse effectiveResponse = mergeWithStreamedResponse(response, streamCapture);
+                emit(context, runHooks, RunEventType.MODEL_RESPONDED, Map.of("finishReason", effectiveResponse.getFinishReason()));
+                context.getUsageTracker().add(effectiveResponse.getTokenUsage());
 
-                GuardrailDecision outputDecision = guardrailEngine.evaluateOutput(legacyContext, response);
+                GuardrailDecision outputDecision = guardrailEngine.evaluateOutput(legacyContext, effectiveResponse);
                 if (!outputDecision.isAllowed())
                 {
                     throw new GuardrailTripwireException("output", outputDecision.getReason());
                 }
 
-                if (!response.getContent().isBlank())
+                if (!effectiveResponse.getContent().isBlank())
                 {
-                    context.getMemory().append(new Message(Role.ASSISTANT, response.getContent()));
-                    context.getItems().add(new RunItem(RunItemType.ASSISTANT_MESSAGE, response.getContent(), response.getStructuredOutput()));
+                    context.getMemory().append(new Message(Role.ASSISTANT, effectiveResponse.getContent()));
+                    context.getItems().add(new RunItem(RunItemType.ASSISTANT_MESSAGE, effectiveResponse.getContent(), effectiveResponse.getStructuredOutput()));
                 }
 
-                if (response.getHandoffAgentId().isPresent())
+                if (effectiveResponse.getHandoffAgentId().isPresent())
                 {
-                    String toAgent = response.getHandoffAgentId().get();
+                    String toAgent = effectiveResponse.getHandoffAgentId().get();
                     Handoff handoff = new Handoff(context.getCurrentAgent().definition().getId(), toAgent, "model requested handoff");
                     if (!context.getCurrentAgent().definition().getHandoffAgentIds().contains(toAgent) || !handoffRouter.canRoute(handoff))
                     {
@@ -265,9 +267,9 @@ public class AdvancedAgentRunner
                     continue;
                 }
 
-                if (!response.getToolCalls().isEmpty())
+                if (!effectiveResponse.getToolCalls().isEmpty())
                 {
-                    for (ToolCall call : response.getToolCalls())
+                    for (ToolCall call : effectiveResponse.getToolCalls())
                     {
                         emit(context, runHooks, RunEventType.TOOL_CALL_REQUESTED, Map.of("tool", call.getToolName()));
 
@@ -311,7 +313,7 @@ public class AdvancedAgentRunner
                 {
                     OutputValidationResult validation = outputSchemaRegistry
                         .get(context.getCurrentAgent().definition().getOutputSchemaName())
-                        .map(schema -> outputValidator.validate(response.getStructuredOutput(), schema))
+                        .map(schema -> outputValidator.validate(effectiveResponse.getStructuredOutput(), schema))
                         .orElse(OutputValidationResult.fail("Output schema not found: " + context.getCurrentAgent().definition().getOutputSchemaName()));
                     if (!validation.isValid())
                     {
@@ -320,7 +322,7 @@ public class AdvancedAgentRunner
                     }
                 }
 
-                return finalizeResult(context, response.getContent(), runConfig);
+                return finalizeResult(context, effectiveResponse.getContent(), runConfig);
             }
 
             throw new MaxTurnsExceededException(runConfig.getMaxTurns());
@@ -329,6 +331,107 @@ public class AdvancedAgentRunner
         {
             return handleError(context, runConfig, error);
         }
+    }
+
+    private LlmStreamListener streamListenerFor(RunnerContext context, RunHooks runHooks, StreamCapture streamCapture)
+    {
+        return new LlmStreamListener()
+        {
+            @Override
+            public void onDelta(String delta)
+            {
+                streamCapture.content.append(delta);
+                emit(context, runHooks, RunEventType.MODEL_RESPONSE_DELTA, Map.of("delta", delta));
+            }
+
+            @Override
+            public void onToolCall(ToolCall toolCall)
+            {
+                if (toolCall != null)
+                {
+                    streamCapture.toolCalls.add(toolCall);
+                }
+            }
+
+            @Override
+            public void onTokenUsage(TokenUsage tokenUsage)
+            {
+                if (tokenUsage != null)
+                {
+                    streamCapture.tokenUsage = tokenUsage;
+                }
+            }
+
+            @Override
+            public void onHandoff(String handoffAgentId)
+            {
+                streamCapture.handoffAgentId = handoffAgentId;
+            }
+
+            @Override
+            public void onCompleted(LlmResponse response)
+            {
+                streamCapture.finalResponse = response;
+            }
+        };
+    }
+
+    private LlmResponse mergeWithStreamedResponse(LlmResponse response, StreamCapture streamCapture)
+    {
+        LlmResponse base = response != null ? response : streamCapture.finalResponse;
+        if (base == null)
+        {
+            return new LlmResponse(streamCapture.content.toString(),
+                List.copyOf(streamCapture.toolCalls),
+                streamCapture.handoffAgentId,
+                streamCapture.tokenUsage == null ? new TokenUsage(0, 0) : streamCapture.tokenUsage,
+                "stop",
+                Map.of());
+        }
+
+        String content = base.getContent();
+        if ((content == null || content.isBlank()) && streamCapture.content.length() > 0)
+        {
+            content = streamCapture.content.toString();
+        }
+
+        List<ToolCall> toolCalls = base.getToolCalls();
+        if ((toolCalls == null || toolCalls.isEmpty()) && !streamCapture.toolCalls.isEmpty())
+        {
+            toolCalls = List.copyOf(streamCapture.toolCalls);
+        }
+
+        String handoffAgentId = base.getHandoffAgentId().orElse(streamCapture.handoffAgentId);
+
+        TokenUsage tokenUsage = base.getTokenUsage();
+        if (tokenUsage == null)
+        {
+            tokenUsage = streamCapture.tokenUsage;
+        }
+        else if (streamCapture.tokenUsage != null && tokenUsage.getTotalTokens() == 0 && streamCapture.tokenUsage.getTotalTokens() > 0)
+        {
+            tokenUsage = streamCapture.tokenUsage;
+        }
+        if (tokenUsage == null)
+        {
+            tokenUsage = new TokenUsage(0, 0);
+        }
+
+        return new LlmResponse(content == null ? "" : content,
+            toolCalls == null ? List.of() : toolCalls,
+            handoffAgentId,
+            tokenUsage,
+            base.getFinishReason(),
+            base.getStructuredOutput());
+    }
+
+    private static final class StreamCapture
+    {
+        private final StringBuilder content = new StringBuilder();
+        private final List<ToolCall> toolCalls = new ArrayList<>();
+        private TokenUsage tokenUsage;
+        private String handoffAgentId;
+        private LlmResponse finalResponse;
     }
 
     /**
