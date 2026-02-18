@@ -218,7 +218,7 @@ public class AdvancedAgentRunner {
 
         String finalOutput = decision.isHandled() ? decision.getFinalOutput() : "Run failed: " + error.getMessage();
         context.getItems().add(new RunItem(RunItemType.SYSTEM_EVENT, finalOutput, Map.of("errorKind", kind.name())));
-        emit(context, event -> {}, RunEventType.RUN_FAILED, Map.of("kind", kind.name(), "message", error.getMessage()));
+        emit(context, new RunHooks() {}, RunEventType.RUN_FAILED, Map.of("kind", kind.name(), "message", error.getMessage()));
         return finalizeResult(context, finalOutput, config);
     }
 
@@ -283,7 +283,7 @@ public class AdvancedAgentRunner {
         }
         Map<String, Object> attrs = new HashMap<>();
         attrs.put("finalAgent", context.getCurrentAgent().definition().getId());
-        emit(context, event -> {}, RunEventType.RUN_COMPLETED, attrs);
+        emit(context, new RunHooks() {}, RunEventType.RUN_COMPLETED, attrs);
         return new RunResult(
             finalOutput,
             context.getCurrentAgent().definition().getId(),
