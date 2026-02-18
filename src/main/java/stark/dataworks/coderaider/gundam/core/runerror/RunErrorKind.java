@@ -1,6 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.runerror;
 /**
- * Enum RunErrorKind.
+ * RunErrorKind implements error classification and handler dispatch.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public enum RunErrorKind

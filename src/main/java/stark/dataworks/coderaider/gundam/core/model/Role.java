@@ -1,6 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.model;
 /**
- * Enum Role.
+ * Role implements core runtime responsibilities.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public enum Role

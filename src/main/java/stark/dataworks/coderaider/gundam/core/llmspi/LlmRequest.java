@@ -7,29 +7,34 @@ import java.util.Objects;
 import stark.dataworks.coderaider.gundam.core.model.Message;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
 /**
- * Class LlmRequest.
+ * LlmRequest implements provider-agnostic model invocation contracts.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class LlmRequest
 {
     /**
-     * Field model.
+     * Internal state for model; used while coordinating runtime behavior.
      */
     private final String model;
     /**
-     * Field messages.
+     * Internal state for messages; used while coordinating runtime behavior.
      */
     private final List<Message> messages;
     /**
-     * Field tools.
+     * Internal state for tools; used while coordinating runtime behavior.
      */
     private final List<ToolDefinition> tools;
     /**
-     * Field options.
+     * Internal state for options; used while coordinating runtime behavior.
      */
     private final LlmOptions options;
     /**
-     * Creates a new LlmRequest instance.
+     * Performs llm request as part of LlmRequest runtime responsibilities.
+     * @param model The model used by this operation.
+     * @param messages The messages used by this operation.
+     * @param tools The tools used by this operation.
+     * @param options The options used by this operation.
      */
 
     public LlmRequest(String model, List<Message> messages, List<ToolDefinition> tools, LlmOptions options)
@@ -40,7 +45,8 @@ public class LlmRequest
         this.options = Objects.requireNonNull(options, "options");
     }
     /**
-     * Executes getModel.
+     * Returns the current model value maintained by this LlmRequest.
+     * @return The value produced by this operation.
      */
 
     public String getModel()
@@ -48,7 +54,8 @@ public class LlmRequest
         return model;
     }
     /**
-     * Executes getMessages.
+     * Returns the current messages value maintained by this LlmRequest.
+     * @return The value produced by this operation.
      */
 
     public List<Message> getMessages()
@@ -56,7 +63,8 @@ public class LlmRequest
         return messages;
     }
     /**
-     * Executes getTools.
+     * Returns the current tools value maintained by this LlmRequest.
+     * @return The value produced by this operation.
      */
 
     public List<ToolDefinition> getTools()
@@ -64,7 +72,8 @@ public class LlmRequest
         return tools;
     }
     /**
-     * Executes getOptions.
+     * Returns the current options value maintained by this LlmRequest.
+     * @return The value produced by this operation.
      */
 
     public LlmOptions getOptions()

@@ -18,33 +18,39 @@ import stark.dataworks.coderaider.gundam.core.tool.ITool;
 import stark.dataworks.coderaider.gundam.core.tool.IToolRegistry;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
 /**
- * Class DefaultStepEngine.
+ * DefaultStepEngine implements single-step execution that binds model calls, tool calls, and memory updates.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class DefaultStepEngine implements IStepEngine
 {
     /**
-     * Field llmClient.
+     * Internal state for llm client; used while coordinating runtime behavior.
      */
     private final ILlmClient llmClient;
     /**
-     * Field toolRegistry.
+     * Internal state for tool registry; used while coordinating runtime behavior.
      */
     private final IToolRegistry toolRegistry;
     /**
-     * Field agentRegistry.
+     * Internal state for agent registry; used while coordinating runtime behavior.
      */
     private final IAgentRegistry agentRegistry;
     /**
-     * Field contextBuilder.
+     * Internal state for context builder; used while coordinating runtime behavior.
      */
     private final IContextBuilder contextBuilder;
     /**
-     * Field hooks.
+     * Internal state for hooks; used while coordinating runtime behavior.
      */
     private final HookManager hooks;
     /**
-     * Creates a new DefaultStepEngine instance.
+     * Performs default step engine as part of DefaultStepEngine runtime responsibilities.
+     * @param llmClient The llm client used by this operation.
+     * @param toolRegistry The tool registry used by this operation.
+     * @param agentRegistry The agent registry used by this operation.
+     * @param contextBuilder The context builder used by this operation.
+     * @param hooks The hooks used by this operation.
      */
 
     public DefaultStepEngine(ILlmClient llmClient,
@@ -61,7 +67,10 @@ public class DefaultStepEngine implements IStepEngine
     }
 
     /**
-     * Executes run.
+     * Runs the primary execution flow, coordinating model/tool work and runtime policies.
+     * @param context The context used by this operation.
+     * @param userInput The user input used by this operation.
+     * @return The value produced by this operation.
      */
     @Override
     public AgentRunResult run(ExecutionContext context, String userInput)

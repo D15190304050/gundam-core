@@ -1,20 +1,23 @@
 package stark.dataworks.coderaider.gundam.core.metrics;
 /**
- * Class TokenUsage.
+ * TokenUsage implements token usage tracking.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class TokenUsage
 {
     /**
-     * Field inputTokens.
+     * Internal state for input tokens; used while coordinating runtime behavior.
      */
     private final int inputTokens;
     /**
-     * Field outputTokens.
+     * Internal state for output tokens; used while coordinating runtime behavior.
      */
     private final int outputTokens;
     /**
-     * Creates a new TokenUsage instance.
+     * Performs token usage as part of TokenUsage runtime responsibilities.
+     * @param inputTokens The input tokens used by this operation.
+     * @param outputTokens The output tokens used by this operation.
      */
 
     public TokenUsage(int inputTokens, int outputTokens)
@@ -23,7 +26,8 @@ public class TokenUsage
         this.outputTokens = outputTokens;
     }
     /**
-     * Executes getInputTokens.
+     * Returns the current input tokens value maintained by this TokenUsage.
+     * @return The value produced by this operation.
      */
 
     public int getInputTokens()
@@ -31,7 +35,8 @@ public class TokenUsage
         return inputTokens;
     }
     /**
-     * Executes getOutputTokens.
+     * Returns the current output tokens value maintained by this TokenUsage.
+     * @return The value produced by this operation.
      */
 
     public int getOutputTokens()
@@ -39,7 +44,8 @@ public class TokenUsage
         return outputTokens;
     }
     /**
-     * Executes getTotalTokens.
+     * Returns the current total tokens value maintained by this TokenUsage.
+     * @return The value produced by this operation.
      */
 
     public int getTotalTokens()

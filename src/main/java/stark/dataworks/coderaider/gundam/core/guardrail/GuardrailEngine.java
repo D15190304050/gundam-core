@@ -6,21 +6,23 @@ import java.util.List;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.gundam.core.runtime.ExecutionContext;
 /**
- * Class GuardrailEngine.
+ * GuardrailEngine implements input/output policy evaluation around model responses.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class GuardrailEngine
 {
     /**
-     * Field inputGuardrails.
+     * Internal state for input guardrails used while coordinating runtime behavior.
      */
     private final List<InputGuardrail> inputGuardrails = new ArrayList<>();
     /**
-     * Field outputGuardrails.
+     * Internal state for output guardrails used while coordinating runtime behavior.
      */
     private final List<OutputGuardrail> outputGuardrails = new ArrayList<>();
     /**
-     * Executes registerInput.
+     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
+     * @param guardrail The guardrail used by this operation.
      */
 
     public void registerInput(InputGuardrail guardrail)
@@ -28,7 +30,8 @@ public class GuardrailEngine
         inputGuardrails.add(guardrail);
     }
     /**
-     * Executes registerOutput.
+     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
+     * @param guardrail The guardrail used by this operation.
      */
 
     public void registerOutput(OutputGuardrail guardrail)
@@ -36,7 +39,10 @@ public class GuardrailEngine
         outputGuardrails.add(guardrail);
     }
     /**
-     * Executes evaluateInput.
+     * Performs evaluate input as part of GuardrailEngine runtime responsibilities.
+     * @param context The context used by this operation.
+     * @param input The input used by this operation.
+     * @return The value produced by this operation.
      */
 
     public GuardrailDecision evaluateInput(ExecutionContext context, String input)
@@ -52,7 +58,10 @@ public class GuardrailEngine
         return GuardrailDecision.allow();
     }
     /**
-     * Executes evaluateOutput.
+     * Performs evaluate output as part of GuardrailEngine runtime responsibilities.
+     * @param context The context used by this operation.
+     * @param response The response used by this operation.
+     * @return The value produced by this operation.
      */
 
     public GuardrailDecision evaluateOutput(ExecutionContext context, LlmResponse response)

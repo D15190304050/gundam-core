@@ -4,19 +4,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 /**
- * Class ToolSchemaJson.
+ * ToolSchemaJson implements tool contracts, schema metadata, and executable tool registration.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public final class ToolSchemaJson
 {
     /**
-     * Creates a new ToolSchemaJson instance.
+     * Performs tool schema json as part of ToolSchemaJson runtime responsibilities.
      */
     private ToolSchemaJson()
     {
     }
     /**
-     * Executes toJsonSchema.
+     * Performs to json schema as part of ToolSchemaJson runtime responsibilities.
+     * @param definition The definition used by this operation.
+     * @return The value produced by this operation.
      */
 
     public static Map<String, Object> toJsonSchema(ToolDefinition definition)

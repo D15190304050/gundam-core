@@ -1,20 +1,23 @@
 package stark.dataworks.coderaider.gundam.core.runerror;
 /**
- * Class RunErrorHandlerResult.
+ * RunErrorHandlerResult implements error classification and handler dispatch.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class RunErrorHandlerResult
 {
     /**
-     * Field handled.
+     * Internal state for handled; used while coordinating runtime behavior.
      */
     private final boolean handled;
     /**
-     * Field finalOutput.
+     * Internal state for final output; used while coordinating runtime behavior.
      */
     private final String finalOutput;
     /**
-     * Creates a new RunErrorHandlerResult instance.
+     * Performs run error handler result as part of RunErrorHandlerResult runtime responsibilities.
+     * @param handled The handled used by this operation.
+     * @param finalOutput The final output used by this operation.
      */
 
     private RunErrorHandlerResult(boolean handled, String finalOutput)
@@ -23,7 +26,8 @@ public class RunErrorHandlerResult
         this.finalOutput = finalOutput;
     }
     /**
-     * Executes notHandled.
+     * Performs not handled as part of RunErrorHandlerResult runtime responsibilities.
+     * @return The value produced by this operation.
      */
 
     public static RunErrorHandlerResult notHandled()
@@ -31,7 +35,9 @@ public class RunErrorHandlerResult
         return new RunErrorHandlerResult(false, null);
     }
     /**
-     * Executes handled.
+     * Performs handled as part of RunErrorHandlerResult runtime responsibilities.
+     * @param finalOutput The final output used by this operation.
+     * @return The value produced by this operation.
      */
 
     public static RunErrorHandlerResult handled(String finalOutput)
@@ -39,7 +45,8 @@ public class RunErrorHandlerResult
         return new RunErrorHandlerResult(true, finalOutput);
     }
     /**
-     * Executes isHandled.
+     * Reports whether handled is currently satisfied.
+     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
      */
 
     public boolean isHandled()
@@ -47,7 +54,8 @@ public class RunErrorHandlerResult
         return handled;
     }
     /**
-     * Executes getFinalOutput.
+     * Returns the current final output value maintained by this RunErrorHandlerResult.
+     * @return The value produced by this operation.
      */
 
     public String getFinalOutput()

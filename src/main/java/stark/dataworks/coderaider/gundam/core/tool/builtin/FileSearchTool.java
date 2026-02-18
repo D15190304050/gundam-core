@@ -5,13 +5,15 @@ import java.util.Map;
 import stark.dataworks.coderaider.gundam.core.tool.ToolCategory;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
 /**
- * Class FileSearchTool.
+ * FileSearchTool implements tool contracts, schema metadata, and executable tool registration.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class FileSearchTool extends AbstractBuiltinTool
 {
     /**
-     * Creates a new FileSearchTool instance.
+     * Performs file search tool as part of FileSearchTool runtime responsibilities.
+     * @param definition The definition used by this operation.
      */
     public FileSearchTool(ToolDefinition definition)
     {
@@ -19,7 +21,9 @@ public class FileSearchTool extends AbstractBuiltinTool
     }
 
     /**
-     * Executes execute.
+     * Runs the primary execution flow, coordinating model/tool work and runtime policies.
+     * @param input The input used by this operation.
+     * @return The value produced by this operation.
      */
     @Override
     public String execute(Map<String, Object> input)

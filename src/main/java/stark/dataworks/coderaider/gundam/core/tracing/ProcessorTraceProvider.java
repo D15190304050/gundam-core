@@ -6,17 +6,19 @@ import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.tracing.processor.TracingProcessors;
 /**
- * Class ProcessorTraceProvider.
+ * ProcessorTraceProvider implements run tracing and span publication.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class ProcessorTraceProvider implements TraceProvider
 {
     /**
-     * Field processors.
+     * Internal state for processors; used while coordinating runtime behavior.
      */
     private final TracingProcessors processors;
     /**
-     * Creates a new ProcessorTraceProvider instance.
+     * Performs processor trace provider as part of ProcessorTraceProvider runtime responsibilities.
+     * @param processors The processors used by this operation.
      */
 
     public ProcessorTraceProvider(TracingProcessors processors)
@@ -25,7 +27,9 @@ public class ProcessorTraceProvider implements TraceProvider
     }
 
     /**
-     * Executes startSpan.
+     * Performs start span as part of ProcessorTraceProvider runtime responsibilities.
+     * @param name The name used by this operation.
+     * @return The value produced by this operation.
      */
     @Override
     public TraceSpan startSpan(String name)
@@ -33,12 +37,14 @@ public class ProcessorTraceProvider implements TraceProvider
         return new TraceSpan()
         {
             /**
-             * Field attrs.
+             * Internal state for attrs used while coordinating runtime behavior.
              */
             private final Map<String, String> attrs = new HashMap<>();
 
             /**
-             * Executes annotate.
+             * Performs annotate as part of ProcessorTraceProvider runtime responsibilities.
+             * @param key The key used by this operation.
+             * @param value The value used by this operation.
              */
             @Override
             public void annotate(String key, String value)
@@ -47,7 +53,7 @@ public class ProcessorTraceProvider implements TraceProvider
             }
 
             /**
-             * Executes close.
+             * Performs close as part of ProcessorTraceProvider runtime responsibilities.
              */
             @Override
             public void close()

@@ -6,21 +6,23 @@ import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.runtime.ExecutionContext;
 /**
- * Class HookManager.
+ * HookManager implements runtime lifecycle extension points.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class HookManager
 {
     /**
-     * Field agentHooks.
+     * Internal state for agent hooks used while coordinating runtime behavior.
      */
     private final List<IAgentHook> agentHooks = new ArrayList<>();
     /**
-     * Field toolHooks.
+     * Internal state for tool hooks used while coordinating runtime behavior.
      */
     private final List<IToolHook> toolHooks = new ArrayList<>();
     /**
-     * Executes registerAgentHook.
+     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
+     * @param hook The hook used by this operation.
      */
 
     public void registerAgentHook(IAgentHook hook)
@@ -28,7 +30,8 @@ public class HookManager
         agentHooks.add(hook);
     }
     /**
-     * Executes registerToolHook.
+     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
+     * @param hook The hook used by this operation.
      */
 
     public void registerToolHook(IToolHook hook)
@@ -36,7 +39,8 @@ public class HookManager
         toolHooks.add(hook);
     }
     /**
-     * Executes beforeRun.
+     * Performs before run as part of HookManager runtime responsibilities.
+     * @param context The context used by this operation.
      */
 
     public void beforeRun(ExecutionContext context)
@@ -44,7 +48,8 @@ public class HookManager
         agentHooks.forEach(h -> h.beforeRun(context));
     }
     /**
-     * Executes onStep.
+     * Performs on step as part of HookManager runtime responsibilities.
+     * @param context The context used by this operation.
      */
 
     public void onStep(ExecutionContext context)
@@ -52,7 +57,8 @@ public class HookManager
         agentHooks.forEach(h -> h.onStep(context));
     }
     /**
-     * Executes afterRun.
+     * Performs after run as part of HookManager runtime responsibilities.
+     * @param context The context used by this operation.
      */
 
     public void afterRun(ExecutionContext context)
@@ -60,7 +66,9 @@ public class HookManager
         agentHooks.forEach(h -> h.afterRun(context));
     }
     /**
-     * Executes beforeTool.
+     * Performs before tool as part of HookManager runtime responsibilities.
+     * @param toolName The tool name used by this operation.
+     * @param args The args used by this operation.
      */
 
     public void beforeTool(String toolName, Map<String, Object> args)
@@ -68,7 +76,9 @@ public class HookManager
         toolHooks.forEach(h -> h.beforeTool(toolName, args));
     }
     /**
-     * Executes afterTool.
+     * Performs after tool as part of HookManager runtime responsibilities.
+     * @param toolName The tool name used by this operation.
+     * @param result The result used by this operation.
      */
 
     public void afterTool(String toolName, String result)

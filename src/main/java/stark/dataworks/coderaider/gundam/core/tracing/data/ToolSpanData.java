@@ -2,13 +2,15 @@ package stark.dataworks.coderaider.gundam.core.tracing.data;
 
 import java.util.Map;
 /**
- * Class ToolSpanData.
+ * ToolSpanData implements run tracing and span publication.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class ToolSpanData extends SpanData
 {
     /**
-     * Creates a new ToolSpanData instance.
+     * Performs tool span data as part of ToolSpanData runtime responsibilities.
+     * @param attributes The attributes used by this operation.
      */
     public ToolSpanData(Map<String, String> attributes)
     {

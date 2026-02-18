@@ -5,17 +5,19 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import stark.dataworks.coderaider.gundam.core.tracing.TraceEvent;
 /**
- * Class TracingProcessors.
+ * TracingProcessors implements run tracing and span publication.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class TracingProcessors
 {
     /**
-     * Field processors.
+     * Internal state for processors used while coordinating runtime behavior.
      */
     private final List<TracingProcessor> processors = new CopyOnWriteArrayList<>();
     /**
-     * Executes add.
+     * Adds data to internal state consumed by later runtime steps.
+     * @param processor The processor used by this operation.
      */
 
     public void add(TracingProcessor processor)
@@ -23,7 +25,8 @@ public class TracingProcessors
         processors.add(processor);
     }
     /**
-     * Executes emit.
+     * Publishes a runtime event so hooks/listeners can observe progress.
+     * @param event The event used by this operation.
      */
 
     public void emit(TraceEvent event)

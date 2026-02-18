@@ -2,29 +2,34 @@ package stark.dataworks.coderaider.gundam.core.tool;
 
 import java.util.Objects;
 /**
- * Class ToolParameterSchema.
+ * ToolParameterSchema implements tool contracts, schema metadata, and executable tool registration.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class ToolParameterSchema
 {
     /**
-     * Field name.
+     * Internal state for name; used while coordinating runtime behavior.
      */
     private final String name;
     /**
-     * Field type.
+     * Internal state for type; used while coordinating runtime behavior.
      */
     private final String type;
     /**
-     * Field required.
+     * Internal state for required; used while coordinating runtime behavior.
      */
     private final boolean required;
     /**
-     * Field description.
+     * Internal state for description; used while coordinating runtime behavior.
      */
     private final String description;
     /**
-     * Creates a new ToolParameterSchema instance.
+     * Performs tool parameter schema as part of ToolParameterSchema runtime responsibilities.
+     * @param name The name used by this operation.
+     * @param type The type used by this operation.
+     * @param required The required used by this operation.
+     * @param description The description used by this operation.
      */
 
     public ToolParameterSchema(String name, String type, boolean required, String description)
@@ -35,7 +40,8 @@ public class ToolParameterSchema
         this.description = description == null ? "" : description;
     }
     /**
-     * Executes getName.
+     * Returns the current name value maintained by this ToolParameterSchema.
+     * @return The value produced by this operation.
      */
 
     public String getName()
@@ -43,7 +49,8 @@ public class ToolParameterSchema
         return name;
     }
     /**
-     * Executes getType.
+     * Returns the current type value maintained by this ToolParameterSchema.
+     * @return The value produced by this operation.
      */
 
     public String getType()
@@ -51,7 +58,8 @@ public class ToolParameterSchema
         return type;
     }
     /**
-     * Executes isRequired.
+     * Reports whether required is currently satisfied.
+     * @return {@code true} when the condition is satisfied; otherwise {@code false}.
      */
 
     public boolean isRequired()
@@ -59,7 +67,8 @@ public class ToolParameterSchema
         return required;
     }
     /**
-     * Executes getDescription.
+     * Returns the current description value maintained by this ToolParameterSchema.
+     * @return The value produced by this operation.
      */
 
     public String getDescription()

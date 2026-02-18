@@ -4,25 +4,29 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 /**
- * Class ToolDefinition.
+ * ToolDefinition implements tool contracts, schema metadata, and executable tool registration.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class ToolDefinition
 {
     /**
-     * Field name.
+     * Internal state for name; used while coordinating runtime behavior.
      */
     private final String name;
     /**
-     * Field description.
+     * Internal state for description; used while coordinating runtime behavior.
      */
     private final String description;
     /**
-     * Field parameters.
+     * Internal state for parameters; used while coordinating runtime behavior.
      */
     private final List<ToolParameterSchema> parameters;
     /**
-     * Creates a new ToolDefinition instance.
+     * Performs tool definition as part of ToolDefinition runtime responsibilities.
+     * @param name The name used by this operation.
+     * @param description The description used by this operation.
+     * @param parameters The parameters used by this operation.
      */
 
     public ToolDefinition(String name, String description, List<ToolParameterSchema> parameters)
@@ -32,7 +36,8 @@ public class ToolDefinition
         this.parameters = Collections.unmodifiableList(Objects.requireNonNull(parameters, "parameters"));
     }
     /**
-     * Executes getName.
+     * Returns the current name value maintained by this ToolDefinition.
+     * @return The value produced by this operation.
      */
 
     public String getName()
@@ -40,7 +45,8 @@ public class ToolDefinition
         return name;
     }
     /**
-     * Executes getDescription.
+     * Returns the current description value maintained by this ToolDefinition.
+     * @return The value produced by this operation.
      */
 
     public String getDescription()
@@ -48,7 +54,8 @@ public class ToolDefinition
         return description;
     }
     /**
-     * Executes getParameters.
+     * Returns the current parameters value maintained by this ToolDefinition.
+     * @return The value produced by this operation.
      */
 
     public List<ToolParameterSchema> getParameters()

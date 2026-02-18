@@ -2,21 +2,24 @@ package stark.dataworks.coderaider.gundam.core.model;
 
 import java.util.Objects;
 /**
- * Class ToolResult.
+ * ToolResult implements core runtime responsibilities.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class ToolResult
 {
     /**
-     * Field toolName.
+     * Internal state for tool name; used while coordinating runtime behavior.
      */
     private final String toolName;
     /**
-     * Field content.
+     * Internal state for content; used while coordinating runtime behavior.
      */
     private final String content;
     /**
-     * Creates a new ToolResult instance.
+     * Performs tool result as part of ToolResult runtime responsibilities.
+     * @param toolName The tool name used by this operation.
+     * @param content The content used by this operation.
      */
 
     public ToolResult(String toolName, String content)
@@ -25,7 +28,8 @@ public class ToolResult
         this.content = Objects.requireNonNull(content, "content");
     }
     /**
-     * Executes getToolName.
+     * Returns the current tool name value maintained by this ToolResult.
+     * @return The value produced by this operation.
      */
 
     public String getToolName()
@@ -33,7 +37,8 @@ public class ToolResult
         return toolName;
     }
     /**
-     * Executes getContent.
+     * Returns the current content value maintained by this ToolResult.
+     * @return The value produced by this operation.
      */
 
     public String getContent()

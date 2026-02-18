@@ -5,17 +5,19 @@ import java.util.List;
 
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
 /**
- * Class RunEventPublisher.
+ * RunEventPublisher implements core runtime responsibilities.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class RunEventPublisher
 {
     /**
-     * Field listeners.
+     * Internal state for listeners used while coordinating runtime behavior.
      */
     private final List<RunEventListener> listeners = new ArrayList<>();
     /**
-     * Executes subscribe.
+     * Performs subscribe as part of RunEventPublisher runtime responsibilities.
+     * @param listener The listener used by this operation.
      */
 
     public void subscribe(RunEventListener listener)
@@ -23,7 +25,8 @@ public class RunEventPublisher
         listeners.add(listener);
     }
     /**
-     * Executes publish.
+     * Publishes a runtime event so hooks/listeners can observe progress.
+     * @param event The event used by this operation.
      */
 
     public void publish(RunEvent event)

@@ -5,49 +5,59 @@ import java.util.Map;
 import stark.dataworks.coderaider.gundam.core.policy.RetryPolicy;
 import stark.dataworks.coderaider.gundam.core.runerror.RunErrorHandlers;
 /**
- * Class RunConfig.
+ * Immutable runtime configuration used by {@link AdvancedAgentRunner}.
+ * <p>
+ * The configuration centralizes turn limits, generation settings, retry behavior, and error-handler strategy so each
+ * run can be controlled without changing code.
  */
 
 public class RunConfig
 {
     /**
-     * Field maxTurns.
+     * Hard upper bound for run turns before the runner raises max-turns exceeded.
      */
     private final int maxTurns;
     /**
-     * Field sessionId.
+     * Optional session id used to restore/persist memory across run invocations.
      */
     private final String sessionId;
     /**
-     * Field temperature.
+     * Sampling temperature forwarded to the model provider.
      */
     private final double temperature;
     /**
-     * Field maxOutputTokens.
+     * Maximum output token budget requested from the model provider.
      */
     private final int maxOutputTokens;
     /**
-     * Field toolChoice.
+     * Tool-choice strategy (for example: {@code auto}, {@code none}, or provider-specific value).
      */
     private final String toolChoice;
     /**
-     * Field responseFormat.
+     * Requested response format (for example plain text or structured output).
      */
     private final String responseFormat;
     /**
-     * Field providerOptions.
+     * Provider-specific generation options passed through transparently to the model adapter.
      */
     private final Map<String, Object> providerOptions;
     /**
-     * Field retryPolicy.
+     * Retry/backoff policy used when model invocation fails transiently.
      */
     private final RetryPolicy retryPolicy;
     /**
-     * Field runErrorHandlers.
+     * Error-handler dispatch table used to recover or finalize on runtime failures.
      */
     private final RunErrorHandlers runErrorHandlers;
     /**
-     * Creates a new RunConfig instance.
+     * Performs run config as part of RunConfig runtime responsibilities.
+     * @param maxTurns The max turns used by this operation.
+     * @param sessionId The session id used by this operation.
+     * @param temperature The temperature used by this operation.
+     * @param maxOutputTokens The max output tokens used by this operation.
+     * @param toolChoice The tool choice used by this operation.
+     * @param responseFormat The response format used by this operation.
+     * @param providerOptions The provider options used by this operation.
      */
 
     public RunConfig(int maxTurns,
@@ -61,7 +71,15 @@ public class RunConfig
         this(maxTurns, sessionId, temperature, maxOutputTokens, toolChoice, responseFormat, providerOptions, RetryPolicy.none(), new RunErrorHandlers());
     }
     /**
-     * Creates a new RunConfig instance.
+     * Creates a run configuration with explicit retry policy and default error handlers.
+     * @param maxTurns Maximum number of turns before stopping.
+     * @param sessionId Optional session id for conversation resume.
+     * @param temperature Model temperature.
+     * @param maxOutputTokens Maximum output token budget.
+     * @param toolChoice Tool-choice behavior to pass to the provider.
+     * @param responseFormat Response format requested from the provider.
+     * @param providerOptions Provider-specific options.
+     * @param retryPolicy Retry/backoff policy.
      */
 
     public RunConfig(int maxTurns,
@@ -100,7 +118,8 @@ public class RunConfig
         this.runErrorHandlers = runErrorHandlers == null ? new RunErrorHandlers() : runErrorHandlers;
     }
     /**
-     * Executes defaults.
+     * Builds a practical default configuration for local development and tests.
+     * @return Default run configuration.
      */
 
     public static RunConfig defaults()
@@ -108,7 +127,8 @@ public class RunConfig
         return new RunConfig(12, null, 0.2, 512, "auto", "text", Map.of());
     }
     /**
-     * Executes getMaxTurns.
+     * Returns the current max turns value maintained by this RunConfig.
+     * @return The value produced by this operation.
      */
 
     public int getMaxTurns()
@@ -116,7 +136,8 @@ public class RunConfig
         return maxTurns;
     }
     /**
-     * Executes getSessionId.
+     * Returns the current session id value maintained by this RunConfig.
+     * @return The value produced by this operation.
      */
 
     public String getSessionId()
@@ -124,7 +145,8 @@ public class RunConfig
         return sessionId;
     }
     /**
-     * Executes getTemperature.
+     * Returns the current temperature value maintained by this RunConfig.
+     * @return The value produced by this operation.
      */
 
     public double getTemperature()
@@ -132,7 +154,8 @@ public class RunConfig
         return temperature;
     }
     /**
-     * Executes getMaxOutputTokens.
+     * Returns the current max output tokens value maintained by this RunConfig.
+     * @return The value produced by this operation.
      */
 
     public int getMaxOutputTokens()
@@ -140,7 +163,8 @@ public class RunConfig
         return maxOutputTokens;
     }
     /**
-     * Executes getToolChoice.
+     * Returns the current tool choice value maintained by this RunConfig.
+     * @return The value produced by this operation.
      */
 
     public String getToolChoice()
@@ -148,7 +172,8 @@ public class RunConfig
         return toolChoice;
     }
     /**
-     * Executes getResponseFormat.
+     * Returns the current response format value maintained by this RunConfig.
+     * @return The value produced by this operation.
      */
 
     public String getResponseFormat()
@@ -156,7 +181,8 @@ public class RunConfig
         return responseFormat;
     }
     /**
-     * Executes getProviderOptions.
+     * Returns the current provider options value maintained by this RunConfig.
+     * @return The value produced by this operation.
      */
 
     public Map<String, Object> getProviderOptions()
@@ -164,7 +190,8 @@ public class RunConfig
         return providerOptions;
     }
     /**
-     * Executes getRetryPolicy.
+     * Returns the current retry policy value maintained by this RunConfig.
+     * @return The value produced by this operation.
      */
 
     public RetryPolicy getRetryPolicy()
@@ -172,7 +199,8 @@ public class RunConfig
         return retryPolicy;
     }
     /**
-     * Executes getRunErrorHandlers.
+     * Returns the current run error handlers value maintained by this RunConfig.
+     * @return The value produced by this operation.
      */
 
     public RunErrorHandlers getRunErrorHandlers()

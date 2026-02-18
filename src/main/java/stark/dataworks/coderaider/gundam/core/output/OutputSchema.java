@@ -2,17 +2,20 @@ package stark.dataworks.coderaider.gundam.core.output;
 
 import java.util.Map;
 /**
- * Interface OutputSchema.
+ * OutputSchema implements structured output schema validation.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public interface OutputSchema
 {
     /**
-     * Executes name.
+     * Performs name as part of OutputSchema runtime responsibilities.
+     * @return The value produced by this operation.
      */
     String name();
     /**
-     * Executes requiredFields.
+     * Performs required fields as part of OutputSchema runtime responsibilities.
+     * @return The value produced by this operation.
      */
 
     Map<String, String> requiredFields();

@@ -2,33 +2,36 @@ package stark.dataworks.coderaider.gundam.core.llmspi;
 
 import java.util.Map;
 /**
- * Class LlmOptions.
+ * LlmOptions implements provider-agnostic model invocation contracts.
+ * It keeps this concern isolated so the kernel remains modular and provider-agnostic.
  */
 
 public class LlmOptions
 {
     /**
-     * Field temperature.
+     * Internal state for temperature; used while coordinating runtime behavior.
      */
     private final double temperature;
     /**
-     * Field maxTokens.
+     * Internal state for max tokens; used while coordinating runtime behavior.
      */
     private final int maxTokens;
     /**
-     * Field toolChoice.
+     * Internal state for tool choice; used while coordinating runtime behavior.
      */
     private final String toolChoice;
     /**
-     * Field responseFormat.
+     * Internal state for response format; used while coordinating runtime behavior.
      */
     private final String responseFormat;
     /**
-     * Field providerOptions.
+     * Internal state for provider options; used while coordinating runtime behavior.
      */
     private final Map<String, Object> providerOptions;
     /**
-     * Creates a new LlmOptions instance.
+     * Performs llm options as part of LlmOptions runtime responsibilities.
+     * @param temperature The temperature used by this operation.
+     * @param maxTokens The max tokens used by this operation.
      */
 
     public LlmOptions(double temperature, int maxTokens)
@@ -36,7 +39,12 @@ public class LlmOptions
         this(temperature, maxTokens, "auto", "text", Map.of());
     }
     /**
-     * Creates a new LlmOptions instance.
+     * Performs llm options as part of LlmOptions runtime responsibilities.
+     * @param temperature The temperature used by this operation.
+     * @param maxTokens The max tokens used by this operation.
+     * @param toolChoice The tool choice used by this operation.
+     * @param responseFormat The response format used by this operation.
+     * @param providerOptions The provider options used by this operation.
      */
 
     public LlmOptions(double temperature,
@@ -52,7 +60,8 @@ public class LlmOptions
         this.providerOptions = providerOptions == null ? Map.of() : Map.copyOf(providerOptions);
     }
     /**
-     * Executes getTemperature.
+     * Returns the current temperature value maintained by this LlmOptions.
+     * @return The value produced by this operation.
      */
 
     public double getTemperature()
@@ -60,7 +69,8 @@ public class LlmOptions
         return temperature;
     }
     /**
-     * Executes getMaxTokens.
+     * Returns the current max tokens value maintained by this LlmOptions.
+     * @return The value produced by this operation.
      */
 
     public int getMaxTokens()
@@ -68,7 +78,8 @@ public class LlmOptions
         return maxTokens;
     }
     /**
-     * Executes getToolChoice.
+     * Returns the current tool choice value maintained by this LlmOptions.
+     * @return The value produced by this operation.
      */
 
     public String getToolChoice()
@@ -76,7 +87,8 @@ public class LlmOptions
         return toolChoice;
     }
     /**
-     * Executes getResponseFormat.
+     * Returns the current response format value maintained by this LlmOptions.
+     * @return The value produced by this operation.
      */
 
     public String getResponseFormat()
@@ -84,7 +96,8 @@ public class LlmOptions
         return responseFormat;
     }
     /**
-     * Executes getProviderOptions.
+     * Returns the current provider options value maintained by this LlmOptions.
+     * @return The value produced by this operation.
      */
 
     public Map<String, Object> getProviderOptions()

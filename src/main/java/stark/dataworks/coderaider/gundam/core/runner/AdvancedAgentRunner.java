@@ -51,58 +51,64 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
 import stark.dataworks.coderaider.gundam.core.tracing.TraceProvider;
 import stark.dataworks.coderaider.gundam.core.tracing.TraceSpan;
 
+/**
+ * Orchestrates the full multi-turn agent run lifecycle.
+ * <p>
+ * This runner combines context rendering, model calls, tool execution, guardrails, handoff routing, retry policy,
+ * tracing, and event publication so callers can execute a complete OpenAI-Agents-style loop through one entry point.
+ */
 public class AdvancedAgentRunner
 {
     /**
-     * Field llmClient.
+     * Internal state for llm client; used while coordinating runtime behavior.
      */
     private final ILlmClient llmClient;
     /**
-     * Field toolRegistry.
+     * Internal state for tool registry; used while coordinating runtime behavior.
      */
     private final IToolRegistry toolRegistry;
     /**
-     * Field agentRegistry.
+     * Internal state for agent registry; used while coordinating runtime behavior.
      */
     private final IAgentRegistry agentRegistry;
     /**
-     * Field contextBuilder.
+     * Internal state for context builder; used while coordinating runtime behavior.
      */
     private final IContextBuilder contextBuilder;
     /**
-     * Field hookManager.
+     * Internal state for hook manager; used while coordinating runtime behavior.
      */
     private final HookManager hookManager;
     /**
-     * Field guardrailEngine.
+     * Internal state for guardrail engine; used while coordinating runtime behavior.
      */
     private final GuardrailEngine guardrailEngine;
     /**
-     * Field handoffRouter.
+     * Internal state for handoff router; used while coordinating runtime behavior.
      */
     private final HandoffRouter handoffRouter;
     /**
-     * Field sessionStore.
+     * Internal state for session store; used while coordinating runtime behavior.
      */
     private final SessionStore sessionStore;
     /**
-     * Field traceProvider.
+     * Internal state for trace provider; used while coordinating runtime behavior.
      */
     private final TraceProvider traceProvider;
     /**
-     * Field toolApprovalPolicy.
+     * Internal state for tool approval policy; used while coordinating runtime behavior.
      */
     private final ToolApprovalPolicy toolApprovalPolicy;
     /**
-     * Field outputSchemaRegistry.
+     * Internal state for output schema registry; used while coordinating runtime behavior.
      */
     private final OutputSchemaRegistry outputSchemaRegistry;
     /**
-     * Field outputValidator.
+     * Internal state for output validator; used while coordinating runtime behavior.
      */
     private final OutputValidator outputValidator;
     /**
-     * Field eventPublisher.
+     * Internal state for event publisher; used while coordinating runtime behavior.
      */
     private final RunEventPublisher eventPublisher;
 
@@ -135,6 +141,14 @@ public class AdvancedAgentRunner
         this.eventPublisher = eventPublisher;
     }
 
+    /**
+     * Executes an agent session until a final answer is produced, a guardrail blocks execution, or limits are reached.
+     * @param startingAgent First agent that receives the user request.
+     * @param userInput Initial user message.
+     * @param runConfig Run limits, generation options, retry policy, and error-handler configuration.
+     * @param runHooks Lifecycle callbacks invoked for run/step/tool events.
+     * @return Final run output, agent id, usage metrics, emitted events, and timeline items.
+     */
     public RunResult run(IAgent startingAgent, String userInput, RunConfig runConfig, RunHooks runHooks)
     {
         IAgentMemory memory = new InMemoryAgentMemory();
@@ -275,6 +289,13 @@ public class AdvancedAgentRunner
         }
     }
 
+    /**
+     * Performs handle error as part of AdvancedAgentRunner runtime responsibilities.
+     * @param context The context used by this operation.
+     * @param config The config used by this operation.
+     * @param error The error used by this operation.
+     * @return The value produced by this operation.
+     */
     private RunResult handleError(RunnerContext context, RunConfig config, RuntimeException error)
     {
         RunErrorKind kind = classify(error);
@@ -315,6 +336,11 @@ public class AdvancedAgentRunner
         return finalizeResult(context, finalOutput, config);
     }
 
+    /**
+     * Maps a runtime exception to a stable error category for handler selection.
+     * @param error The error used by this operation.
+     * @return The value produced by this operation.
+     */
     private RunErrorKind classify(RuntimeException error)
     {
         if (error instanceof MaxTurnsExceededException) return RunErrorKind.MAX_TURNS;
@@ -328,6 +354,12 @@ public class AdvancedAgentRunner
         return RunErrorKind.UNKNOWN;
     }
 
+    /**
+     * Invokes with retry while applying configured retry/backoff behavior.
+     * @param request The request used by this operation.
+     * @param config The config used by this operation.
+     * @return The value produced by this operation.
+     */
     private LlmResponse invokeWithRetry(LlmRequest request, RunConfig config)
     {
         RuntimeException last = null;
@@ -366,6 +398,11 @@ public class AdvancedAgentRunner
         throw new ModelInvocationException("Model invocation failed after retries", last);
     }
 
+    /**
+     * Resolves tools from configured registries before execution continues.
+     * @param toolNames The tool names used by this operation.
+     * @return The value produced by this operation.
+     */
     private List<ToolDefinition> resolveTools(List<String> toolNames)
     {
         List<ToolDefinition> definitions = new ArrayList<>();
@@ -378,6 +415,13 @@ public class AdvancedAgentRunner
         return definitions;
     }
 
+    /**
+     * Publishes a runtime event so hooks/listeners can observe progress.
+     * @param context The context used by this operation.
+     * @param hooks The hooks used by this operation.
+     * @param type The type used by this operation.
+     * @param attributes The attributes used by this operation.
+     */
     private void emit(RunnerContext context, RunHooks hooks, RunEventType type, Map<String, Object> attributes)
     {
         RunEvent event = new RunEvent(type, attributes);
@@ -386,6 +430,13 @@ public class AdvancedAgentRunner
         eventPublisher.publish(event);
     }
 
+    /**
+     * Performs finalize result as part of AdvancedAgentRunner runtime responsibilities.
+     * @param context The context used by this operation.
+     * @param finalOutput The final output used by this operation.
+     * @param config The config used by this operation.
+     * @return The value produced by this operation.
+     */
     private RunResult finalizeResult(RunnerContext context, String finalOutput, RunConfig config)
     {
         if (config.getSessionId() != null)
