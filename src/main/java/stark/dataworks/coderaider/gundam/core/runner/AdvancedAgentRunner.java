@@ -27,6 +27,7 @@ import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmOptions;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
+import stark.dataworks.coderaider.gundam.core.llmspi.LlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
 import stark.dataworks.coderaider.gundam.core.memory.InMemoryAgentMemory;
 import stark.dataworks.coderaider.gundam.core.model.Message;
@@ -164,6 +165,33 @@ public class AdvancedAgentRunner
      */
     public RunResult run(IAgent startingAgent, String userInput, RunConfig runConfig, RunHooks runHooks)
     {
+        return runInternal(startingAgent, userInput, runConfig, runHooks, false);
+    }
+
+    /**
+     * Executes an agent session with streamed model deltas while preserving the same final result contract.
+     * @param startingAgent First agent that receives the user request.
+     * @param userInput Initial user message.
+     * @param runConfig Run limits, generation options, retry policy, and error-handler configuration.
+     * @param runHooks Lifecycle callbacks invoked for run/step/tool events.
+     * @return Final run output, agent id, usage metrics, emitted events, and timeline items.
+     */
+    public RunResult runStreamed(IAgent startingAgent, String userInput, RunConfig runConfig, RunHooks runHooks)
+    {
+        return runInternal(startingAgent, userInput, runConfig, runHooks, true);
+    }
+
+    /**
+     * Executes an agent run either in synchronous mode or in streaming mode based on the supplied flag.
+     * @param startingAgent First agent that receives the user request.
+     * @param userInput Initial user message.
+     * @param runConfig Run limits, generation options, retry policy, and error-handler configuration.
+     * @param runHooks Lifecycle callbacks invoked for run/step/tool events.
+     * @param streamModelResponse Whether model output should be streamed as delta events.
+     * @return Final run output, agent id, usage metrics, emitted events, and timeline items.
+     */
+    private RunResult runInternal(IAgent startingAgent, String userInput, RunConfig runConfig, RunHooks runHooks, boolean streamModelResponse)
+    {
         IAgentMemory memory = new InMemoryAgentMemory();
         if (runConfig.getSessionId() != null)
         {
@@ -199,7 +227,8 @@ public class AdvancedAgentRunner
                     new LlmOptions(runConfig.getTemperature(), runConfig.getMaxOutputTokens(), runConfig.getToolChoice(), runConfig.getResponseFormat(), runConfig.getProviderOptions()));
 
                 emit(context, runHooks, RunEventType.MODEL_REQUESTED, Map.of("model", request.getModel(), "messages", request.getMessages().size()));
-                LlmResponse response = invokeWithRetry(request, runConfig);
+                LlmResponse response = invokeModel(request, runConfig, streamModelResponse, delta ->
+                    emit(context, runHooks, RunEventType.MODEL_RESPONSE_DELTA, Map.of("delta", delta)));
                 emit(context, runHooks, RunEventType.MODEL_RESPONDED, Map.of("finishReason", response.getFinishReason()));
                 context.getUsageTracker().add(response.getTokenUsage());
 
@@ -371,9 +400,14 @@ public class AdvancedAgentRunner
      * Invokes with retry while applying configured retry/backoff behavior.
      * @param request The request used by this operation.
      * @param config The config used by this operation.
+     * @param streamModelResponse The stream model response used by this operation.
+     * @param streamListener The stream listener used by this operation.
      * @return The value produced by this operation.
      */
-    private LlmResponse invokeWithRetry(LlmRequest request, RunConfig config)
+    private LlmResponse invokeModel(LlmRequest request,
+                                    RunConfig config,
+                                    boolean streamModelResponse,
+                                    LlmStreamListener streamListener)
     {
         RuntimeException last = null;
         for (int attempt = 1; attempt <= config.getRetryPolicy().getMaxAttempts(); attempt++)
@@ -381,7 +415,9 @@ public class AdvancedAgentRunner
             TraceSpan span = traceProvider.startSpan("agent.model_call");
             try
             {
-                LlmResponse response = llmClient.chat(request);
+                LlmResponse response = streamModelResponse
+                    ? llmClient.chatStream(request, streamListener)
+                    : llmClient.chat(request);
                 span.annotate("finish_reason", response.getFinishReason());
                 span.annotate("attempt", String.valueOf(attempt));
                 return response;

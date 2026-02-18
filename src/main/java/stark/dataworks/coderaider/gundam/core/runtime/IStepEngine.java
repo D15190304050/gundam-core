@@ -14,4 +14,15 @@ public interface IStepEngine
      * @return The value produced by this operation.
      */
     AgentRunResult run(ExecutionContext context, String userInput);
+
+    /**
+     * Runs the primary execution flow with streamed model deltas.
+     * @param context The context used by this operation.
+     * @param userInput The user input used by this operation.
+     * @return The value produced by this operation.
+     */
+    default AgentRunResult runStreamed(ExecutionContext context, String userInput)
+    {
+        return run(context, userInput);
+    }
 }

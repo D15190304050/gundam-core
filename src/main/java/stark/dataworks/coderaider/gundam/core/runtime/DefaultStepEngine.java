@@ -12,6 +12,7 @@ import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmOptions;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
+import stark.dataworks.coderaider.gundam.core.llmspi.LlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.model.Message;
 import stark.dataworks.coderaider.gundam.core.model.Role;
 import stark.dataworks.coderaider.gundam.core.model.ToolCall;
@@ -61,6 +62,30 @@ public class DefaultStepEngine implements IStepEngine
     @Override
     public AgentRunResult run(ExecutionContext context, String userInput)
     {
+        return runInternal(context, userInput, false);
+    }
+
+    /**
+     * Runs the primary execution flow with streamed model deltas.
+     * @param context The context used by this operation.
+     * @param userInput The user input used by this operation.
+     * @return The value produced by this operation.
+     */
+    @Override
+    public AgentRunResult runStreamed(ExecutionContext context, String userInput)
+    {
+        return runInternal(context, userInput, true);
+    }
+
+    /**
+     * Runs the primary execution flow, coordinating model/tool work and runtime policies.
+     * @param context The context used by this operation.
+     * @param userInput The user input used by this operation.
+     * @param streamModelResponse The stream model response used by this operation.
+     * @return The value produced by this operation.
+     */
+    private AgentRunResult runInternal(ExecutionContext context, String userInput, boolean streamModelResponse)
+    {
         hooks.beforeRun(context);
         while (context.getCurrentStep() < context.getAgent().definition().getMaxSteps())
         {
@@ -75,11 +100,15 @@ public class DefaultStepEngine implements IStepEngine
                     .definition())
                 .collect(Collectors.toList());
 
-            LlmResponse response = llmClient.chat(new LlmRequest(
+            LlmRequest request = new LlmRequest(
                 currentAgent.definition().getModel(),
                 messages,
                 tools,
-                new LlmOptions(0.2, 512)));
+                new LlmOptions(0.2, 512));
+            LlmStreamListener streamListener = delta -> hooks.onModelResponseDelta(context, delta);
+            LlmResponse response = streamModelResponse
+                ? llmClient.chatStream(request, streamListener)
+                : llmClient.chat(request);
 
             context.getTokenUsageTracker().add(response.getTokenUsage());
 

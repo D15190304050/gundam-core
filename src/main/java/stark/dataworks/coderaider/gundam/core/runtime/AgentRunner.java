@@ -39,4 +39,18 @@ public class AgentRunner implements IAgentRunner
         ExecutionContext context = new ExecutionContext(agent, memory, new TokenUsageTracker());
         return stepEngine.run(context, userInput);
     }
+
+    /**
+     * Runs the primary execution flow with streamed model deltas.
+     * @param agent The agent used by this operation.
+     * @param userInput The user input used by this operation.
+     * @return The value produced by this operation.
+     */
+    @Override
+    public AgentRunResult runStreamed(IAgent agent, String userInput)
+    {
+        IAgentMemory memory = new InMemoryAgentMemory();
+        ExecutionContext context = new ExecutionContext(agent, memory, new TokenUsageTracker());
+        return stepEngine.runStreamed(context, userInput);
+    }
 }

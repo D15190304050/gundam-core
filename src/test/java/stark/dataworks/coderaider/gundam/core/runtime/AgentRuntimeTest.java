@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 import stark.dataworks.coderaider.gundam.core.agent.Agent;
@@ -21,6 +22,7 @@ import stark.dataworks.coderaider.gundam.core.hook.IToolHook;
 import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
+import stark.dataworks.coderaider.gundam.core.llmspi.LlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.model.ToolCall;
 import stark.dataworks.coderaider.gundam.core.runtime.AgentRunResult;
@@ -177,6 +179,79 @@ class AgentRuntimeTest
 
         assertEquals("Stopped: max steps reached", result.getOutput());
         assertEquals(2, stepCounter.get());
+    }
+
+    @Test
+    void streamsModelDeltasThroughStepEngineAndHooks()
+    {
+        AgentDefinition definition = definition("stream", "stream-model", List.of());
+        AgentRegistry registry = new AgentRegistry();
+        registry.register(new Agent(definition));
+
+        ILlmClient llmClient = new ILlmClient()
+        {
+            @Override
+            public LlmResponse chat(LlmRequest request)
+            {
+                return new LlmResponse("streamed-response", List.of(), null, new TokenUsage(1, 1));
+            }
+
+            @Override
+            public LlmResponse chatStream(LlmRequest request, LlmStreamListener listener)
+            {
+                listener.onDelta("streamed-");
+                listener.onDelta("response");
+                return new LlmResponse("streamed-response", List.of(), null, new TokenUsage(1, 1));
+            }
+        };
+
+        HookManager hooks = new HookManager();
+        AtomicReference<String> streamed = new AtomicReference<>("");
+        hooks.registerAgentHook(new IAgentHook()
+        {
+            @Override
+            public void onModelResponseDelta(ExecutionContext context, String delta)
+            {
+                streamed.updateAndGet(prev -> prev + delta);
+            }
+        });
+
+        AgentRunner runner = new AgentRunner(new DefaultStepEngine(llmClient, new ToolRegistry(), registry,
+            new DefaultContextBuilder(), hooks));
+
+        AgentRunResult result = runner.runStreamed(new Agent(definition), "stream this");
+
+        assertEquals("streamed-response", result.getOutput());
+        assertEquals("streamed-response", streamed.get());
+    }
+
+    @Test
+    void streamedAgentRunnerFallsBackToSyncClientWhenStreamingNotImplemented()
+    {
+        AgentDefinition definition = definition("sync-fallback", "model", List.of());
+        AgentRegistry registry = new AgentRegistry();
+        registry.register(new Agent(definition));
+
+        ILlmClient syncOnly = request -> new LlmResponse("sync-only", List.of(), null, new TokenUsage(1, 1));
+
+        HookManager hooks = new HookManager();
+        AtomicReference<String> streamed = new AtomicReference<>("");
+        hooks.registerAgentHook(new IAgentHook()
+        {
+            @Override
+            public void onModelResponseDelta(ExecutionContext context, String delta)
+            {
+                streamed.updateAndGet(prev -> prev + delta);
+            }
+        });
+
+        AgentRunner runner = new AgentRunner(new DefaultStepEngine(syncOnly, new ToolRegistry(), registry,
+            new DefaultContextBuilder(), hooks));
+
+        AgentRunResult result = runner.runStreamed(new Agent(definition), "stream this");
+
+        assertEquals("sync-only", result.getOutput());
+        assertEquals("sync-only", streamed.get());
     }
 
     private static AgentDefinition definition(String id, String model, List<String> toolNames)

@@ -60,6 +60,16 @@ public class HookManager
     }
 
     /**
+     * Performs on model response delta as part of HookManager runtime responsibilities.
+     * @param context The context used by this operation.
+     * @param delta The delta used by this operation.
+     */
+    public void onModelResponseDelta(ExecutionContext context, String delta)
+    {
+        agentHooks.forEach(h -> h.onModelResponseDelta(context, delta));
+    }
+
+    /**
      * Performs after run as part of HookManager runtime responsibilities.
      * @param context The context used by this operation.
      */

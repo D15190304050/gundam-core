@@ -1,6 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.runtime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -17,7 +18,10 @@ import stark.dataworks.coderaider.gundam.core.guardrail.GuardrailDecision;
 import stark.dataworks.coderaider.gundam.core.guardrail.GuardrailEngine;
 import stark.dataworks.coderaider.gundam.core.handoff.HandoffRouter;
 import stark.dataworks.coderaider.gundam.core.hook.HookManager;
+import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
+import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
+import stark.dataworks.coderaider.gundam.core.llmspi.LlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.model.ToolCall;
 import stark.dataworks.coderaider.gundam.core.output.OutputSchema;
@@ -171,6 +175,92 @@ class AdvancedAgentRunnerTest
         {
         });
         assertEquals("ok", result.getFinalOutput());
+    }
+
+    @Test
+    void streamsModelDeltasDuringRun()
+    {
+        AgentDefinition def = baseDef("streaming");
+
+        AgentRegistry agents = new AgentRegistry();
+        agents.register(new Agent(def));
+
+        AdvancedAgentRunner runner = new AdvancedAgentRunner(
+            new ILlmClient()
+            {
+                @Override
+                public LlmResponse chat(LlmRequest request)
+                {
+                    return new LlmResponse("streamed-response", List.of(), null, new TokenUsage(1, 1));
+                }
+
+                @Override
+                public LlmResponse chatStream(LlmRequest request, LlmStreamListener listener)
+                {
+                    listener.onDelta("streamed-");
+                    listener.onDelta("response");
+                    return new LlmResponse("streamed-response", List.of(), null, new TokenUsage(1, 1));
+                }
+            },
+            new ToolRegistry(),
+            agents,
+            new DefaultContextBuilder(),
+            new HookManager(),
+            new GuardrailEngine(),
+            new HandoffRouter(),
+            new InMemorySessionStore(),
+            new NoopTraceProvider(),
+            new AllowAllToolApprovalPolicy(),
+            new OutputSchemaRegistry(),
+            new OutputValidator(),
+            new RunEventPublisher());
+
+        RunResult result = runner.runStreamed(new Agent(def), "go", RunConfig.defaults(), new RunHooks()
+        {
+        });
+
+        assertEquals("streamed-response", result.getFinalOutput());
+        List<String> deltas = result.getEvents().stream()
+            .filter(e -> e.getType() == RunEventType.MODEL_RESPONSE_DELTA)
+            .map(e -> (String) e.getAttributes().get("delta"))
+            .toList();
+        assertFalse(deltas.isEmpty());
+        assertEquals("streamed-response", String.join("", deltas));
+    }
+
+    @Test
+    void streamedRunFallsBackToSyncClientWhenStreamingNotImplemented()
+    {
+        AgentDefinition def = baseDef("fallback");
+
+        AgentRegistry agents = new AgentRegistry();
+        agents.register(new Agent(def));
+
+        AdvancedAgentRunner runner = new AdvancedAgentRunner(
+            request -> new LlmResponse("sync-only", List.of(), null, new TokenUsage(1, 1)),
+            new ToolRegistry(),
+            agents,
+            new DefaultContextBuilder(),
+            new HookManager(),
+            new GuardrailEngine(),
+            new HandoffRouter(),
+            new InMemorySessionStore(),
+            new NoopTraceProvider(),
+            new AllowAllToolApprovalPolicy(),
+            new OutputSchemaRegistry(),
+            new OutputValidator(),
+            new RunEventPublisher());
+
+        RunResult result = runner.runStreamed(new Agent(def), "go", RunConfig.defaults(), new RunHooks()
+        {
+        });
+
+        assertEquals("sync-only", result.getFinalOutput());
+        List<String> deltas = result.getEvents().stream()
+            .filter(e -> e.getType() == RunEventType.MODEL_RESPONSE_DELTA)
+            .map(e -> (String) e.getAttributes().get("delta"))
+            .toList();
+        assertEquals(List.of("sync-only"), deltas);
     }
 
     private AgentDefinition baseDef(String id)
