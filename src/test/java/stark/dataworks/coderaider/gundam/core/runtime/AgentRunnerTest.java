@@ -29,7 +29,7 @@ import stark.dataworks.coderaider.gundam.core.output.OutputSchemaRegistry;
 import stark.dataworks.coderaider.gundam.core.output.OutputValidator;
 import stark.dataworks.coderaider.gundam.core.result.RunItemType;
 import stark.dataworks.coderaider.gundam.core.result.RunResult;
-import stark.dataworks.coderaider.gundam.core.runner.AdvancedAgentRunner;
+import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.runner.IRunHooks;
 import stark.dataworks.coderaider.gundam.core.session.InMemorySessionStore;
@@ -39,7 +39,7 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 import stark.dataworks.coderaider.gundam.core.tracing.NoopTraceProvider;
 
-class AdvancedAgentRunnerTest
+class AgentRunnerTest
 {
 
     @Test
@@ -52,7 +52,7 @@ class AdvancedAgentRunnerTest
         AgentRegistry agents = new AgentRegistry();
         agents.register(new Agent(def));
 
-        AdvancedAgentRunner runner = new AdvancedAgentRunner(
+        AgentRunner runner = new AgentRunner(
             req -> new LlmResponse("should not happen", List.of(), null, new TokenUsage(0, 0)),
             new ToolRegistry(),
             agents,
@@ -101,7 +101,7 @@ class AdvancedAgentRunnerTest
         });
 
         InMemorySessionStore sessions = new InMemorySessionStore();
-        AdvancedAgentRunner runner = new AdvancedAgentRunner(
+        AgentRunner runner = new AgentRunner(
             req ->
             {
                 if (req.getMessages().stream().noneMatch(m -> m.getContent().contains("echo: ok")))
@@ -156,7 +156,7 @@ class AdvancedAgentRunnerTest
             }
         });
 
-        AdvancedAgentRunner runner = new AdvancedAgentRunner(
+        AgentRunner runner = new AgentRunner(
             req -> new LlmResponse("ok", List.of(), null, new TokenUsage(1, 1), "stop", Map.of("title", "Hello")),
             new ToolRegistry(),
             agents,
@@ -185,7 +185,7 @@ class AdvancedAgentRunnerTest
         AgentRegistry agents = new AgentRegistry();
         agents.register(new Agent(def));
 
-        AdvancedAgentRunner runner = new AdvancedAgentRunner(
+        AgentRunner runner = new AgentRunner(
             new ILlmClient()
             {
                 @Override
@@ -254,7 +254,7 @@ class AdvancedAgentRunnerTest
             }
         });
 
-        AdvancedAgentRunner runner = new AdvancedAgentRunner(
+        AgentRunner runner = new AgentRunner(
             new ILlmClient()
             {
                 int callCount = 0;
@@ -311,7 +311,7 @@ class AdvancedAgentRunnerTest
         AgentRegistry agents = new AgentRegistry();
         agents.register(new Agent(def));
 
-        AdvancedAgentRunner runner = new AdvancedAgentRunner(
+        AgentRunner runner = new AgentRunner(
             request -> new LlmResponse("sync-only", List.of(), null, new TokenUsage(1, 1)),
             new ToolRegistry(),
             agents,

@@ -61,7 +61,7 @@ import stark.dataworks.coderaider.gundam.core.tracing.TraceSpan;
  * tracing, and event publication so callers can execute a complete OpenAI-Agents-style loop through one entry point.
  */
 @AllArgsConstructor
-public class AdvancedAgentRunner
+public class AgentRunner
 {
     /**
      * Internal state for llm client; used while coordinating runtime behavior.
@@ -174,6 +174,8 @@ public class AdvancedAgentRunner
         }
 
         RunnerContext context = new RunnerContext(startingAgent, memory);
+        ExecutionContext legacyContext = new ExecutionContext(context.getCurrentAgent(), context.getMemory(), context.getUsageTracker());
+        hookManager.beforeRun(legacyContext);
         emit(context, runHooks, RunEventType.RUN_STARTED, Map.of("agent", startingAgent.definition().getId()));
 
         if (userInput != null && !userInput.isBlank())
@@ -188,8 +190,8 @@ public class AdvancedAgentRunner
             {
                 context.incrementTurns();
                 emit(context, runHooks, RunEventType.STEP_STARTED, Map.of("turn", context.getTurns()));
-
-                ExecutionContext legacyContext = new ExecutionContext(context.getCurrentAgent(), context.getMemory(), context.getUsageTracker());
+                legacyContext.setAgent(context.getCurrentAgent());
+                hookManager.onStep(legacyContext);
                 GuardrailDecision inputDecision = guardrailEngine.evaluateInput(legacyContext, userInput);
                 if (!inputDecision.isAllowed())
                 {
@@ -296,14 +298,14 @@ public class AdvancedAgentRunner
                     }
                 }
 
-                return finalizeResult(context, effectiveResponse.getContent(), runConfiguration);
+                return finalizeResult(context, effectiveResponse.getContent(), runConfiguration, legacyContext);
             }
 
             throw new MaxTurnsExceededException(runConfiguration.getMaxTurns());
         }
         catch (RuntimeException error)
         {
-            return handleError(context, runConfiguration, error);
+            return handleError(context, runConfiguration, error, legacyContext);
         }
     }
 
@@ -315,6 +317,8 @@ public class AdvancedAgentRunner
             public void onDelta(String delta)
             {
                 streamCapture.content.append(delta);
+                ExecutionContext legacyContext = new ExecutionContext(context.getCurrentAgent(), context.getMemory(), context.getUsageTracker());
+                hookManager.onModelResponseDelta(legacyContext, delta);
                 emit(context, runHooks, RunEventType.MODEL_RESPONSE_DELTA, Map.of("delta", delta));
             }
 
@@ -409,13 +413,13 @@ public class AdvancedAgentRunner
     }
 
     /**
-     * Performs handle error as part of AdvancedAgentRunner runtime responsibilities.
+     * Performs handle error as part of AgentRunner runtime responsibilities.
      * @param context The context used by this operation.
      * @param config The config used by this operation.
      * @param error The error used by this operation.
      * @return The value produced by this operation.
      */
-    private RunResult handleError(RunnerContext context, RunConfiguration config, RuntimeException error)
+    private RunResult handleError(RunnerContext context, RunConfiguration config, RuntimeException error, ExecutionContext legacyContext)
     {
         RunErrorKind kind = classify(error);
         RunErrorHandlerResult decision = config.getRunErrorHandlers().get(kind)
@@ -452,7 +456,7 @@ public class AdvancedAgentRunner
         emit(context, new IRunHooks()
         {
         }, RunEventType.RUN_FAILED, Map.of("kind", kind.name(), "message", error.getMessage()));
-        return finalizeResult(context, finalOutput, config);
+        return finalizeResult(context, finalOutput, config, legacyContext);
     }
 
     /**
@@ -557,14 +561,16 @@ public class AdvancedAgentRunner
     }
 
     /**
-     * Performs finalize result as part of AdvancedAgentRunner runtime responsibilities.
+     * Performs finalize result as part of AgentRunner runtime responsibilities.
      * @param context The context used by this operation.
      * @param finalOutput The final output used by this operation.
      * @param config The config used by this operation.
      * @return The value produced by this operation.
      */
-    private RunResult finalizeResult(RunnerContext context, String finalOutput, RunConfiguration config)
+    private RunResult finalizeResult(RunnerContext context, String finalOutput, RunConfiguration config, ExecutionContext legacyContext)
     {
+        legacyContext.setAgent(context.getCurrentAgent());
+        hookManager.afterRun(legacyContext);
         if (config.getSessionId() != null)
         {
             sessionStore.save(new Session(config.getSessionId(), context.getMemory().messages()));

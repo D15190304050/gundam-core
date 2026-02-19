@@ -73,7 +73,7 @@ class McpAndErrorHandlingTest
         RunErrorHandlers handlers = new RunErrorHandlers();
         handlers.register(RunErrorKind.MODEL_INVOCATION, data -> RunErrorHandlerResult.handled("fallback output"));
 
-        AdvancedAgentRunner runner = new AdvancedAgentRunner(
+        AgentRunner runner = new AgentRunner(
             req ->
             {
                 throw new RuntimeException("model down");
