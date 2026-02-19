@@ -364,7 +364,7 @@ public class AdvancedAgentRunner
         }
 
         String content = base.getContent();
-        if ((content == null || content.isBlank()) && streamCapture.content.length() > 0)
+        if ((content == null || content.isBlank()) && !streamCapture.content.isEmpty())
         {
             content = streamCapture.content.toString();
         }
