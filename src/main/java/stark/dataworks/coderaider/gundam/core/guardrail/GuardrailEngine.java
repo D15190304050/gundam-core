@@ -15,18 +15,18 @@ public class GuardrailEngine
     /**
      * Internal state for input guardrails used while coordinating runtime behavior.
      */
-    private final List<InputGuardrail> inputGuardrails = new ArrayList<>();
+    private final List<IInputGuardrail> inputGuardrails = new ArrayList<>();
 
     /**
      * Internal state for output guardrails used while coordinating runtime behavior.
      */
-    private final List<OutputGuardrail> outputGuardrails = new ArrayList<>();
+    private final List<IOutputGuardrail> outputGuardrails = new ArrayList<>();
 
     /**
      * Registers the supplied value so it can be discovered by subsequent runtime lookups.
      * @param guardrail The guardrail used by this operation.
      */
-    public void registerInput(InputGuardrail guardrail)
+    public void registerInput(IInputGuardrail guardrail)
     {
         inputGuardrails.add(guardrail);
     }
@@ -35,7 +35,7 @@ public class GuardrailEngine
      * Registers the supplied value so it can be discovered by subsequent runtime lookups.
      * @param guardrail The guardrail used by this operation.
      */
-    public void registerOutput(OutputGuardrail guardrail)
+    public void registerOutput(IOutputGuardrail guardrail)
     {
         outputGuardrails.add(guardrail);
     }
@@ -48,7 +48,7 @@ public class GuardrailEngine
      */
     public GuardrailDecision evaluateInput(ExecutionContext context, String input)
     {
-        for (InputGuardrail guardrail : inputGuardrails)
+        for (IInputGuardrail guardrail : inputGuardrails)
         {
             GuardrailDecision decision = guardrail.evaluate(context, input);
             if (!decision.isAllowed())
@@ -67,7 +67,7 @@ public class GuardrailEngine
      */
     public GuardrailDecision evaluateOutput(ExecutionContext context, LlmResponse response)
     {
-        for (OutputGuardrail guardrail : outputGuardrails)
+        for (IOutputGuardrail guardrail : outputGuardrails)
         {
             GuardrailDecision decision = guardrail.evaluate(context, response);
             if (!decision.isAllowed())

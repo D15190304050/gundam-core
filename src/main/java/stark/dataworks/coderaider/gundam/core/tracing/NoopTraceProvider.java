@@ -3,7 +3,7 @@ package stark.dataworks.coderaider.gundam.core.tracing;
 /**
  * NoopTraceProvider implements run tracing and span publication.
  */
-public class NoopTraceProvider implements TraceProvider
+public class NoopTraceProvider implements ITraceProvider
 {
 
     /**
@@ -12,9 +12,9 @@ public class NoopTraceProvider implements TraceProvider
      * @return The value produced by this operation.
      */
     @Override
-    public TraceSpan startSpan(String name)
+    public ITraceSpan startSpan(String name)
     {
-        return new TraceSpan()
+        return new ITraceSpan()
         {
 
             /**

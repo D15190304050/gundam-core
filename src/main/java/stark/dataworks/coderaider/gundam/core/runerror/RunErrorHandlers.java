@@ -13,14 +13,14 @@ public class RunErrorHandlers
     /**
      * Internal state for handlers used while coordinating runtime behavior.
      */
-    private final Map<RunErrorKind, RunErrorHandler> handlers = new ConcurrentHashMap<>();
+    private final Map<RunErrorKind, IRunErrorHandler> handlers = new ConcurrentHashMap<>();
 
     /**
      * Registers the supplied value so it can be discovered by subsequent runtime lookups.
      * @param kind The kind used by this operation.
      * @param handler The handler used by this operation.
      */
-    public void register(RunErrorKind kind, RunErrorHandler handler)
+    public void register(RunErrorKind kind, IRunErrorHandler handler)
     {
         handlers.put(kind, handler);
     }
@@ -30,7 +30,7 @@ public class RunErrorHandlers
      * @param kind The kind used by this operation.
      * @return The value produced by this operation.
      */
-    public Optional<RunErrorHandler> get(RunErrorKind kind)
+    public Optional<IRunErrorHandler> get(RunErrorKind kind)
     {
         return Optional.ofNullable(handlers.get(kind));
     }

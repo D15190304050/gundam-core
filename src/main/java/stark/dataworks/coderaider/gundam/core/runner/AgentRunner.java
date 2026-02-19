@@ -28,7 +28,7 @@ import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmOptions;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
-import stark.dataworks.coderaider.gundam.core.llmspi.LlmStreamListener;
+import stark.dataworks.coderaider.gundam.core.llmspi.ILlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.memory.InMemoryAgentMemory;
@@ -46,13 +46,13 @@ import stark.dataworks.coderaider.gundam.core.runerror.RunErrorHandlerResult;
 import stark.dataworks.coderaider.gundam.core.runerror.RunErrorKind;
 import stark.dataworks.coderaider.gundam.core.runtime.ExecutionContext;
 import stark.dataworks.coderaider.gundam.core.session.Session;
-import stark.dataworks.coderaider.gundam.core.session.SessionStore;
+import stark.dataworks.coderaider.gundam.core.session.ISessionStore;
 import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ITool;
 import stark.dataworks.coderaider.gundam.core.tool.IToolRegistry;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
-import stark.dataworks.coderaider.gundam.core.tracing.TraceProvider;
-import stark.dataworks.coderaider.gundam.core.tracing.TraceSpan;
+import stark.dataworks.coderaider.gundam.core.tracing.ITraceProvider;
+import stark.dataworks.coderaider.gundam.core.tracing.ITraceSpan;
 
 /**
  * Orchestrates the full multi-turn agent run lifecycle.
@@ -101,12 +101,12 @@ public class AgentRunner
     /**
      * Internal state for session store; used while coordinating runtime behavior.
      */
-    private final SessionStore sessionStore;
+    private final ISessionStore sessionStore;
 
     /**
      * Internal state for trace provider; used while coordinating runtime behavior.
      */
-    private final TraceProvider traceProvider;
+    private final ITraceProvider traceProvider;
 
     /**
      * Internal state for tool approval policy; used while coordinating runtime behavior.
@@ -309,9 +309,9 @@ public class AgentRunner
         }
     }
 
-    private LlmStreamListener streamListenerForRunner(RunnerContext context, IRunHooks runHooks, StreamCapture streamCapture)
+    private ILlmStreamListener streamListenerForRunner(RunnerContext context, IRunHooks runHooks, StreamCapture streamCapture)
     {
-        return new LlmStreamListener()
+        return new ILlmStreamListener()
         {
             @Override
             public void onDelta(String delta)
@@ -488,12 +488,12 @@ public class AgentRunner
     private LlmResponse invokeModel(LlmRequest request,
                                     RunConfiguration config,
                                     boolean streamModelResponse,
-                                    LlmStreamListener streamListener)
+                                    ILlmStreamListener streamListener)
     {
         RuntimeException last = null;
         for (int attempt = 1; attempt <= config.getRetryPolicy().getMaxAttempts(); attempt++)
         {
-            TraceSpan span = traceProvider.startSpan("agent.model_call");
+            ITraceSpan span = traceProvider.startSpan("agent.model_call");
             try
             {
                 LlmResponse response = streamModelResponse

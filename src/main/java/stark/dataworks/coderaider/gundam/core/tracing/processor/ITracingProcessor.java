@@ -5,7 +5,7 @@ import stark.dataworks.coderaider.gundam.core.tracing.TraceEvent;
 /**
  * TracingProcessor implements run tracing and span publication.
  */
-public interface TracingProcessor
+public interface ITracingProcessor
 {
 
     /**

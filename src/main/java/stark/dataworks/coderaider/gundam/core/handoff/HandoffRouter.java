@@ -12,13 +12,13 @@ public class HandoffRouter
     /**
      * Internal state for filters used while coordinating runtime behavior.
      */
-    private final List<HandoffFilter> filters = new ArrayList<>();
+    private final List<IHandoffFilter> filters = new ArrayList<>();
 
     /**
      * Adds data to internal state consumed by later runtime steps.
      * @param filter The filter used by this operation.
      */
-    public void addFilter(HandoffFilter filter)
+    public void addFilter(IHandoffFilter filter)
     {
         filters.add(filter);
     }
@@ -30,7 +30,7 @@ public class HandoffRouter
      */
     public boolean canRoute(Handoff handoff)
     {
-        for (HandoffFilter filter : filters)
+        for (IHandoffFilter filter : filters)
         {
             if (!filter.allow(handoff))
             {

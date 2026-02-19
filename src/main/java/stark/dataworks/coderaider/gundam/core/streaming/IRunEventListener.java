@@ -5,7 +5,7 @@ import stark.dataworks.coderaider.gundam.core.event.RunEvent;
 /**
  * RunEventListener implements core runtime responsibilities.
  */
-public interface RunEventListener
+public interface IRunEventListener
 {
 
     /**

@@ -13,13 +13,13 @@ public class OutputSchemaRegistry
     /**
      * Internal state for schemas used while coordinating runtime behavior.
      */
-    private final Map<String, OutputSchema> schemas = new ConcurrentHashMap<>();
+    private final Map<String, IOutputSchema> schemas = new ConcurrentHashMap<>();
 
     /**
      * Registers the supplied value so it can be discovered by subsequent runtime lookups.
      * @param schema The schema used by this operation.
      */
-    public void register(OutputSchema schema)
+    public void register(IOutputSchema schema)
     {
         schemas.put(schema.name(), schema);
     }
@@ -29,7 +29,7 @@ public class OutputSchemaRegistry
      * @param name The name used by this operation.
      * @return The value produced by this operation.
      */
-    public Optional<OutputSchema> get(String name)
+    public Optional<IOutputSchema> get(String name)
     {
         return Optional.ofNullable(schemas.get(name));
     }

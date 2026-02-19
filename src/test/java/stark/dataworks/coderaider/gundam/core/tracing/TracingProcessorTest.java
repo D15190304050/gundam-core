@@ -5,9 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
-import stark.dataworks.coderaider.gundam.core.tracing.ProcessorTraceProvider;
-import stark.dataworks.coderaider.gundam.core.tracing.TraceProvider;
-import stark.dataworks.coderaider.gundam.core.tracing.TraceSpan;
 import stark.dataworks.coderaider.gundam.core.tracing.processor.TracingProcessors;
 
 class TracingProcessorTest
@@ -26,8 +23,8 @@ class TracingProcessorTest
             }
         });
 
-        TraceProvider provider = new ProcessorTraceProvider(processors);
-        TraceSpan span = provider.startSpan("test.span");
+        ITraceProvider provider = new ProcessorTraceProvider(processors);
+        ITraceSpan span = provider.startSpan("test.span");
         span.annotate("k", "v");
         span.close();
 

@@ -21,7 +21,7 @@ public interface ILlmClient
      * @param listener The listener used by this operation.
      * @return The value produced by this operation.
      */
-    default LlmResponse chatStream(LlmRequest request, LlmStreamListener listener)
+    default LlmResponse chatStream(LlmRequest request, ILlmStreamListener listener)
     {
         LlmResponse response = chat(request);
 

@@ -7,7 +7,7 @@ import stark.dataworks.coderaider.gundam.core.model.ToolCall;
  * LlmStreamListener implements provider-agnostic model invocation contracts.
  */
 @FunctionalInterface
-public interface LlmStreamListener
+public interface ILlmStreamListener
 {
 
     /**

@@ -6,7 +6,7 @@ import stark.dataworks.coderaider.gundam.core.runtime.ExecutionContext;
 /**
  * OutputGuardrail implements input/output policy evaluation around model responses.
  */
-public interface OutputGuardrail
+public interface IOutputGuardrail
 {
 
     /**

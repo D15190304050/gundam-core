@@ -5,8 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lombok.AllArgsConstructor;
 import stark.dataworks.coderaider.gundam.core.mcp.approval.AllowAllMcpToolApprovalPolicy;
-import stark.dataworks.coderaider.gundam.core.mcp.approval.McpToolApprovalPolicy;
+import stark.dataworks.coderaider.gundam.core.mcp.approval.IMcpToolApprovalPolicy;
 import stark.dataworks.coderaider.gundam.core.mcp.approval.McpToolApprovalRequest;
 import stark.dataworks.coderaider.gundam.core.tool.ITool;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
@@ -14,49 +15,39 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
 /**
  * McpManager implements MCP server integration and tool bridging.
  */
+@AllArgsConstructor
 public class McpManager
 {
 
     /**
      * Internal state for servers used while coordinating runtime behavior.
      */
-    private final Map<String, McpServerConfig> servers = new ConcurrentHashMap<>();
+    private final Map<String, McpServerConfiguration> servers = new ConcurrentHashMap<>();
 
     /**
      * Internal state for client; used while coordinating runtime behavior.
      */
-    private final McpServerClient client;
+    private final IMcpServerClient client;
 
     /**
      * Internal state for approval policy; used while coordinating runtime behavior.
      */
-    private final McpToolApprovalPolicy approvalPolicy;
+    private final IMcpToolApprovalPolicy approvalPolicy;
 
     /**
      * Performs mcp manager as part of McpManager runtime responsibilities.
      * @param client The client used by this operation.
      */
-    public McpManager(McpServerClient client)
+    public McpManager(IMcpServerClient client)
     {
         this(client, new AllowAllMcpToolApprovalPolicy());
-    }
-
-    /**
-     * Performs mcp manager as part of McpManager runtime responsibilities.
-     * @param client The client used by this operation.
-     * @param approvalPolicy The approval policy used by this operation.
-     */
-    public McpManager(McpServerClient client, McpToolApprovalPolicy approvalPolicy)
-    {
-        this.client = client;
-        this.approvalPolicy = approvalPolicy;
     }
 
     /**
      * Registers the supplied value so it can be discovered by subsequent runtime lookups.
      * @param serverConfig The server config used by this operation.
      */
-    public void registerServer(McpServerConfig serverConfig)
+    public void registerServer(McpServerConfiguration serverConfig)
     {
         servers.put(serverConfig.getServerId(), serverConfig);
     }
@@ -68,7 +59,7 @@ public class McpManager
      */
     public List<McpToolDescriptor> listTools(String serverId)
     {
-        McpServerConfig config = requireServer(serverId);
+        McpServerConfiguration config = requireServer(serverId);
         return client.listTools(config);
     }
 
@@ -110,7 +101,7 @@ public class McpManager
      */
     public List<ITool> resolveToolsAsLocalTools(String serverId)
     {
-        McpServerConfig config = requireServer(serverId);
+        McpServerConfiguration config = requireServer(serverId);
         List<ITool> tools = new ArrayList<>();
         for (McpToolDescriptor descriptor : client.listTools(config))
         {
@@ -124,9 +115,9 @@ public class McpManager
      * @param serverId The server id used by this operation.
      * @return The value produced by this operation.
      */
-    private McpServerConfig requireServer(String serverId)
+    private McpServerConfiguration requireServer(String serverId)
     {
-        McpServerConfig config = servers.get(serverId);
+        McpServerConfiguration config = servers.get(serverId);
         if (config == null)
         {
             throw new IllegalArgumentException("MCP server not registered: " + serverId);
@@ -143,7 +134,7 @@ public class McpManager
         /**
          * Internal state for config; used while coordinating runtime behavior.
          */
-        private final McpServerConfig config;
+        private final McpServerConfiguration config;
 
         /**
          * Internal state for descriptor; used while coordinating runtime behavior.
@@ -153,12 +144,12 @@ public class McpManager
         /**
          * Internal state for client; used while coordinating runtime behavior.
          */
-        private final McpServerClient client;
+        private final IMcpServerClient client;
 
         /**
          * Internal state for approval policy; used while coordinating runtime behavior.
          */
-        private final McpToolApprovalPolicy approvalPolicy;
+        private final IMcpToolApprovalPolicy approvalPolicy;
 
         /**
          * Performs mcp proxy tool as part of McpManager runtime responsibilities.
@@ -167,7 +158,7 @@ public class McpManager
          * @param client The client used by this operation.
          * @param approvalPolicy The approval policy used by this operation.
          */
-        private McpProxyTool(McpServerConfig config, McpToolDescriptor descriptor, McpServerClient client, McpToolApprovalPolicy approvalPolicy)
+        private McpProxyTool(McpServerConfiguration config, McpToolDescriptor descriptor, IMcpServerClient client, IMcpToolApprovalPolicy approvalPolicy)
         {
             this.config = config;
             this.descriptor = descriptor;

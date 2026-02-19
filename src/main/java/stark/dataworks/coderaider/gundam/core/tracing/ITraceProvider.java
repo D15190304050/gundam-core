@@ -3,7 +3,7 @@ package stark.dataworks.coderaider.gundam.core.tracing;
 /**
  * TraceProvider implements run tracing and span publication.
  */
-public interface TraceProvider
+public interface ITraceProvider
 {
 
     /**
@@ -11,5 +11,5 @@ public interface TraceProvider
      * @param name The name used by this operation.
      * @return The value produced by this operation.
      */
-    TraceSpan startSpan(String name);
+    ITraceSpan startSpan(String name);
 }

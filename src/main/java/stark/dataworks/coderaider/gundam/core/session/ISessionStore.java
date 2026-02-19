@@ -5,7 +5,7 @@ import java.util.Optional;
 /**
  * SessionStore implements session persistence and restoration.
  */
-public interface SessionStore
+public interface ISessionStore
 {
 
     /**

@@ -14,13 +14,13 @@ public class RunEventPublisher
     /**
      * Internal state for listeners used while coordinating runtime behavior.
      */
-    private final List<RunEventListener> listeners = new ArrayList<>();
+    private final List<IRunEventListener> listeners = new ArrayList<>();
 
     /**
      * Performs subscribe as part of RunEventPublisher runtime responsibilities.
      * @param listener The listener used by this operation.
      */
-    public void subscribe(RunEventListener listener)
+    public void subscribe(IRunEventListener listener)
     {
         listeners.add(listener);
     }

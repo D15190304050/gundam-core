@@ -3,7 +3,7 @@ package stark.dataworks.coderaider.gundam.core.mcp.approval;
 /**
  * AllowAllMcpToolApprovalPolicy implements MCP server integration and tool bridging.
  */
-public class AllowAllMcpToolApprovalPolicy implements McpToolApprovalPolicy
+public class AllowAllMcpToolApprovalPolicy implements IMcpToolApprovalPolicy
 {
 
     /**

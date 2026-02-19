@@ -14,13 +14,13 @@ public class TracingProcessors
     /**
      * Internal state for processors used while coordinating runtime behavior.
      */
-    private final List<TracingProcessor> processors = new CopyOnWriteArrayList<>();
+    private final List<ITracingProcessor> processors = new CopyOnWriteArrayList<>();
 
     /**
      * Adds data to internal state consumed by later runtime steps.
      * @param processor The processor used by this operation.
      */
-    public void add(TracingProcessor processor)
+    public void add(ITracingProcessor processor)
     {
         processors.add(processor);
     }

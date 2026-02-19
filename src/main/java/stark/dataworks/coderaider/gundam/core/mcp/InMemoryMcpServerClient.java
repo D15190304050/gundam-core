@@ -8,7 +8,7 @@ import java.util.function.Function;
 /**
  * InMemoryMcpServerClient implements MCP server integration and tool bridging.
  */
-public class InMemoryMcpServerClient implements McpServerClient
+public class InMemoryMcpServerClient implements IMcpServerClient
 {
 
     /**
@@ -78,7 +78,7 @@ public class InMemoryMcpServerClient implements McpServerClient
      * @return The value produced by this operation.
      */
     @Override
-    public List<McpToolDescriptor> listTools(McpServerConfig config)
+    public List<McpToolDescriptor> listTools(McpServerConfiguration config)
     {
         return toolsByServer.getOrDefault(config.getServerId(), List.of());
     }
@@ -91,7 +91,7 @@ public class InMemoryMcpServerClient implements McpServerClient
      * @return The value produced by this operation.
      */
     @Override
-    public String callTool(McpServerConfig config, String toolName, Map<String, Object> args)
+    public String callTool(McpServerConfiguration config, String toolName, Map<String, Object> args)
     {
         Function<Map<String, Object>, String> fn = handlers.get(config.getServerId() + "::" + toolName);
         if (fn == null)
@@ -107,7 +107,7 @@ public class InMemoryMcpServerClient implements McpServerClient
      * @return The value produced by this operation.
      */
     @Override
-    public List<McpResource> listResources(McpServerConfig config)
+    public List<McpResource> listResources(McpServerConfiguration config)
     {
         return resourcesByServer.getOrDefault(config.getServerId(), List.of());
     }
@@ -118,7 +118,7 @@ public class InMemoryMcpServerClient implements McpServerClient
      * @return The value produced by this operation.
      */
     @Override
-    public List<McpResourceTemplate> listResourceTemplates(McpServerConfig config)
+    public List<McpResourceTemplate> listResourceTemplates(McpServerConfiguration config)
     {
         return templatesByServer.getOrDefault(config.getServerId(), List.of());
     }
@@ -130,7 +130,7 @@ public class InMemoryMcpServerClient implements McpServerClient
      * @return The value produced by this operation.
      */
     @Override
-    public McpResource readResource(McpServerConfig config, String uri)
+    public McpResource readResource(McpServerConfiguration config, String uri)
     {
         return listResources(config).stream()
             .filter(r -> r.uri().equals(uri))

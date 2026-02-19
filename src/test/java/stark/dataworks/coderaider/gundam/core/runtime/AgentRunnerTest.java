@@ -21,10 +21,10 @@ import stark.dataworks.coderaider.gundam.core.hook.HookManager;
 import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
-import stark.dataworks.coderaider.gundam.core.llmspi.LlmStreamListener;
+import stark.dataworks.coderaider.gundam.core.llmspi.ILlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.model.ToolCall;
-import stark.dataworks.coderaider.gundam.core.output.OutputSchema;
+import stark.dataworks.coderaider.gundam.core.output.IOutputSchema;
 import stark.dataworks.coderaider.gundam.core.output.OutputSchemaRegistry;
 import stark.dataworks.coderaider.gundam.core.output.OutputValidator;
 import stark.dataworks.coderaider.gundam.core.result.RunItemType;
@@ -141,7 +141,7 @@ class AgentRunnerTest
         agents.register(new Agent(def));
 
         OutputSchemaRegistry registry = new OutputSchemaRegistry();
-        registry.register(new OutputSchema()
+        registry.register(new IOutputSchema()
         {
             @Override
             public String name()
@@ -195,7 +195,7 @@ class AgentRunnerTest
                 }
 
                 @Override
-                public LlmResponse chatStream(LlmRequest request, LlmStreamListener listener)
+                public LlmResponse chatStream(LlmRequest request, ILlmStreamListener listener)
                 {
                     listener.onDelta("streamed-");
                     listener.onDelta("response");
@@ -266,7 +266,7 @@ class AgentRunnerTest
                 }
 
                 @Override
-                public LlmResponse chatStream(LlmRequest request, LlmStreamListener listener)
+                public LlmResponse chatStream(LlmRequest request, ILlmStreamListener listener)
                 {
                     callCount++;
                     if (callCount == 1)

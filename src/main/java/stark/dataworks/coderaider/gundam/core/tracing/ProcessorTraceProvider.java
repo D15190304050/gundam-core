@@ -9,7 +9,7 @@ import stark.dataworks.coderaider.gundam.core.tracing.processor.TracingProcessor
 /**
  * ProcessorTraceProvider implements run tracing and span publication.
  */
-public class ProcessorTraceProvider implements TraceProvider
+public class ProcessorTraceProvider implements ITraceProvider
 {
 
     /**
@@ -32,9 +32,9 @@ public class ProcessorTraceProvider implements TraceProvider
      * @return The value produced by this operation.
      */
     @Override
-    public TraceSpan startSpan(String name)
+    public ITraceSpan startSpan(String name)
     {
-        return new TraceSpan()
+        return new ITraceSpan()
         {
 
             /**

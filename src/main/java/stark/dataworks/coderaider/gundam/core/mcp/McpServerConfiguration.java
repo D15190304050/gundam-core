@@ -9,7 +9,7 @@ import java.util.Objects;
  * McpServerConfig implements MCP server integration and tool bridging.
  */
 @Getter
-public class McpServerConfig
+public class McpServerConfiguration
 {
 
     /**
@@ -33,7 +33,7 @@ public class McpServerConfig
      * @param endpoint The endpoint used by this operation.
      * @param options The options used by this operation.
      */
-    public McpServerConfig(String serverId, String endpoint, Map<String, Object> options)
+    public McpServerConfiguration(String serverId, String endpoint, Map<String, Object> options)
     {
         this.serverId = Objects.requireNonNull(serverId, "serverId");
         this.endpoint = Objects.requireNonNull(endpoint, "endpoint");

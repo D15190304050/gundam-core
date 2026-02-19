@@ -14,7 +14,7 @@ public class OutputValidator
      * @param schema The schema used by this operation.
      * @return The value produced by this operation.
      */
-    public OutputValidationResult validate(Map<String, Object> structuredOutput, OutputSchema schema)
+    public OutputValidationResult validate(Map<String, Object> structuredOutput, IOutputSchema schema)
     {
         if (schema == null)
         {

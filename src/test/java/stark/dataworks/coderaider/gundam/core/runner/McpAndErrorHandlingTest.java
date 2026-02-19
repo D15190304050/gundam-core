@@ -18,7 +18,7 @@ import stark.dataworks.coderaider.gundam.core.policy.RetryPolicy;
 import stark.dataworks.coderaider.gundam.core.hook.HookManager;
 import stark.dataworks.coderaider.gundam.core.mcp.InMemoryMcpServerClient;
 import stark.dataworks.coderaider.gundam.core.mcp.McpManager;
-import stark.dataworks.coderaider.gundam.core.mcp.McpServerConfig;
+import stark.dataworks.coderaider.gundam.core.mcp.McpServerConfiguration;
 import stark.dataworks.coderaider.gundam.core.mcp.McpToolDescriptor;
 import stark.dataworks.coderaider.gundam.core.mcp.McpResource;
 import stark.dataworks.coderaider.gundam.core.mcp.McpResourceTemplate;
@@ -49,7 +49,7 @@ class McpAndErrorHandlingTest
         client.registerResourceTemplates("s1", List.of(new McpResourceTemplate("tpl", "res://{id}", "template")));
 
         McpManager manager = new McpManager(client);
-        manager.registerServer(new McpServerConfig("s1", "http://localhost", Map.of()));
+        manager.registerServer(new McpServerConfiguration("s1", "http://localhost", Map.of()));
 
         String output = manager.resolveToolsAsLocalTools("s1").get(0).execute(Map.of("q", "java"));
         assertEquals("remote:java", output);
