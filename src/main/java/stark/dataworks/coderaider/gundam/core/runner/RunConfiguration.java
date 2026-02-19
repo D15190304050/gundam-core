@@ -8,7 +8,7 @@ import stark.dataworks.coderaider.gundam.core.policy.RetryPolicy;
 import stark.dataworks.coderaider.gundam.core.runerror.RunErrorHandlers;
 
 /**
- * Immutable runtime configuration used by {@link AdvancedAgentRunner}.
+ * Immutable runtime configuration used by {@link AgentRunner}.
  * <p>
  * The configuration centralizes turn limits, generation settings, retry behavior, and error-handler strategy so each
  * run can be controlled without changing code.
