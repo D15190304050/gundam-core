@@ -12,5 +12,6 @@ public enum ToolCategory
     SHELL,
     CODE_INTERPRETER,
     IMAGE_GENERATION,
+    VIDEO_GENERATION,
     MCP
 }

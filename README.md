@@ -109,6 +109,8 @@ Including:
 - Step loop runtime
 - Conversation memory
 - Model abstraction
+- Multimodal message/request/response abstraction (text + image/video/audio parts)
+- Multimodal generation contracts (image/video/audio)
 - Agent-to-Agent handoff
 - Tool schema definition
 - Generation options
