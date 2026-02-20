@@ -11,19 +11,19 @@ These examples are organized from basic to complex, all with **real streaming ou
 ## Prerequisites
 
 All examples require a **ModelScope API key**. You can provide it via:
-- Environment variable: `MODELSCOPE_API_KEY`
+- Environment variable: `MODEL_SCOPE_API_KEY`
 - Command-line argument (second argument)
 
 Get your API key from: https://modelscope.cn/
 
 ## Run from IDE
-Run each class' `main` method. Make sure to set the `MODELSCOPE_API_KEY` environment variable first.
+Run each class' `main` method. Make sure to set the `MODEL_SCOPE_API_KEY` environment variable first.
 
 ## Run with Maven
 
 ```powershell
 # Set your API key (PowerShell)
-$env:MODELSCOPE_API_KEY="ms-xxx"
+$env:MODEL_SCOPE_API_KEY="ms-xxx"
 
 # Run Example01
 & "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
@@ -32,7 +32,7 @@ $env:MODELSCOPE_API_KEY="ms-xxx"
 # Run Example02 with custom city
 & "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
   -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example02AgentWithTools `
-  -Dexec.args="Qwen/Qwen3-4B $env:MODELSCOPE_API_KEY Beijing"
+  -Dexec.args="Qwen/Qwen3-4B $env:MODEL_SCOPE_API_KEY Beijing"
 
 # Run Example03
 & "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `

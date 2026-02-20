@@ -9,10 +9,10 @@ import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
 import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
-import stark.dataworks.coderaider.gundam.core.mcp.InMemoryMcpServerClient;
 import stark.dataworks.coderaider.gundam.core.mcp.McpManager;
 import stark.dataworks.coderaider.gundam.core.mcp.McpServerConfiguration;
 import stark.dataworks.coderaider.gundam.core.mcp.McpToolDescriptor;
+import stark.dataworks.coderaider.gundam.core.mcp.StdioMcpServerClient;
 import stark.dataworks.coderaider.gundam.core.result.RunResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
@@ -28,9 +28,14 @@ import stark.dataworks.coderaider.gundam.core.tool.builtin.mcp.HostedMcpTool;
 /**
  * 4) How to create a multi-round single agent with tools and MCPs, with streaming output.
  * 
- * Usage: java Example04MultiRoundSingleAgentWithToolsAndMcp [model] [apiKey]
+ * Usage: java Example04MultiRoundSingleAgentWithToolsAndMcp [model] [apiKey] [mcpServerCommand]
  * - model: ModelScope model name (default: Qwen/Qwen3-4B)
  * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
+ * - mcpServerCommand: MCP server command (default: "python src/main/java/.../simple_mcp_server_stdio.py")
+ * 
+ * Prerequisites:
+ * 1. Install mcp package: pip install mcp[cli]
+ * 2. Run this example - the MCP server will be started and terminated automatically.
  * 
  * This example demonstrates a multi-round conversation with a single agent
  * that has access to both regular tools and MCP tools.
@@ -41,6 +46,7 @@ public class Example04MultiRoundSingleAgentWithToolsAndMcp
     {
         String model = args.length > 0 ? args[0] : "Qwen/Qwen3-4B";
         String apiKey = args.length > 1 ? args[1] : System.getenv("MODEL_SCOPE_API_KEY");
+        String mcpServerCommand = args.length > 2 ? args[2] : "python src/main/java/stark/dataworks/coderaider/gundam/core/examples/simple_mcp_server_stdio.py";
 
         if (apiKey == null || apiKey.isBlank())
         {
@@ -49,16 +55,23 @@ public class Example04MultiRoundSingleAgentWithToolsAndMcp
             System.exit(1);
         }
 
-        InMemoryMcpServerClient mcpClient = new InMemoryMcpServerClient();
+        StdioMcpServerClient mcpClient = new StdioMcpServerClient();
+        
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("\n[MCP] Shutting down MCP server...");
+            mcpClient.disconnect(new McpServerConfiguration("policy-mcp", mcpServerCommand, Map.of()));
+        }));
+
         McpManager mcpManager = new McpManager(mcpClient);
 
         McpServerConfiguration mcpServer = new McpServerConfiguration(
             "policy-mcp",
-            "http://localhost:9001/mcp",
-            Map.of("apiKey", "<your-mcp-api-key>", "baseUrl", "<your-mcp-base-url>"));
+            mcpServerCommand,
+            Map.of());
         mcpManager.registerServer(mcpServer);
-        mcpClient.registerTools("policy-mcp", List.of(new McpToolDescriptor("policy_lookup", "Look up company policies", Map.of())));
-        mcpClient.registerHandler("policy-mcp", "policy_lookup", in -> "MCP(policy): policy for " + in.getOrDefault("topic", "general") + " - Standard procedures apply.");
+
+        List<McpToolDescriptor> mcpTools = mcpClient.listTools(mcpServer);
+        System.out.println("Available MCP tools: " + mcpTools.stream().map(McpToolDescriptor::getName).toList());
 
         AgentDefinition agentDef = new AgentDefinition();
         agentDef.setId("hybrid-agent");
@@ -97,6 +110,8 @@ public class Example04MultiRoundSingleAgentWithToolsAndMcp
         RunResult round3 = runner.runStreamed(agentRegistry.get("hybrid-agent").orElseThrow(), "Calculate tax for 500 and check relevant policies.", config, ExampleSupport.noopHooks());
         System.out.println();
         System.out.println("Round 3 output: " + round3.getFinalOutput());
+        
+        mcpClient.disconnect(mcpServer);
     }
 
     private static RunEventPublisher createConsoleStreamingPublisher()
