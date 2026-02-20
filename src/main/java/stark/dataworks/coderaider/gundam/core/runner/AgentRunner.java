@@ -245,6 +245,7 @@ public class AgentRunner
 
                 if (!effectiveResponse.getToolCalls().isEmpty())
                 {
+                    context.getMemory().append(new Message(Role.ASSISTANT, effectiveResponse.getContent(), effectiveResponse.getToolCalls()));
                     for (ToolCall call : effectiveResponse.getToolCalls())
                     {
                         emit(context, runHooks, RunEventType.TOOL_CALL_REQUESTED, Map.of("tool", call.getToolName()));
@@ -268,7 +269,7 @@ public class AgentRunner
                             hookManager.beforeTool(call.getToolName(), call.getArguments());
                             String result = tool.execute(call.getArguments());
                             hookManager.afterTool(call.getToolName(), result);
-                            context.getMemory().append(new Message(Role.TOOL, call.getToolName() + ": " + result));
+                            context.getMemory().append(new Message(Role.TOOL, result, call.getToolCallId()));
                             context.getItems().add(new RunItem(RunItemType.TOOL_CALL, call.getToolName(), call.getArguments()));
                             context.getItems().add(new RunItem(RunItemType.TOOL_RESULT, result, Map.of("tool", call.getToolName())));
                             emit(context, runHooks, RunEventType.TOOL_CALL_COMPLETED, Map.of("tool", call.getToolName()));

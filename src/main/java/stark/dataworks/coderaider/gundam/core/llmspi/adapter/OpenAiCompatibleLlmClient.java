@@ -14,11 +14,13 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolSchemaJson;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,9 +71,16 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
         {
             String payload = objectMapper.writeValueAsString(toPayload(request, true));
             HttpRequest httpRequest = buildHttpRequest(payload);
-            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            ensureSuccess(response.statusCode(), response.body());
-            return consumeSse(response.body(), listener);
+            HttpResponse<InputStream> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
+            
+            int statusCode = response.statusCode();
+            if (statusCode < 200 || statusCode >= 300)
+            {
+                String errorBody = new String(response.body().readAllBytes(), StandardCharsets.UTF_8);
+                throw new IllegalStateException("Provider call failed with status=" + statusCode + ", body=" + errorBody);
+            }
+            
+            return consumeSseStream(response.body(), listener);
         }
         catch (Exception ex)
         {
@@ -85,6 +94,7 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
             .uri(URI.create(configuration.getBaseUrl() + "/chat/completions"))
             .header("Content-Type", "application/json")
             .header("Authorization", "Bearer " + configuration.getApiKey())
+            .header("Accept", "text/event-stream")
             .timeout(configuration.getTimeout())
             .POST(HttpRequest.BodyPublishers.ofString(payload));
 
@@ -96,13 +106,13 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
         return builder.build();
     }
 
-    private LlmResponse consumeSse(String body, ILlmStreamListener listener) throws IOException
+    private LlmResponse consumeSseStream(InputStream inputStream, ILlmStreamListener listener) throws IOException
     {
         StringBuilder content = new StringBuilder();
         String finishReason = "";
         List<ToolDelta> toolDeltas = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new StringReader(body)))
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)))
         {
             String line;
             while ((line = reader.readLine()) != null)
@@ -147,8 +157,13 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
                             toolDeltas.add(new ToolDelta());
                         }
                         ToolDelta d = toolDeltas.get(idx);
+                        String id = OpenAiCompatibleResponseConverter.text(tc.path("id"));
                         String name = OpenAiCompatibleResponseConverter.text(tc.path("function").path("name"));
                         String argsPart = OpenAiCompatibleResponseConverter.text(tc.path("function").path("arguments"));
+                        if (!id.isBlank())
+                        {
+                            d.id = id;
+                        }
                         if (!name.isBlank())
                         {
                             d.name = name;
@@ -192,7 +207,7 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
                 }
             }
 
-            ToolCall call = new ToolCall(d.name, args);
+            ToolCall call = new ToolCall(d.name, args, d.id);
             calls.add(call);
             if (listener != null)
             {
@@ -249,7 +264,34 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
 
         Map<String, Object> out = new HashMap<>();
         out.put("role", role);
-        out.put("content", message.getContent());
+
+        if (message.getRole() == Role.TOOL && message.getToolCallId() != null)
+        {
+            out.put("tool_call_id", message.getToolCallId());
+            out.put("content", message.getContent());
+        }
+        else if (message.getRole() == Role.ASSISTANT && !message.getToolCalls().isEmpty())
+        {
+            out.put("content", message.getContent().isBlank() ? null : message.getContent());
+            List<Map<String, Object>> toolCalls = new ArrayList<>();
+            for (ToolCall tc : message.getToolCalls())
+            {
+                Map<String, Object> tcMap = new HashMap<>();
+                tcMap.put("id", tc.getToolCallId());
+                tcMap.put("type", "function");
+                Map<String, Object> fnMap = new HashMap<>();
+                fnMap.put("name", tc.getToolName());
+                fnMap.put("arguments", objectMapper.valueToTree(tc.getArguments()).toString());
+                tcMap.put("function", fnMap);
+                toolCalls.add(tcMap);
+            }
+            out.put("tool_calls", toolCalls);
+        }
+        else
+        {
+            out.put("content", message.getContent());
+        }
+
         return out;
     }
 
@@ -274,6 +316,7 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
 
     private static class ToolDelta
     {
+        private String id;
         private String name;
         private final StringBuilder arguments = new StringBuilder();
     }

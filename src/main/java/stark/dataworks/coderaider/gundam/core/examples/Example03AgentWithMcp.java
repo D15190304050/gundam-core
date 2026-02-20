@@ -6,29 +6,47 @@ import java.util.Map;
 import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
-import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
-import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
-import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
+import stark.dataworks.coderaider.gundam.core.event.RunEvent;
+import stark.dataworks.coderaider.gundam.core.event.RunEventType;
+import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.mcp.InMemoryMcpServerClient;
 import stark.dataworks.coderaider.gundam.core.mcp.McpManager;
 import stark.dataworks.coderaider.gundam.core.mcp.McpServerConfiguration;
 import stark.dataworks.coderaider.gundam.core.mcp.McpToolDescriptor;
-import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
-import stark.dataworks.coderaider.gundam.core.model.Role;
-import stark.dataworks.coderaider.gundam.core.model.ToolCall;
 import stark.dataworks.coderaider.gundam.core.result.RunResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
+import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
+import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 import stark.dataworks.coderaider.gundam.core.tool.builtin.mcp.HostedMcpTool;
 
 /**
- * 3) How to create an agent with a set of MCPs, and then run it.
+ * 3) How to create an agent with a set of MCPs, and then run it with streaming output.
+ * 
+ * Usage: java Example03AgentWithMcp [model] [apiKey] [query]
+ * - model: ModelScope model name (default: Qwen/Qwen3-4B)
+ * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
+ * - query: Search query (default: "Find onboarding policy")
+ * 
+ * Note: This example uses an InMemoryMcpServerClient for demonstration.
+ * In production, you would connect to a real MCP server.
  */
 public class Example03AgentWithMcp
 {
     public static void main(String[] args)
     {
+        String model = args.length > 0 ? args[0] : "Qwen/Qwen3-4B";
+        String apiKey = args.length > 1 ? args[1] : System.getenv("MODEL_SCOPE_API_KEY");
+        String query = args.length > 2 ? args[2] : "Find onboarding policy";
+
+        if (apiKey == null || apiKey.isBlank())
+        {
+            System.err.println("Error: ModelScope API key is required.");
+            System.err.println("Set MODEL_SCOPE_API_KEY environment variable or pass as second argument.");
+            System.exit(1);
+        }
+
         InMemoryMcpServerClient mcpClient = new InMemoryMcpServerClient();
         McpManager mcpManager = new McpManager(mcpClient);
 
@@ -43,8 +61,8 @@ public class Example03AgentWithMcp
         AgentDefinition agentDef = new AgentDefinition();
         agentDef.setId("mcp-agent");
         agentDef.setName("MCP Agent");
-        agentDef.setModel("gpt-4.1-mini");
-        agentDef.setSystemPrompt("Use kb_search to answer questions from internal knowledge.");
+        agentDef.setModel(model);
+        agentDef.setSystemPrompt("Use kb_search to answer questions from internal knowledge. Be concise and helpful.");
         agentDef.setToolNames(List.of("kb_search"));
 
         AgentRegistry agentRegistry = new AgentRegistry();
@@ -53,23 +71,45 @@ public class Example03AgentWithMcp
         ToolRegistry toolRegistry = new ToolRegistry();
         toolRegistry.register(new HostedMcpTool("kb-mcp", "kb_search", mcpManager));
 
-        AgentRunner runner = ExampleSupport.runner(new McpCallingClient(), toolRegistry, agentRegistry, null);
-        RunResult result = runner.run(agentRegistry.get("mcp-agent").orElseThrow(), "Find onboarding policy", RunConfiguration.defaults(), ExampleSupport.noopHooks());
+        ModelScopeLlmClient llmClient = new ModelScopeLlmClient(apiKey, model);
+        AgentRunner runner = ExampleSupport.runnerWithPublisher(llmClient, toolRegistry, agentRegistry, null, createConsoleStreamingPublisher());
 
-        System.out.println("Output=" + result.getFinalOutput());
+        System.out.print("Streaming output: ");
+        RunResult result = runner.runStreamed(agentRegistry.get("mcp-agent").orElseThrow(), query, RunConfiguration.defaults(), ExampleSupport.noopHooks());
+        System.out.println();
+        System.out.println("Final output: " + result.getFinalOutput());
     }
 
-    private static class McpCallingClient implements ILlmClient
+    private static RunEventPublisher createConsoleStreamingPublisher()
     {
-        @Override
-        public LlmResponse chat(LlmRequest request)
+        RunEventPublisher publisher = new RunEventPublisher();
+        publisher.subscribe(new IRunEventListener()
         {
-            boolean hasMcpResult = request.getMessages().stream().anyMatch(m -> m.getRole() == Role.TOOL);
-            if (!hasMcpResult)
+            @Override
+            public void onEvent(RunEvent event)
             {
-                return new LlmResponse("", List.of(new ToolCall("kb_search", Map.of("query", "onboarding policy"))), null, new TokenUsage(11, 6));
+                if (event.getType() == RunEventType.MODEL_RESPONSE_DELTA)
+                {
+                    String delta = (String) event.getAttributes().get("delta");
+                    if (delta != null)
+                    {
+                        System.out.print(delta);
+                        System.out.flush();
+                    }
+                }
+                else if (event.getType() == RunEventType.TOOL_CALL_REQUESTED)
+                {
+                    String tool = (String) event.getAttributes().get("tool");
+                    System.out.println("\n[MCP Tool call: " + tool + "]");
+                }
+                else if (event.getType() == RunEventType.TOOL_CALL_COMPLETED)
+                {
+                    String tool = (String) event.getAttributes().get("tool");
+                    System.out.println("[MCP Tool completed: " + tool + "]");
+                    System.out.print("Continuing stream: ");
+                }
             }
-            return new LlmResponse("According to MCP KB, onboarding requires manager approval.", List.of(), null, new TokenUsage(8, 16));
-        }
+        });
+        return publisher;
     }
 }

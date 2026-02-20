@@ -6,108 +6,154 @@ import java.util.Map;
 import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
-import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
-import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
-import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
+import stark.dataworks.coderaider.gundam.core.event.RunEvent;
+import stark.dataworks.coderaider.gundam.core.event.RunEventType;
+import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.mcp.InMemoryMcpServerClient;
 import stark.dataworks.coderaider.gundam.core.mcp.McpManager;
 import stark.dataworks.coderaider.gundam.core.mcp.McpServerConfiguration;
 import stark.dataworks.coderaider.gundam.core.mcp.McpToolDescriptor;
-import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
-import stark.dataworks.coderaider.gundam.core.model.Message;
-import stark.dataworks.coderaider.gundam.core.model.Role;
-import stark.dataworks.coderaider.gundam.core.model.ToolCall;
 import stark.dataworks.coderaider.gundam.core.result.RunResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.session.InMemorySessionStore;
+import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
+import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ITool;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
+import stark.dataworks.coderaider.gundam.core.tool.ToolParameterSchema;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 import stark.dataworks.coderaider.gundam.core.tool.builtin.mcp.HostedMcpTool;
 
 /**
- * 4) How to run multi-round conversation by a single agent with tools & MCPs.
+ * 4) How to create a multi-round single agent with tools and MCPs, with streaming output.
+ * 
+ * Usage: java Example04MultiRoundSingleAgentWithToolsAndMcp [model] [apiKey]
+ * - model: ModelScope model name (default: Qwen/Qwen3-4B)
+ * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
+ * 
+ * This example demonstrates a multi-round conversation with a single agent
+ * that has access to both regular tools and MCP tools.
  */
 public class Example04MultiRoundSingleAgentWithToolsAndMcp
 {
     public static void main(String[] args)
     {
-        String sessionId = args.length > 0 ? args[0] : "demo-session-001";
+        String model = args.length > 0 ? args[0] : "Qwen/Qwen3-4B";
+        String apiKey = args.length > 1 ? args[1] : System.getenv("MODEL_SCOPE_API_KEY");
+
+        if (apiKey == null || apiKey.isBlank())
+        {
+            System.err.println("Error: ModelScope API key is required.");
+            System.err.println("Set MODEL_SCOPE_API_KEY environment variable or pass as second argument.");
+            System.exit(1);
+        }
+
+        InMemoryMcpServerClient mcpClient = new InMemoryMcpServerClient();
+        McpManager mcpManager = new McpManager(mcpClient);
+
+        McpServerConfiguration mcpServer = new McpServerConfiguration(
+            "policy-mcp",
+            "http://localhost:9001/mcp",
+            Map.of("apiKey", "<your-mcp-api-key>", "baseUrl", "<your-mcp-base-url>"));
+        mcpManager.registerServer(mcpServer);
+        mcpClient.registerTools("policy-mcp", List.of(new McpToolDescriptor("policy_lookup", "Look up company policies", Map.of())));
+        mcpClient.registerHandler("policy-mcp", "policy_lookup", in -> "MCP(policy): policy for " + in.getOrDefault("topic", "general") + " - Standard procedures apply.");
 
         AgentDefinition agentDef = new AgentDefinition();
         agentDef.setId("hybrid-agent");
         agentDef.setName("Hybrid Agent");
-        agentDef.setModel("gpt-4.1-mini");
-        agentDef.setSystemPrompt("Use tools and mcp tools for planning answers.");
-        agentDef.setToolNames(List.of("calc_tax", "kb_search"));
+        agentDef.setModel(model);
+        agentDef.setSystemPrompt("You are a helpful assistant with access to tax calculation and policy lookup tools. Use them when appropriate.");
+        agentDef.setToolNames(List.of("tax_calculator", "policy_lookup"));
 
         AgentRegistry agentRegistry = new AgentRegistry();
         agentRegistry.register(new Agent(agentDef));
 
         ToolRegistry toolRegistry = new ToolRegistry();
-        toolRegistry.register(new ITool()
+        toolRegistry.register(createTaxCalculatorTool());
+        toolRegistry.register(new HostedMcpTool("policy-mcp", "policy_lookup", mcpManager));
+
+        InMemorySessionStore sessionStore = new InMemorySessionStore();
+        RunConfiguration config = RunConfiguration.defaults();
+
+        ModelScopeLlmClient llmClient = new ModelScopeLlmClient(apiKey, model);
+        AgentRunner runner = ExampleSupport.runnerWithPublisher(llmClient, toolRegistry, agentRegistry, sessionStore, createConsoleStreamingPublisher());
+
+        System.out.println("=== Round 1: Tax Estimation ===");
+        System.out.print("Streaming output: ");
+        RunResult round1 = runner.runStreamed(agentRegistry.get("hybrid-agent").orElseThrow(), "Please estimate tax for amount 100.", config, ExampleSupport.noopHooks());
+        System.out.println();
+        System.out.println("Round 1 output: " + round1.getFinalOutput());
+
+        System.out.println("\n=== Round 2: Policy Constraints ===");
+        System.out.print("Streaming output: ");
+        RunResult round2 = runner.runStreamed(agentRegistry.get("hybrid-agent").orElseThrow(), "What policy constraints should I know?", config, ExampleSupport.noopHooks());
+        System.out.println();
+        System.out.println("Round 2 output: " + round2.getFinalOutput());
+
+        System.out.println("\n=== Round 3: Combined Query ===");
+        System.out.print("Streaming output: ");
+        RunResult round3 = runner.runStreamed(agentRegistry.get("hybrid-agent").orElseThrow(), "Calculate tax for 500 and check relevant policies.", config, ExampleSupport.noopHooks());
+        System.out.println();
+        System.out.println("Round 3 output: " + round3.getFinalOutput());
+    }
+
+    private static RunEventPublisher createConsoleStreamingPublisher()
+    {
+        RunEventPublisher publisher = new RunEventPublisher();
+        publisher.subscribe(new IRunEventListener()
+        {
+            @Override
+            public void onEvent(RunEvent event)
+            {
+                if (event.getType() == RunEventType.MODEL_RESPONSE_DELTA)
+                {
+                    String delta = (String) event.getAttributes().get("delta");
+                    if (delta != null)
+                    {
+                        System.out.print(delta);
+                        System.out.flush();
+                    }
+                }
+                else if (event.getType() == RunEventType.TOOL_CALL_REQUESTED)
+                {
+                    String tool = (String) event.getAttributes().get("tool");
+                    System.out.println("\n[Tool call: " + tool + "]");
+                }
+                else if (event.getType() == RunEventType.TOOL_CALL_COMPLETED)
+                {
+                    String tool = (String) event.getAttributes().get("tool");
+                    System.out.println("[Tool completed: " + tool + "]");
+                    System.out.print("Continuing stream: ");
+                }
+            }
+        });
+        return publisher;
+    }
+
+    private static ITool createTaxCalculatorTool()
+    {
+        return new ITool()
         {
             @Override
             public ToolDefinition definition()
             {
-                return new ToolDefinition("calc_tax", "calculate tax", List.of());
+                return new ToolDefinition(
+                    "tax_calculator",
+                    "Calculate estimated tax for a given amount",
+                    List.of(
+                        new ToolParameterSchema("amount", "number", true, "The amount to calculate tax for")
+                    ));
             }
 
             @Override
             public String execute(Map<String, Object> input)
             {
-                return "tax=12.5";
+                double amount = ((Number) input.getOrDefault("amount", 0)).doubleValue();
+                double tax = amount * 0.1;
+                return String.format("{\"amount\": %.2f, \"tax\": %.2f, \"total\": %.2f}", amount, tax, amount + tax);
             }
-        });
-
-        InMemoryMcpServerClient mcpClient = new InMemoryMcpServerClient();
-        McpManager mcpManager = new McpManager(mcpClient);
-        mcpManager.registerServer(new McpServerConfiguration("policy-mcp", "http://localhost:9100/mcp", Map.of()));
-        mcpClient.registerTools("policy-mcp", List.of(new McpToolDescriptor("kb_search", "policy search", Map.of())));
-        mcpClient.registerHandler("policy-mcp", "kb_search", in -> "policy says reimbursement cap is 500");
-        toolRegistry.register(new HostedMcpTool("policy-mcp", "kb_search", mcpManager));
-
-        InMemorySessionStore sessionStore = new InMemorySessionStore();
-        AgentRunner runner = ExampleSupport.runner(new MultiRoundClient(), toolRegistry, agentRegistry, sessionStore);
-
-        RunConfiguration config = new RunConfiguration(8, sessionId, 0.2, 512, "auto", "text", Map.of());
-
-        RunResult round1 = runner.run(agentRegistry.get("hybrid-agent").orElseThrow(), "Please estimate tax for amount 100.", config, ExampleSupport.noopHooks());
-        RunResult round2 = runner.run(agentRegistry.get("hybrid-agent").orElseThrow(), "What policy constraints should I know?", config, ExampleSupport.noopHooks());
-
-        System.out.println("Round1=" + round1.getFinalOutput());
-        System.out.println("Round2=" + round2.getFinalOutput());
-
-        List<Message> sessionMessages = sessionStore.load(sessionId).orElseThrow().getMessages();
-        System.out.println("PersistedMessageCount=" + sessionMessages.size());
-    }
-
-    private static class MultiRoundClient implements ILlmClient
-    {
-        @Override
-        public LlmResponse chat(LlmRequest request)
-        {
-            String latestUser = request.getMessages().stream()
-                .filter(message -> message.getRole() == Role.USER)
-                .reduce((a, b) -> b)
-                .map(Message::getContent)
-                .orElse("");
-
-            boolean hasToolOutput = request.getMessages().stream().anyMatch(message -> message.getRole() == Role.TOOL);
-            if (!hasToolOutput && latestUser.toLowerCase().contains("tax"))
-            {
-                return new LlmResponse("", List.of(new ToolCall("calc_tax", Map.of("amount", 100))), null, new TokenUsage(10, 5));
-            }
-            if (!hasToolOutput && latestUser.toLowerCase().contains("policy"))
-            {
-                return new LlmResponse("", List.of(new ToolCall("kb_search", Map.of("query", "expense policy"))), null, new TokenUsage(10, 5));
-            }
-            if (latestUser.toLowerCase().contains("policy"))
-            {
-                return new LlmResponse("Policy cap is 500 and approvals are required.", List.of(), null, new TokenUsage(8, 14));
-            }
-            return new LlmResponse("Estimated tax is 12.5.", List.of(), null, new TokenUsage(8, 12));
-        }
+        };
     }
 }

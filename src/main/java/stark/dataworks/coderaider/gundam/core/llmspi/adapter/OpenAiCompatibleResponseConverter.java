@@ -11,9 +11,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 final class OpenAiCompatibleResponseConverter
 {
+    private static final Pattern HANDOFF_TEXT_PATTERN = Pattern.compile("handoff\\s*:\\s*([a-zA-Z0-9_-]+)", Pattern.CASE_INSENSITIVE);
+
     private OpenAiCompatibleResponseConverter()
     {
     }
@@ -39,6 +43,12 @@ final class OpenAiCompatibleResponseConverter
     {
         if (content != null && !content.isBlank())
         {
+            Matcher matcher = HANDOFF_TEXT_PATTERN.matcher(content.trim());
+            if (matcher.find())
+            {
+                return matcher.group(1).trim();
+            }
+
             try
             {
                 ObjectMapper mapper = new ObjectMapper();
@@ -90,6 +100,7 @@ final class OpenAiCompatibleResponseConverter
             JsonNode fn = toolCallNode.path("function");
             String name = text(fn.path("name"));
             String argsJson = text(fn.path("arguments"));
+            String toolCallId = text(toolCallNode.path("id"));
             if (name.isBlank())
             {
                 continue;
@@ -112,7 +123,7 @@ final class OpenAiCompatibleResponseConverter
                 }
             }
 
-            toolCalls.add(new ToolCall(name, args));
+            toolCalls.add(new ToolCall(name, args, toolCallId));
         }
 
         return toolCalls;

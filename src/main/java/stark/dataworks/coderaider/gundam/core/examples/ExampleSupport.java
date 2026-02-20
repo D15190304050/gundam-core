@@ -41,6 +41,24 @@ final class ExampleSupport
             new RunEventPublisher());
     }
 
+    static AgentRunner runnerWithPublisher(ILlmClient client, IToolRegistry toolRegistry, IAgentRegistry agentRegistry, ISessionStore sessionStore, RunEventPublisher publisher)
+    {
+        return new AgentRunner(
+            client,
+            toolRegistry,
+            agentRegistry,
+            new DefaultContextBuilder(),
+            new HookManager(),
+            new GuardrailEngine(),
+            new HandoffRouter(),
+            sessionStore == null ? new InMemorySessionStore() : sessionStore,
+            new NoopTraceProvider(),
+            new AllowAllToolApprovalPolicy(),
+            new OutputSchemaRegistry(),
+            new OutputValidator(),
+            publisher);
+    }
+
     static IRunHooks noopHooks()
     {
         return new IRunHooks()

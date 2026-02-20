@@ -58,4 +58,9 @@ public class OpenAiCompatibleConfiguration
     {
         return new OpenAiCompatibleConfiguration("deepseek", "https://api.deepseek.com", apiKey, model, Duration.ofSeconds(60), Map.of());
     }
+
+    public static OpenAiCompatibleConfiguration modelScope(String apiKey, String model)
+    {
+        return new OpenAiCompatibleConfiguration("modelscope", "https://api-inference.modelscope.cn/v1", apiKey, model, Duration.ofSeconds(120), Map.of());
+    }
 }
