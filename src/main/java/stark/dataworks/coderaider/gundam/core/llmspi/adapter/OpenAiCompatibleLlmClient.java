@@ -109,6 +109,7 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
     private LlmResponse consumeSseStream(InputStream inputStream, ILlmStreamListener listener) throws IOException
     {
         StringBuilder content = new StringBuilder();
+        StringBuilder reasoning = new StringBuilder();
         String finishReason = "";
         List<ToolDelta> toolDeltas = new ArrayList<>();
 
@@ -143,6 +144,16 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
                     if (listener != null)
                     {
                         listener.onDelta(deltaText);
+                    }
+                }
+
+                String reasoningDelta = extractReasoningDelta(delta);
+                if (!reasoningDelta.isBlank())
+                {
+                    reasoning.append(reasoningDelta);
+                    if (listener != null)
+                    {
+                        listener.onReasoningDelta(reasoningDelta);
                     }
                 }
 
@@ -216,7 +227,8 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
         }
 
         String handoff = OpenAiCompatibleResponseConverter.parseHandoff(content.toString(), calls);
-        LlmResponse finalResponse = new LlmResponse(content.toString(), calls, handoff, null, finishReason, Map.of());
+        LlmResponse finalResponse = new LlmResponse(content.toString(), calls, handoff, null, finishReason,
+            reasoning.toString(), Map.of(), List.of());
         if (listener != null)
         {
             if (handoff != null)
@@ -226,6 +238,48 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
             listener.onCompleted(finalResponse);
         }
         return finalResponse;
+    }
+
+
+    private static String extractReasoningDelta(JsonNode delta)
+    {
+        String reasoningDelta = OpenAiCompatibleResponseConverter.text(delta.path("reasoning_content"));
+        if (!reasoningDelta.isBlank())
+        {
+            return reasoningDelta;
+        }
+
+        reasoningDelta = OpenAiCompatibleResponseConverter.text(delta.path("reasoning"));
+        if (!reasoningDelta.isBlank())
+        {
+            return reasoningDelta;
+        }
+
+        JsonNode contentNode = delta.path("content");
+        if (!contentNode.isArray())
+        {
+            return "";
+        }
+
+        StringBuilder out = new StringBuilder();
+        for (JsonNode item : contentNode)
+        {
+            String type = OpenAiCompatibleResponseConverter.text(item.path("type"));
+            if ("reasoning".equalsIgnoreCase(type) || "reasoning_text".equalsIgnoreCase(type))
+            {
+                String segment = OpenAiCompatibleResponseConverter.text(item.path("text"));
+                if (!segment.isBlank())
+                {
+                    if (!out.isEmpty())
+                    {
+                        out.append('\n');
+                    }
+                    out.append(segment);
+                }
+            }
+        }
+
+        return out.toString();
     }
 
     private Map<String, Object> toPayload(LlmRequest request, boolean stream)

@@ -104,7 +104,7 @@ class AgentRunnerTest
         AgentRunner runner = new AgentRunner(
             req ->
             {
-                if (req.getMessages().stream().noneMatch(m -> m.getContent().contains("echo: ok")))
+                if (req.getMessages().stream().noneMatch(m -> "ok".equals(m.getContent())))
                 {
                     return new LlmResponse("", List.of(new ToolCall("echo", Map.of())), null, new TokenUsage(1, 1));
                 }
@@ -336,6 +336,93 @@ class AgentRunnerTest
             .map(e -> (String) e.getAttributes().get("delta"))
             .toList();
         assertEquals(List.of("sync-only"), deltas);
+    }
+
+
+    @Test
+    void streamedRunEmitsReasoningDeltaEvents()
+    {
+        AgentDefinition def = baseDef("reasoning");
+
+        AgentRegistry agents = new AgentRegistry();
+        agents.register(new Agent(def));
+
+        AgentRunner runner = new AgentRunner(
+            new ILlmClient()
+            {
+                @Override
+                public LlmResponse chat(LlmRequest request)
+                {
+                    return new LlmResponse("answer", List.of(), null, new TokenUsage(1, 1), "stop", "r-sync", Map.of(), List.of());
+                }
+
+                @Override
+                public LlmResponse chatStream(LlmRequest request, ILlmStreamListener listener)
+                {
+                    listener.onReasoningDelta("step 1");
+                    listener.onDelta("answer");
+                    return new LlmResponse("answer", List.of(), null, new TokenUsage(1, 1), "stop", "step 1", Map.of(), List.of());
+                }
+            },
+            new ToolRegistry(),
+            agents,
+            new DefaultContextBuilder(),
+            new HookManager(),
+            new GuardrailEngine(),
+            new HandoffRouter(),
+            new InMemorySessionStore(),
+            new NoopTraceProvider(),
+            new AllowAllToolApprovalPolicy(),
+            new OutputSchemaRegistry(),
+            new OutputValidator(),
+            new RunEventPublisher());
+
+        RunResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        {
+        });
+
+        List<String> reasoningDeltas = result.getEvents().stream()
+            .filter(e -> e.getType() == RunEventType.MODEL_REASONING_DELTA)
+            .map(e -> (String) e.getAttributes().get("delta"))
+            .toList();
+        assertEquals(List.of("step 1"), reasoningDeltas);
+    }
+
+    @Test
+    void mergesAgentReasoningAndSkillsIntoProviderOptions()
+    {
+        AgentDefinition def = baseDef("skills");
+        def.setModelReasoning(Map.of("effort", "low"));
+        def.setModelSkills(List.of(Map.of("type", "skill_reference", "skill_id", "skill-123")));
+
+        AgentRegistry agents = new AgentRegistry();
+        agents.register(new Agent(def));
+
+        AgentRunner runner = new AgentRunner(
+            request ->
+            {
+                assertEquals("low", ((Map<?, ?>) request.getOptions().getProviderOptions().get("reasoning")).get("effort"));
+                assertFalse(((List<?>) request.getOptions().getProviderOptions().get("skills")).isEmpty());
+                return new LlmResponse("ok", List.of(), null, new TokenUsage(1, 1));
+            },
+            new ToolRegistry(),
+            agents,
+            new DefaultContextBuilder(),
+            new HookManager(),
+            new GuardrailEngine(),
+            new HandoffRouter(),
+            new InMemorySessionStore(),
+            new NoopTraceProvider(),
+            new AllowAllToolApprovalPolicy(),
+            new OutputSchemaRegistry(),
+            new OutputValidator(),
+            new RunEventPublisher());
+
+        RunResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        {
+        });
+
+        assertEquals("ok", result.getFinalOutput());
     }
 
     private AgentDefinition baseDef(String id)

@@ -63,6 +63,17 @@ public class AgentDefinition
      */
     private Map<String, Object> modelProviderOptions = Map.of();
 
+
+    /**
+     * Internal state for model reasoning options used while coordinating runtime behavior.
+     */
+    private Map<String, Object> modelReasoning = Map.of();
+
+    /**
+     * Internal state for model skills used while coordinating runtime behavior.
+     */
+    private List<Map<String, Object>> modelSkills = new ArrayList<>();
+
     /**
      * Internal state for tool names used while coordinating runtime behavior.
      */
@@ -131,6 +142,16 @@ public class AgentDefinition
     public void setModelProviderOptions(Map<String, Object> modelProviderOptions)
     {
         this.modelProviderOptions = modelProviderOptions == null ? Map.of() : modelProviderOptions;
+    }
+
+    public void setModelReasoning(Map<String, Object> modelReasoning)
+    {
+        this.modelReasoning = modelReasoning == null ? Map.of() : modelReasoning;
+    }
+
+    public void setModelSkills(List<Map<String, Object>> modelSkills)
+    {
+        this.modelSkills = modelSkills == null ? new ArrayList<>() : modelSkills;
     }
 
     /**

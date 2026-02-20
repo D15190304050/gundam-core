@@ -44,6 +44,30 @@ class OpenAiCompatibleResponseConverterTest
         Assertions.assertTrue(response.getHandoffAgentId().isEmpty());
     }
 
+
+    @Test
+    void shouldExtractReasoningContentFromResponse()
+            throws Exception
+    {
+        String json = """
+            {
+              "choices": [
+                {
+                  "finish_reason": "stop",
+                  "message": {
+                    "content": "final",
+                    "reasoning_content": "step-by-step"
+                  }
+                }
+              ],
+              "usage": {"prompt_tokens": 3, "completion_tokens": 4}
+            }
+            """;
+
+        LlmResponse response = OpenAiCompatibleResponseConverter.fromChatResponse(new ObjectMapper(), json);
+        Assertions.assertEquals("step-by-step", response.getReasoningContent());
+    }
+
     @Test
     void shouldExtractHandoffFromStructuredContent()
     {

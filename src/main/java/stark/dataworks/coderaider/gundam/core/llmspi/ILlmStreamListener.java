@@ -25,6 +25,14 @@ public interface ILlmStreamListener
     }
 
     /**
+     * Performs on reasoning delta as part of LlmStreamListener runtime responsibilities.
+     * @param reasoningDelta The reasoning delta used by this operation.
+     */
+    default void onReasoningDelta(String reasoningDelta)
+    {
+    }
+
+    /**
      * Performs on token usage as part of LlmStreamListener runtime responsibilities.
      * @param tokenUsage The token usage used by this operation.
      */

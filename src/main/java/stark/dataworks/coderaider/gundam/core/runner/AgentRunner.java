@@ -200,8 +200,19 @@ public class AgentRunner
 
                 List<Message> messages = contextBuilder.build(context.getCurrentAgent(), context.getMemory(), null);
                 List<ToolDefinition> toolDefinitions = resolveTools(context.getCurrentAgent().definition().getToolNames());
+                Map<String, Object> providerOptions = new HashMap<>(context.getCurrentAgent().definition().getModelProviderOptions());
+                providerOptions.putAll(runConfiguration.getProviderOptions());
+                if (!context.getCurrentAgent().definition().getModelReasoning().isEmpty())
+                {
+                    providerOptions.putIfAbsent("reasoning", context.getCurrentAgent().definition().getModelReasoning());
+                }
+                if (!context.getCurrentAgent().definition().getModelSkills().isEmpty())
+                {
+                    providerOptions.putIfAbsent("skills", context.getCurrentAgent().definition().getModelSkills());
+                }
+
                 LlmRequest request = new LlmRequest(context.getCurrentAgent().definition().getModel(), messages, toolDefinitions,
-                    new LlmOptions(runConfiguration.getTemperature(), runConfiguration.getMaxOutputTokens(), runConfiguration.getToolChoice(), runConfiguration.getResponseFormat(), runConfiguration.getProviderOptions()));
+                    new LlmOptions(runConfiguration.getTemperature(), runConfiguration.getMaxOutputTokens(), runConfiguration.getToolChoice(), runConfiguration.getResponseFormat(), providerOptions));
 
                 emit(context, runHooks, RunEventType.MODEL_REQUESTED, Map.of("model", request.getModel(), "messages", request.getMessages().size()));
                 StreamCapture streamCapture = new StreamCapture();
@@ -333,6 +344,17 @@ public class AgentRunner
             }
 
             @Override
+            public void onReasoningDelta(String reasoningDelta)
+            {
+                if (reasoningDelta == null || reasoningDelta.isBlank())
+                {
+                    return;
+                }
+                streamCapture.reasoning.append(reasoningDelta);
+                emit(context, runHooks, RunEventType.MODEL_REASONING_DELTA, Map.of("delta", reasoningDelta));
+            }
+
+            @Override
             public void onTokenUsage(TokenUsage tokenUsage)
             {
                 if (tokenUsage != null)
@@ -365,7 +387,9 @@ public class AgentRunner
                 streamCapture.handoffAgentId,
                 streamCapture.tokenUsage == null ? new TokenUsage(0, 0) : streamCapture.tokenUsage,
                 "stop",
-                Map.of());
+                streamCapture.reasoning.toString(),
+                Map.of(),
+                List.of());
         }
 
         String content = base.getContent();
@@ -396,17 +420,26 @@ public class AgentRunner
             tokenUsage = new TokenUsage(0, 0);
         }
 
+        String reasoningContent = base.getReasoningContent();
+        if ((reasoningContent == null || reasoningContent.isBlank()) && !streamCapture.reasoning.isEmpty())
+        {
+            reasoningContent = streamCapture.reasoning.toString();
+        }
+
         return new LlmResponse(content == null ? "" : content,
             toolCalls == null ? List.of() : toolCalls,
             handoffAgentId,
             tokenUsage,
             base.getFinishReason(),
-            base.getStructuredOutput());
+            reasoningContent,
+            base.getStructuredOutput(),
+            base.getGeneratedAssets());
     }
 
     private static final class StreamCapture
     {
         private final StringBuilder content = new StringBuilder();
+        private final StringBuilder reasoning = new StringBuilder();
         private final List<ToolCall> toolCalls = new ArrayList<>();
         private TokenUsage tokenUsage;
         private String handoffAgentId;

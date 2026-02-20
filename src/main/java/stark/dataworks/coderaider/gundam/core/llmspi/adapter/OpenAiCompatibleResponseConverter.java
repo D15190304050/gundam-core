@@ -29,6 +29,7 @@ final class OpenAiCompatibleResponseConverter
         JsonNode message = choice0.path("message");
         String content = text(message.path("content"));
         String finishReason = text(choice0.path("finish_reason"));
+        String reasoningContent = extractReasoningContent(message);
 
         List<ToolCall> toolCalls = parseToolCalls(mapper, message.path("tool_calls"));
         String handoff = parseHandoff(content, toolCalls);
@@ -36,7 +37,7 @@ final class OpenAiCompatibleResponseConverter
         JsonNode usage = root.path("usage");
         TokenUsage tokenUsage = new TokenUsage(usage.path("prompt_tokens").asInt(0), usage.path("completion_tokens").asInt(0));
 
-        return new LlmResponse(content, toolCalls, handoff, tokenUsage, finishReason, Map.of());
+        return new LlmResponse(content, toolCalls, handoff, tokenUsage, finishReason, reasoningContent, Map.of(), List.of());
     }
 
     static String parseHandoff(String content, List<ToolCall> toolCalls)
@@ -85,6 +86,47 @@ final class OpenAiCompatibleResponseConverter
             }
         }
         return null;
+    }
+
+
+    static String extractReasoningContent(JsonNode message)
+    {
+        String reasoning = text(message.path("reasoning_content"));
+        if (!reasoning.isBlank())
+        {
+            return reasoning;
+        }
+
+        reasoning = text(message.path("reasoning"));
+        if (!reasoning.isBlank())
+        {
+            return reasoning;
+        }
+
+        JsonNode contentNode = message.path("content");
+        if (!contentNode.isArray())
+        {
+            return "";
+        }
+
+        StringBuilder out = new StringBuilder();
+        for (JsonNode item : contentNode)
+        {
+            String type = text(item.path("type"));
+            if ("reasoning".equalsIgnoreCase(type) || "reasoning_text".equalsIgnoreCase(type))
+            {
+                String segment = text(item.path("text"));
+                if (!segment.isBlank())
+                {
+                    if (!out.isEmpty())
+                    {
+                        out.append('\n');
+                    }
+                    out.append(segment);
+                }
+            }
+        }
+        return out.toString();
     }
 
     private static List<ToolCall> parseToolCalls(ObjectMapper mapper, JsonNode toolCallsNode)
