@@ -28,7 +28,7 @@ import stark.dataworks.coderaider.gundam.core.tool.builtin.mcp.HostedMcpTool;
  * - model: ModelScope model name (default: Qwen/Qwen3-4B)
  * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
  * - query: Search query (default: "Find onboarding policy")
- * - mcpServerCommand: MCP server command (default: "python src/main/java/.../simple_mcp_server_stdio.py")
+ * - mcpServerCommand: MCP server command (default: "python src/main/resources/mcp/simple_mcp_server_stdio.py")
  * 
  * Prerequisites:
  * 1. Install mcp package: pip install mcp[cli]
@@ -41,7 +41,7 @@ public class Example03AgentWithMcp
         String model = args.length > 0 ? args[0] : "Qwen/Qwen3-4B";
         String apiKey = args.length > 1 ? args[1] : System.getenv("MODEL_SCOPE_API_KEY");
         String query = args.length > 2 ? args[2] : "Find onboarding policy";
-        String mcpServerCommand = args.length > 3 ? args[3] : "python src/main/java/stark/dataworks/coderaider/gundam/core/examples/simple_mcp_server_stdio.py";
+        String mcpServerCommand = args.length > 3 ? args[3] : "python src/main/resources/mcp/simple_mcp_server_stdio.py";
 
         if (apiKey == null || apiKey.isBlank())
         {
