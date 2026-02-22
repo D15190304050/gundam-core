@@ -30,7 +30,7 @@ graph TD
     A --> V[Tool call loop]
     V --> W[ITool]
     V --> X[ToolApprovalRequest/ToolApprovalDecision]
-```
+``` 
 
 ## 2. Design Principles
 
@@ -40,7 +40,7 @@ graph TD
     B --> C[Composable registries]
     C --> D[Policy-driven guardrails and retries]
     D --> E[Streaming observability]
-```
+``` 
 
 ## 3. Key Components
 
@@ -54,7 +54,7 @@ graph TD
     K[RunErrorHandlers] --> L[IRunErrorHandler]
     M[RunEventPublisher] --> N[IRunEventListener]
     O[OutputSchemaMapper] --> P[responseFormatJsonSchema]
-```
+``` 
 
 ## 4. Provider Agnostic Layer
 
@@ -73,18 +73,16 @@ graph TD
     J --> K[IImageGenerator]
     J --> L[IVideoGenerator]
     J --> M[IAudioGenerator]
-```
+``` 
 
 ## 5. Extension Points
 
 ```mermaid
 graph TD
-    A[AgentRunner.Builder] --> B[IRunHooks lifecycle callbacks]
-    A --> C[ITool custom tools]
-    A --> D[IContextBuilder custom context rendering]
-    A --> E[ITraceProvider custom tracing backend]
-    A --> F[ISessionStore custom persistence]
-    A --> G[IToolApprovalPolicy approval gates]
-    A --> H[RunErrorHandlers custom recovery]
-    A --> I[McpManager + HostedMcpTool integration]
+    A[HookManager] --> B[IAgentHook]
+    A --> C[IToolHook]
+    D[GuardrailEngine] --> E[IInputGuardrail]
+    D --> F[IOutputGuardrail]
+    G[HandoffRouter] --> H[IHandoffFilter]
+    I[ToolOutputTrimmer] --> J[ToolOutput]
 ```

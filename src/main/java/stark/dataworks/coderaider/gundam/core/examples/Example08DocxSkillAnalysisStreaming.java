@@ -104,10 +104,10 @@ public class Example08DocxSkillAnalysisStreaming
 
     private static String buildSystemPrompt(Path workspaceRoot, String skillMarkdown)
     {
-        return "You are a practical engineering assistant.\\n"
-            + "Use tools to inspect files, run shell commands, and update files when needed.\\n"
-            + "Workspace root is: " + workspaceRoot + "\\n\\n"
-            + "Loaded skill definition:\\n"
+        return "You are a practical engineering assistant.\n"
+            + "Use tools to inspect files, run shell commands, and update files when needed.\n"
+            + "Workspace root is: " + workspaceRoot + "\n\n"
+            + "Loaded skill definition:\n"
             + skillMarkdown;
     }
 
@@ -274,10 +274,21 @@ public class Example08DocxSkillAnalysisStreaming
                 try
                 {
                     String command = String.valueOf(input.getOrDefault("command", ""));
-                    Process process = new ProcessBuilder("bash", "-lc", command)
+                    ProcessBuilder processBuilder = new ProcessBuilder()
                         .directory(workspaceRoot.toFile())
-                        .redirectErrorStream(true)
-                        .start();
+                        .redirectErrorStream(true);
+                    
+                    boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
+                    if (isWindows)
+                    {
+                        processBuilder.command("powershell.exe", "-NoProfile", "-Command", command);
+                    }
+                    else
+                    {
+                        processBuilder.command("bash", "-lc", command);
+                    }
+                    
+                    Process process = processBuilder.start();
                     String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
                     int exitCode = process.waitFor();
                     return truncateToolOutput("exit=" + exitCode + "\n" + output);
