@@ -129,6 +129,11 @@ public class Example07AgentWithSkillsStreaming
         {
             return args[3];
         }
+        String modelSkillId = System.getenv("MODEL_SKILL_ID");
+        if (modelSkillId != null && !modelSkillId.isBlank())
+        {
+            return modelSkillId;
+        }
         return System.getenv("ANTHROPIC_SKILL_ID");
     }
 

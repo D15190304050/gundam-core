@@ -31,7 +31,7 @@ Generate Mermaid **code blocks** using `graph TD` (do **not** use `classDiagram`
 
 ### 3. Output Requirements
 Always save the final architecture documentation to:
-`d:\DinoStark\Projects\CodeSpaces\coderaider\GUNDAM\gundam-core\designs\GUNDAM-core-Architecture.md`
+`designs/GUNDAM-core-Architecture.md`
 
 When updating the target document:
 1. Keep the existing top-level heading/section structure unchanged.
