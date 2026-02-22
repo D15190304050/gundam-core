@@ -53,6 +53,7 @@ public class OutputValidator
             case "number" -> value instanceof Number;
             case "boolean" -> value instanceof Boolean;
             case "object" -> value instanceof Map<?, ?>;
+            case "array" -> value instanceof java.util.List<?>;
             default -> true;
         };
     }

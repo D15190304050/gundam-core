@@ -82,4 +82,26 @@ class OpenAiCompatibleResponseConverterTest
             new stark.dataworks.coderaider.gundam.core.model.ToolCall("handoff", Map.of("to_agent", "planner"))));
         Assertions.assertEquals("planner", handoff);
     }
+
+    @Test
+    void shouldParseStructuredOutputFromJsonTextContent() throws Exception
+    {
+        String json = """
+            {
+              "choices": [
+                {
+                  "finish_reason": "stop",
+                  "message": {
+                    "content": "{\\\"title\\\":\\\"weekly\\\",\\\"priority\\\":3}"
+                  }
+                }
+              ],
+              "usage": {"prompt_tokens": 3, "completion_tokens": 4}
+            }
+            """;
+
+        LlmResponse response = OpenAiCompatibleResponseConverter.fromChatResponse(new ObjectMapper(), json);
+        Assertions.assertEquals("weekly", response.getStructuredOutput().get("title"));
+        Assertions.assertEquals(3, response.getStructuredOutput().get("priority"));
+    }
 }
