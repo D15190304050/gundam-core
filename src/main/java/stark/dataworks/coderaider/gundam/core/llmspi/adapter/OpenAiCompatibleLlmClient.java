@@ -299,10 +299,21 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
 
         if (!"text".equalsIgnoreCase(request.getOptions().getResponseFormat()))
         {
-            payload.put("response_format", Map.of("type", request.getOptions().getResponseFormat()));
+            if ("json_schema".equalsIgnoreCase(request.getOptions().getResponseFormat())
+                && request.getOptions().getProviderOptions().containsKey("responseFormatJsonSchema"))
+            {
+                payload.put("response_format", Map.of(
+                    "type", "json_schema",
+                    "json_schema", request.getOptions().getProviderOptions().get("responseFormatJsonSchema")));
+            }
+            else
+            {
+                payload.put("response_format", Map.of("type", request.getOptions().getResponseFormat()));
+            }
         }
 
         payload.putAll(request.getOptions().getProviderOptions());
+        payload.remove("responseFormatJsonSchema");
         return payload;
     }
 

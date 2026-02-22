@@ -2,6 +2,7 @@ package stark.dataworks.coderaider.gundam.core.runtime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -423,6 +424,58 @@ class AgentRunnerTest
         });
 
         assertEquals("ok", result.getFinalOutput());
+    }
+
+    @Test
+    void supportsStructuredOutputTypeFromClass()
+    {
+        AgentDefinition def = baseDef("typed-schema");
+
+        AgentRegistry agents = new AgentRegistry();
+        agents.register(new Agent(def));
+
+        AgentRunner runner = AgentRunner.builder(
+            request ->
+            {
+                assertEquals("json_schema", request.getOptions().getResponseFormat());
+                assertNotNull(request.getOptions().getProviderOptions().get("responseFormatJsonSchema"));
+                return new LlmResponse("{\"title\":\"hello\",\"score\":1}", List.of(), null, new TokenUsage(1, 1), "stop", Map.of("title", "hello", "score", 1));
+            },
+            new ToolRegistry(),
+            agents)
+            .build();
+
+        RunResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        {
+        }, ScoreSummary.class);
+
+        assertEquals("{\"title\":\"hello\",\"score\":1}", result.getFinalOutput());
+    }
+
+    @Test
+    void builderCreatesRunnerWithDefaults()
+    {
+        AgentDefinition def = baseDef("builder");
+        AgentRegistry agents = new AgentRegistry();
+        agents.register(new Agent(def));
+
+        AgentRunner runner = AgentRunner.builder(
+            request -> new LlmResponse("ok", List.of(), null, new TokenUsage(1, 1)),
+            new ToolRegistry(),
+            agents)
+            .build();
+
+        RunResult result = runner.run(new Agent(def), "hello", RunConfiguration.defaults(), new IRunHooks()
+        {
+        });
+
+        assertEquals("ok", result.getFinalOutput());
+    }
+
+    private static final class ScoreSummary
+    {
+        private String title;
+        private int score;
     }
 
     private AgentDefinition baseDef(String id)

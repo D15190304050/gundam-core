@@ -30,6 +30,7 @@ final class OpenAiCompatibleResponseConverter
         String content = text(message.path("content"));
         String finishReason = text(choice0.path("finish_reason"));
         String reasoningContent = extractReasoningContent(message);
+        Map<String, Object> structuredOutput = parseStructuredOutput(mapper, message.path("content"), content);
 
         List<ToolCall> toolCalls = parseToolCalls(mapper, message.path("tool_calls"));
         String handoff = parseHandoff(content, toolCalls);
@@ -37,7 +38,7 @@ final class OpenAiCompatibleResponseConverter
         JsonNode usage = root.path("usage");
         TokenUsage tokenUsage = new TokenUsage(usage.path("prompt_tokens").asInt(0), usage.path("completion_tokens").asInt(0));
 
-        return new LlmResponse(content, toolCalls, handoff, tokenUsage, finishReason, reasoningContent, Map.of(), List.of());
+        return new LlmResponse(content, toolCalls, handoff, tokenUsage, finishReason, reasoningContent, structuredOutput, List.of());
     }
 
     static String parseHandoff(String content, List<ToolCall> toolCalls)
@@ -182,5 +183,53 @@ final class OpenAiCompatibleResponseConverter
             return node.asText();
         }
         return node.toString();
+    }
+
+    private static Map<String, Object> parseStructuredOutput(ObjectMapper mapper, JsonNode contentNode, String fallbackText)
+    {
+        if (contentNode != null && contentNode.isObject())
+        {
+            return mapper.convertValue(contentNode, Map.class);
+        }
+        if (contentNode != null && contentNode.isArray())
+        {
+            for (JsonNode item : contentNode)
+            {
+                JsonNode maybeText = item.path("text");
+                if (maybeText.isObject())
+                {
+                    return mapper.convertValue(maybeText, Map.class);
+                }
+                if (maybeText.isTextual())
+                {
+                    try
+                    {
+                        JsonNode parsed = mapper.readTree(maybeText.asText());
+                        if (parsed.isObject())
+                        {
+                            return mapper.convertValue(parsed, Map.class);
+                        }
+                    }
+                    catch (Exception ignored)
+                    {
+                    }
+                }
+            }
+        }
+        if (fallbackText != null && !fallbackText.isBlank())
+        {
+            try
+            {
+                JsonNode parsed = mapper.readTree(fallbackText);
+                if (parsed.isObject())
+                {
+                    return mapper.convertValue(parsed, Map.class);
+                }
+            }
+            catch (Exception ignored)
+            {
+            }
+        }
+        return Map.of();
     }
 }

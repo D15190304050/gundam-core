@@ -324,6 +324,11 @@ The examples are organized from basic to complex, all with **real streaming outp
 3. `Example03AgentWithMcp` - Agent with MCP tools and streaming
 4. `Example04MultiRoundSingleAgentWithToolsAndMcp` - Multi-round conversation with streaming
 5. `Example05AgentGroupWithHandoffs` - Agent group with handoffs and streaming
+6. `Example06ReasoningStreaming` - Streaming + reasoning trace events
+7. `Example07AgentWithSkillsStreaming` - Streaming with model skills payload
+8. `Example09StructuredOutputByClass` - Structured output by developer-provided `Type.class`
+9. `Example10StructuredOutputByPrompt` - Structured output by user prompt schema
+10. `Example11AgentRunnerBuilder` - Minimal `AgentRunner` setup via builder defaults
 
 ## Prerequisites
 

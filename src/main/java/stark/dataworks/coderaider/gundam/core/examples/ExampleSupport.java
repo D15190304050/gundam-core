@@ -25,38 +25,34 @@ final class ExampleSupport
 
     static AgentRunner runner(ILlmClient client, IToolRegistry toolRegistry, IAgentRegistry agentRegistry, ISessionStore sessionStore)
     {
-        return new AgentRunner(
-            client,
-            toolRegistry,
-            agentRegistry,
-            new DefaultContextBuilder(),
-            new HookManager(),
-            new GuardrailEngine(),
-            new HandoffRouter(),
-            sessionStore == null ? new InMemorySessionStore() : sessionStore,
-            new NoopTraceProvider(),
-            new AllowAllToolApprovalPolicy(),
-            new OutputSchemaRegistry(),
-            new OutputValidator(),
-            new RunEventPublisher());
+        return AgentRunner.builder(client, toolRegistry, agentRegistry)
+            .contextBuilder(new DefaultContextBuilder())
+            .hookManager(new HookManager())
+            .guardrailEngine(new GuardrailEngine())
+            .handoffRouter(new HandoffRouter())
+            .sessionStore(sessionStore == null ? new InMemorySessionStore() : sessionStore)
+            .traceProvider(new NoopTraceProvider())
+            .toolApprovalPolicy(new AllowAllToolApprovalPolicy())
+            .outputSchemaRegistry(new OutputSchemaRegistry())
+            .outputValidator(new OutputValidator())
+            .eventPublisher(new RunEventPublisher())
+            .build();
     }
 
     static AgentRunner runnerWithPublisher(ILlmClient client, IToolRegistry toolRegistry, IAgentRegistry agentRegistry, ISessionStore sessionStore, RunEventPublisher publisher)
     {
-        return new AgentRunner(
-            client,
-            toolRegistry,
-            agentRegistry,
-            new DefaultContextBuilder(),
-            new HookManager(),
-            new GuardrailEngine(),
-            new HandoffRouter(),
-            sessionStore == null ? new InMemorySessionStore() : sessionStore,
-            new NoopTraceProvider(),
-            new AllowAllToolApprovalPolicy(),
-            new OutputSchemaRegistry(),
-            new OutputValidator(),
-            publisher);
+        return AgentRunner.builder(client, toolRegistry, agentRegistry)
+            .contextBuilder(new DefaultContextBuilder())
+            .hookManager(new HookManager())
+            .guardrailEngine(new GuardrailEngine())
+            .handoffRouter(new HandoffRouter())
+            .sessionStore(sessionStore == null ? new InMemorySessionStore() : sessionStore)
+            .traceProvider(new NoopTraceProvider())
+            .toolApprovalPolicy(new AllowAllToolApprovalPolicy())
+            .outputSchemaRegistry(new OutputSchemaRegistry())
+            .outputValidator(new OutputValidator())
+            .eventPublisher(publisher)
+            .build();
     }
 
     static IRunHooks noopHooks()

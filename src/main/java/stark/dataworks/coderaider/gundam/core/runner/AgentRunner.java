@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
+
+import java.util.Objects;
 import stark.dataworks.coderaider.gundam.core.agent.IAgent;
 import stark.dataworks.coderaider.gundam.core.agent.IAgentRegistry;
 import stark.dataworks.coderaider.gundam.core.approval.ToolApprovalDecision;
@@ -35,6 +37,8 @@ import stark.dataworks.coderaider.gundam.core.memory.InMemoryAgentMemory;
 import stark.dataworks.coderaider.gundam.core.model.Message;
 import stark.dataworks.coderaider.gundam.core.model.Role;
 import stark.dataworks.coderaider.gundam.core.model.ToolCall;
+import stark.dataworks.coderaider.gundam.core.output.IOutputSchema;
+import stark.dataworks.coderaider.gundam.core.output.OutputSchemaMapper;
 import stark.dataworks.coderaider.gundam.core.output.OutputSchemaRegistry;
 import stark.dataworks.coderaider.gundam.core.output.OutputValidationResult;
 import stark.dataworks.coderaider.gundam.core.output.OutputValidator;
@@ -128,6 +132,52 @@ public class AgentRunner
      */
     private final RunEventPublisher eventPublisher;
 
+    public static Builder builder(ILlmClient llmClient, IToolRegistry toolRegistry, IAgentRegistry agentRegistry)
+    {
+        return new Builder(llmClient, toolRegistry, agentRegistry);
+    }
+
+    public static final class Builder
+    {
+        private final ILlmClient llmClient;
+        private final IToolRegistry toolRegistry;
+        private final IAgentRegistry agentRegistry;
+        private IContextBuilder contextBuilder = new stark.dataworks.coderaider.gundam.core.context.DefaultContextBuilder();
+        private HookManager hookManager = new HookManager();
+        private GuardrailEngine guardrailEngine = new GuardrailEngine();
+        private HandoffRouter handoffRouter = new HandoffRouter();
+        private ISessionStore sessionStore = new stark.dataworks.coderaider.gundam.core.session.InMemorySessionStore();
+        private ITraceProvider traceProvider = new stark.dataworks.coderaider.gundam.core.tracing.NoopTraceProvider();
+        private IToolApprovalPolicy toolApprovalPolicy = new stark.dataworks.coderaider.gundam.core.approval.AllowAllToolApprovalPolicy();
+        private OutputSchemaRegistry outputSchemaRegistry = new OutputSchemaRegistry();
+        private OutputValidator outputValidator = new OutputValidator();
+        private RunEventPublisher eventPublisher = new RunEventPublisher();
+
+        private Builder(ILlmClient llmClient, IToolRegistry toolRegistry, IAgentRegistry agentRegistry)
+        {
+            this.llmClient = Objects.requireNonNull(llmClient, "llmClient");
+            this.toolRegistry = Objects.requireNonNull(toolRegistry, "toolRegistry");
+            this.agentRegistry = Objects.requireNonNull(agentRegistry, "agentRegistry");
+        }
+
+        public Builder contextBuilder(IContextBuilder value) { this.contextBuilder = Objects.requireNonNull(value); return this; }
+        public Builder hookManager(HookManager value) { this.hookManager = Objects.requireNonNull(value); return this; }
+        public Builder guardrailEngine(GuardrailEngine value) { this.guardrailEngine = Objects.requireNonNull(value); return this; }
+        public Builder handoffRouter(HandoffRouter value) { this.handoffRouter = Objects.requireNonNull(value); return this; }
+        public Builder sessionStore(ISessionStore value) { this.sessionStore = Objects.requireNonNull(value); return this; }
+        public Builder traceProvider(ITraceProvider value) { this.traceProvider = Objects.requireNonNull(value); return this; }
+        public Builder toolApprovalPolicy(IToolApprovalPolicy value) { this.toolApprovalPolicy = Objects.requireNonNull(value); return this; }
+        public Builder outputSchemaRegistry(OutputSchemaRegistry value) { this.outputSchemaRegistry = Objects.requireNonNull(value); return this; }
+        public Builder outputValidator(OutputValidator value) { this.outputValidator = Objects.requireNonNull(value); return this; }
+        public Builder eventPublisher(RunEventPublisher value) { this.eventPublisher = Objects.requireNonNull(value); return this; }
+
+        public AgentRunner build()
+        {
+            return new AgentRunner(llmClient, toolRegistry, agentRegistry, contextBuilder, hookManager, guardrailEngine, handoffRouter,
+                sessionStore, traceProvider, toolApprovalPolicy, outputSchemaRegistry, outputValidator, eventPublisher);
+        }
+    }
+
     /**
      * Executes an agent session until a final answer is produced, a guardrail blocks execution, or limits are reached.
      * @param startingAgent First agent that receives the user request.
@@ -138,7 +188,12 @@ public class AgentRunner
      */
     public RunResult run(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks)
     {
-        return runInternal(startingAgent, userInput, runConfiguration, runHooks, false);
+        return run(startingAgent, userInput, runConfiguration, runHooks, null);
+    }
+
+    public RunResult run(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, Class<?> outputType)
+    {
+        return runInternal(startingAgent, userInput, runConfiguration, runHooks, false, outputType);
     }
 
     /**
@@ -151,7 +206,12 @@ public class AgentRunner
      */
     public RunResult runStreamed(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks)
     {
-        return runInternal(startingAgent, userInput, runConfiguration, runHooks, true);
+        return runStreamed(startingAgent, userInput, runConfiguration, runHooks, null);
+    }
+
+    public RunResult runStreamed(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, Class<?> outputType)
+    {
+        return runInternal(startingAgent, userInput, runConfiguration, runHooks, true, outputType);
     }
 
     /**
@@ -163,7 +223,7 @@ public class AgentRunner
      * @param streamModelResponse Whether model output should be streamed as delta events.
      * @return Final run output, agent id, usage metrics, emitted events, and timeline items.
      */
-    private RunResult runInternal(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, boolean streamModelResponse)
+    private RunResult runInternal(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, boolean streamModelResponse, Class<?> outputType)
     {
         // TODO: Make this memory configurable.
         // Options: in-memory, redis, mysql, context-service (will be implemented somewhere else I suppose).
@@ -211,8 +271,15 @@ public class AgentRunner
                     providerOptions.putIfAbsent("skills", context.getCurrentAgent().definition().getModelSkills());
                 }
 
+                IOutputSchema classSchema = outputType == null ? null : OutputSchemaMapper.fromClass(outputType);
+                String responseFormat = outputType == null ? runConfiguration.getResponseFormat() : "json_schema";
+                if (outputType != null)
+                {
+                    providerOptions.put("responseFormatJsonSchema", OutputSchemaMapper.toOpenAiJsonSchema(outputType));
+                }
+
                 LlmRequest request = new LlmRequest(context.getCurrentAgent().definition().getModel(), messages, toolDefinitions,
-                    new LlmOptions(runConfiguration.getTemperature(), runConfiguration.getMaxOutputTokens(), runConfiguration.getToolChoice(), runConfiguration.getResponseFormat(), providerOptions));
+                    new LlmOptions(runConfiguration.getTemperature(), runConfiguration.getMaxOutputTokens(), runConfiguration.getToolChoice(), responseFormat, providerOptions));
 
                 emit(context, runHooks, RunEventType.MODEL_REQUESTED, Map.of("model", request.getModel(), "messages", request.getMessages().size()));
                 StreamCapture streamCapture = new StreamCapture();
@@ -294,6 +361,15 @@ public class AgentRunner
                     {
                         userInput = null;
                     }
+                    continue;
+                }
+
+                OutputValidationResult classValidation = classSchema == null
+                    ? OutputValidationResult.ok()
+                    : outputValidator.validate(effectiveResponse.getStructuredOutput(), classSchema);
+                if (!classValidation.isValid())
+                {
+                    context.getItems().add(new RunItem(RunItemType.SYSTEM_EVENT, "Structured output invalid: " + classValidation.getReason(), Map.of()));
                     continue;
                 }
 
