@@ -326,9 +326,10 @@ The examples are organized from basic to complex, all with **real streaming outp
 5. `Example05AgentGroupWithHandoffs` - Agent group with handoffs and streaming
 6. `Example06ReasoningStreaming` - Streaming + reasoning trace events
 7. `Example07AgentWithSkillsStreaming` - Streaming with model skills payload
-8. `Example09StructuredOutputByClass` - Structured output by developer-provided `Type.class`
-9. `Example10StructuredOutputByPrompt` - Structured output by user prompt schema
-10. `Example11AgentRunnerBuilder` - Minimal `AgentRunner` setup via builder defaults
+8. `Example08DocxSkillAnalysisStreaming` - Streaming docx analysis using local `docx` skill
+9. `Example09StructuredOutputByClass` - Structured output by developer-provided `Type.class`
+10. `Example10StructuredOutputByPrompt` - Structured output by user prompt schema
+11. `Example11AgentRunnerBuilder` - Minimal `AgentRunner` setup via builder defaults
 
 ## Prerequisites
 
@@ -373,6 +374,10 @@ $env:MODEL_SCOPE_API_KEY="ms-xxx"
 # Run Example05
 & "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
   -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example05AgentGroupWithHandoffs
+
+# Run Example08 (docx skill)
+& "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
+  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example08DocxSkillAnalysisStreaming
 ```
 
 ## Streaming Output
