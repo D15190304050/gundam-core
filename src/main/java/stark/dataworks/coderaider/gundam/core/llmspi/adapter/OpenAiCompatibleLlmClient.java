@@ -6,6 +6,7 @@ import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.ILlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
+import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.model.Message;
 import stark.dataworks.coderaider.gundam.core.model.Role;
 import stark.dataworks.coderaider.gundam.core.model.ToolCall;
@@ -112,6 +113,7 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
         StringBuilder reasoning = new StringBuilder();
         String finishReason = "";
         List<ToolDelta> toolDeltas = new ArrayList<>();
+        TokenUsage tokenUsage = null;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)))
         {
@@ -132,6 +134,11 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
                 JsonNode choices = chunk.path("choices");
                 if (!choices.isArray() || choices.isEmpty())
                 {
+                    JsonNode usage = chunk.path("usage");
+                    if (usage != null && !usage.isMissingNode())
+                    {
+                        tokenUsage = new TokenUsage(usage.path("prompt_tokens").asInt(0), usage.path("completion_tokens").asInt(0));
+                    }
                     continue;
                 }
 
@@ -191,6 +198,12 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
                 {
                     finishReason = fr;
                 }
+
+                JsonNode usage = chunk.path("usage");
+                if (usage != null && !usage.isMissingNode())
+                {
+                    tokenUsage = new TokenUsage(usage.path("prompt_tokens").asInt(0), usage.path("completion_tokens").asInt(0));
+                }
             }
         }
 
@@ -227,10 +240,14 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
         }
 
         String handoff = OpenAiCompatibleResponseConverter.parseHandoff(content.toString(), calls);
-        LlmResponse finalResponse = new LlmResponse(content.toString(), calls, handoff, null, finishReason,
+        LlmResponse finalResponse = new LlmResponse(content.toString(), calls, handoff, tokenUsage, finishReason,
             reasoning.toString(), Map.of(), List.of());
         if (listener != null)
         {
+            if (tokenUsage != null)
+            {
+                listener.onTokenUsage(tokenUsage);
+            }
             if (handoff != null)
             {
                 listener.onHandoff(handoff);
