@@ -54,12 +54,12 @@ public class Example10StructuredOutputByPrompt
         AgentRegistry registry = new AgentRegistry();
         registry.register(new Agent(definition));
 
-        AgentRunner runner = ExampleSupport.runnerWithPublisher(
-            llmClient,
-            new ToolRegistry(),
-            registry,
-            null,
-            createConsoleStreamingPublisher());
+        AgentRunner runner = AgentRunner.builder()
+            .llmClient(llmClient)
+            .toolRegistry(new ToolRegistry())
+            .agentRegistry(registry)
+            .eventPublisher(createConsoleStreamingPublisher())
+            .build();
 
         String prompt = "Return only JSON with fields: topic(string), score(number), tags(array). Topic = " + topic + ".";
         RunConfiguration config = new RunConfiguration(8, null, 0.2, 512, "auto", "json_object", Map.of());

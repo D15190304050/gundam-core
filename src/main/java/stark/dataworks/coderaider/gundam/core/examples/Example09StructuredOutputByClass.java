@@ -30,7 +30,7 @@ public class Example09StructuredOutputByClass
 {
     public static void main(String[] args)
     {
-        String provider = args.length > 0 ? args[0] : "volcengine";
+        String provider = args.length > 0 ? args[0] : "modelscope";
         String model = args.length > 1 ? args[1] : getDefaultModel(provider);
         String apiKey = args.length > 2 ? args[2] : getApiKey(provider);
         String prompt = args.length > 3 ? args[3] : "Generate a JSON summary of a sprint plan.";
@@ -49,17 +49,17 @@ public class Example09StructuredOutputByClass
         definition.setName("Structured By Class");
         definition.setModel(model);
         definition.setSystemPrompt("Return concise structured summaries.");
-        definition.setModelReasoning(Map.of("effort", "low"));
+//        definition.setModelReasoning(Map.of("effort", "low"));
 
         AgentRegistry agentRegistry = new AgentRegistry();
         agentRegistry.register(new Agent(definition));
 
-        AgentRunner runner = ExampleSupport.runnerWithPublisher(
-            llmClient,
-            new ToolRegistry(),
-            agentRegistry,
-            null,
-            createConsoleStreamingPublisher());
+        AgentRunner runner = AgentRunner.builder()
+            .llmClient(llmClient)
+            .toolRegistry(new ToolRegistry())
+            .agentRegistry(agentRegistry)
+            .eventPublisher(createConsoleStreamingPublisher())
+            .build();
 
         RunResult result = runner.runStreamed(agentRegistry.get("structured-by-class").orElseThrow(), prompt, RunConfiguration.defaults(), ExampleSupport.noopHooks(), SprintSummary.class);
         System.out.println("\nFinal output: " + result.getFinalOutput());

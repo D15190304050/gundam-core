@@ -90,8 +90,13 @@ public class Example04MultiRoundSingleAgentWithToolsAndMcp
         InMemorySessionStore sessionStore = new InMemorySessionStore();
         RunConfiguration config = RunConfiguration.defaults();
 
-        ModelScopeLlmClient llmClient = new ModelScopeLlmClient(apiKey, model);
-        AgentRunner runner = ExampleSupport.runnerWithPublisher(llmClient, toolRegistry, agentRegistry, sessionStore, createConsoleStreamingPublisher());
+        AgentRunner runner = AgentRunner.builder()
+            .llmClient(new ModelScopeLlmClient(apiKey, model))
+            .toolRegistry(toolRegistry)
+            .agentRegistry(agentRegistry)
+            .sessionStore(sessionStore)
+            .eventPublisher(createConsoleStreamingPublisher())
+            .build();
 
         System.out.println("=== Round 1: Tax Estimation ===");
         System.out.print("Streaming output: ");

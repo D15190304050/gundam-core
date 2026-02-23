@@ -56,8 +56,12 @@ public class Example02AgentWithTools
         toolRegistry.register(createWeatherLookupTool());
         toolRegistry.register(createUnitConvertTool());
 
-        ModelScopeLlmClient llmClient = new ModelScopeLlmClient(apiKey, model);
-        AgentRunner runner = ExampleSupport.runnerWithPublisher(llmClient, toolRegistry, agentRegistry, null, createConsoleStreamingPublisher());
+        AgentRunner runner = AgentRunner.builder()
+            .llmClient(new ModelScopeLlmClient(apiKey, model))
+            .toolRegistry(toolRegistry)
+            .agentRegistry(agentRegistry)
+            .eventPublisher(createConsoleStreamingPublisher())
+            .build();
 
         System.out.print("Streaming output: ");
         RunResult result = runner.runStreamed(agentRegistry.get("tool-agent").orElseThrow(), "What's the weather in " + city + "?", RunConfiguration.defaults(), ExampleSupport.noopHooks());

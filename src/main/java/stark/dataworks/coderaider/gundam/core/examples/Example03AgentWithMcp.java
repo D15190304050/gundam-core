@@ -81,8 +81,12 @@ public class Example03AgentWithMcp
         ToolRegistry toolRegistry = new ToolRegistry();
         toolRegistry.register(new HostedMcpTool("kb-mcp", "kb_search", mcpManager));
 
-        ModelScopeLlmClient llmClient = new ModelScopeLlmClient(apiKey, model);
-        AgentRunner runner = ExampleSupport.runnerWithPublisher(llmClient, toolRegistry, agentRegistry, null, createConsoleStreamingPublisher());
+        AgentRunner runner = AgentRunner.builder()
+            .llmClient(new ModelScopeLlmClient(apiKey, model))
+            .toolRegistry(toolRegistry)
+            .agentRegistry(agentRegistry)
+            .eventPublisher(createConsoleStreamingPublisher())
+            .build();
 
         System.out.print("Streaming output: ");
         RunResult result = runner.runStreamed(agentRegistry.get("mcp-agent").orElseThrow(), query, RunConfiguration.defaults(), ExampleSupport.noopHooks());

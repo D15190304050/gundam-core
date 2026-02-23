@@ -45,8 +45,12 @@ public class Example01SingleSimpleAgent
         AgentRegistry agentRegistry = new AgentRegistry();
         agentRegistry.register(new Agent(agentDef));
 
-        ModelScopeLlmClient llmClient = new ModelScopeLlmClient(apiKey, model);
-        AgentRunner runner = ExampleSupport.runnerWithPublisher(llmClient, new ToolRegistry(), agentRegistry, null, createConsoleStreamingPublisher());
+        AgentRunner runner = AgentRunner.builder()
+            .llmClient(new ModelScopeLlmClient(apiKey, model))
+            .toolRegistry(new ToolRegistry())
+            .agentRegistry(agentRegistry)
+            .eventPublisher(createConsoleStreamingPublisher())
+            .build();
 
         System.out.print("Streaming output: ");
         RunResult result = runner.runStreamed(agentRegistry.get("simple-agent").orElseThrow(), prompt, RunConfiguration.defaults(), ExampleSupport.noopHooks());

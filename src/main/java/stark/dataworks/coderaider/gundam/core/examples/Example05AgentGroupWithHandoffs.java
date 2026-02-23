@@ -74,8 +74,12 @@ public class Example05AgentGroupWithHandoffs
         registry.register(new Agent(planner));
         registry.register(new Agent(support));
 
-        ModelScopeLlmClient llmClient = new ModelScopeLlmClient(apiKey, model);
-        AgentRunner runner = ExampleSupport.runnerWithPublisher(llmClient, new ToolRegistry(), registry, null, createConsoleStreamingPublisher());
+        AgentRunner runner = AgentRunner.builder()
+            .llmClient(new ModelScopeLlmClient(apiKey, model))
+            .toolRegistry(new ToolRegistry())
+            .agentRegistry(registry)
+            .eventPublisher(createConsoleStreamingPublisher())
+            .build();
 
         System.out.print("Streaming output: ");
         RunResult result = runner.runStreamed(registry.get("triage").orElseThrow(), query, RunConfiguration.defaults(), ExampleSupport.noopHooks());

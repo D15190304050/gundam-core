@@ -44,12 +44,12 @@ public class Example06ReasoningStreaming
         AgentRegistry registry = new AgentRegistry();
         registry.register(new Agent(def));
 
-        AgentRunner runner = ExampleSupport.runnerWithPublisher(
-            new ModelScopeLlmClient(apiKey, model),
-            new ToolRegistry(),
-            registry,
-            null,
-            createConsoleStreamingPublisher());
+        AgentRunner runner = AgentRunner.builder()
+            .llmClient(new ModelScopeLlmClient(apiKey, model))
+            .toolRegistry(new ToolRegistry())
+            .agentRegistry(registry)
+            .eventPublisher(createConsoleStreamingPublisher())
+            .build();
 
         RunResult result = runner.runStreamed(registry.get("reasoning-agent").orElseThrow(), prompt, RunConfiguration.defaults(), ExampleSupport.noopHooks());
         System.out.println("\nFinal output: " + result.getFinalOutput());

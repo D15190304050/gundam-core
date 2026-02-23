@@ -71,12 +71,12 @@ public class Example08DocxSkillAnalysisStreaming
         tools.register(createWriteFileTool(workspaceRoot));
         tools.register(createRunShellTool(workspaceRoot));
 
-        AgentRunner runner = ExampleSupport.runnerWithPublisher(
-            new ModelScopeLlmClient(apiKey, model),
-            tools,
-            registry,
-            null,
-            createConsoleStreamingPublisher());
+        AgentRunner runner = AgentRunner.builder()
+            .llmClient(new ModelScopeLlmClient(apiKey, model))
+            .toolRegistry(tools)
+            .agentRegistry(registry)
+            .eventPublisher(createConsoleStreamingPublisher())
+            .build();
 
         RunConfiguration config = new RunConfiguration(24, null, 0.2, 4096, "auto", "text", Map.of(), new RetryPolicy(3, 1500));
         System.out.println("Workspace root: " + workspaceRoot);
