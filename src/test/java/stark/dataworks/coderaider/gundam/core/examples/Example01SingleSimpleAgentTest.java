@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import org.junit.jupiter.api.Test;
 import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
@@ -21,13 +23,17 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
  * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
  * - prompt: User prompt (default: "Introduce GUNDAM-core in one sentence.")
  */
-public class Example01SingleSimpleAgent
+public class Example01SingleSimpleAgentTest
 {
-    public static void main(String[] args)
+//    public static void main(String[] args)
+    @Test
+    public void run()
     {
-        String model = args.length > 0 ? args[0] : "Qwen/Qwen3-4B";
-        String apiKey = args.length > 1 ? args[1] : System.getenv("MODEL_SCOPE_API_KEY");
-        String prompt = args.length > 2 ? args[2] : "如何制作红烧牛肉面？我需要详细的说明。";
+        Dotenv env = Dotenv.configure().filename(".env.local").load();
+
+        String model = "Qwen/Qwen3-4B";
+        String apiKey = env.get("MODEL_SCOPE_API_KEY");
+        String prompt = "如何制作红烧牛肉面？我需要详细的说明。";
 
         if (apiKey == null || apiKey.isBlank())
         {

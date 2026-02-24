@@ -357,7 +357,7 @@ $env:MODEL_SCOPE_API_KEY="ms-xxx"
 
 # Run Example01
 & "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
-  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example01SingleSimpleAgent
+  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example01SingleSimpleAgentTest
 
 # Run Example02 with custom city
 & "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
