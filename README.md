@@ -323,13 +323,14 @@ The examples are organized from basic to complex, all with **real streaming outp
 2. `Example02AgentWithTools` - Agent with tools and streaming
 3. `Example03AgentWithMcp` - Agent with MCP tools and streaming
 4. `Example04MultiRoundSingleAgentWithToolsAndMcp` - Multi-round conversation with streaming
-5. `Example05AgentGroupWithHandoffs` - Agent group with handoffs and streaming
-6. `Example06ReasoningStreaming` - Streaming + reasoning trace events
-7. `Example07AgentWithSkillsStreaming` - Streaming with model skills payload
-8. `Example08DocxSkillAnalysisStreaming` - Streaming docx analysis using local `docx` skill
-9. `Example09StructuredOutputByClass` - Structured output by developer-provided `Type.class`
-10. `Example10StructuredOutputByPrompt` - Structured output by user prompt schema
-11. `Example11AgentRunnerBuilder` - Minimal `AgentRunner` setup via builder defaults
+5. `Example05MultiRoundSingleAgentWithToolsAndStreamableHttpMcp` - Multi-round conversation via Streamable HTTP MCP
+6. `Example06AgentGroupWithHandoffs` - Agent group with handoffs and streaming
+7. `Example07ReasoningStreaming` - Streaming + reasoning trace events
+8. `Example08AgentWithSkillsStreaming` - Streaming with model skills payload
+9. `Example09DocxSkillAnalysisStreaming` - Streaming docx analysis using local `docx` skill
+10. `Example10StructuredOutputByClass` - Structured output by developer-provided `Type.class`
+11. `Example11StructuredOutputByPrompt` - Structured output by user prompt schema
+12. `Example12AgentRunnerBuilder` - Minimal `AgentRunner` setup via builder defaults
 
 ## Prerequisites
 
@@ -339,7 +340,7 @@ All examples require a **ModelScope API key**. You can provide it via:
 
 Get your API key from: https://modelscope.cn/
 
-For MCP examples (Example03, Example04), install the MCP package:
+For MCP examples (Example03, Example04, Example05), install the MCP package:
 ```powershell
 pip install mcp[cli]
 ```
@@ -367,17 +368,25 @@ $env:MODEL_SCOPE_API_KEY="ms-xxx"
 & "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
   -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example03AgentWithMcp
 
-# Run Example04 (MCP server starts automatically)
+## For Example04 and Example05, start their corresponding MCP servers first
+# python src/main/resources/mcp/simple_mcp_server_http.py 8765
+# python src/main/resources/mcp/simple_mcp_server_streamable_http.py 8766
+
+# Run Example04 (SSE MCP)
 & "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
   -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example04MultiRoundSingleAgentWithToolsAndMcp
 
-# Run Example05
+# Run Example05 (Streamable HTTP MCP)
 & "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
-  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example05AgentGroupWithHandoffs
+  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example05MultiRoundSingleAgentWithToolsAndStreamableHttpMcp
 
-# Run Example08 (docx skill)
+# Run Example06
 & "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
-  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example08DocxSkillAnalysisStreaming
+  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example06AgentGroupWithHandoffs
+
+# Run Example09 (docx skill)
+& "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
+  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example09DocxSkillAnalysisStreaming
 ```
 
 ## Streaming Output
@@ -386,7 +395,7 @@ All examples use `runStreamed()` with real streaming from ModelScope's API. Outp
 
 - **MODEL_RESPONSE_DELTA** - Text tokens streamed in real-time
 - **TOOL_CALL_REQUESTED/COMPLETED** - Tool execution events
-- **HANDOFF_OCCURRED** - Agent handoff events (Example05)
+- **HANDOFF_OCCURRED** - Agent handoff events (Example06)
 
 ## Available Models
 

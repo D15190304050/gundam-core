@@ -27,12 +27,12 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolParameterSchema;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 
 /**
- * 8) Use local docx skill to analyze a Word file and write a markdown analysis output.
+ * 9) Use local docx skill to analyze a Word file and write a markdown analysis output.
  *
  * Usage:
- * java Example08DocxSkillAnalysisStreaming [model] [apiKey] [prompt] [localSkillName]
+ * java Example09DocxSkillAnalysisStreaming [model] [apiKey] [prompt] [localSkillName]
  */
-public class Example08DocxSkillAnalysisStreaming
+public class Example09DocxSkillAnalysisStreaming
 {
     private static final int MAX_TOOL_OUTPUT_CHARS = 12000;
 
@@ -88,7 +88,7 @@ public class Example08DocxSkillAnalysisStreaming
     private static String loadSkillMarkdown(String localSkillName)
     {
         String resourcePath = "skills/" + localSkillName + "/SKILL.md";
-        try (InputStream inputStream = Example08DocxSkillAnalysisStreaming.class.getClassLoader().getResourceAsStream(resourcePath))
+        try (InputStream inputStream = Example09DocxSkillAnalysisStreaming.class.getClassLoader().getResourceAsStream(resourcePath))
         {
             if (inputStream == null)
             {

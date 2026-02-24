@@ -16,9 +16,9 @@ import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 
 /**
- * 5) How to create a group of agents with handoffs, with at least 3 agents, with streaming output.
+ * 6) How to create a group of agents with handoffs, with at least 3 agents, with streaming output.
  * 
- * Usage: java Example05AgentGroupWithHandoffs [model] [apiKey] [query]
+ * Usage: java Example06AgentGroupWithHandoffs [model] [apiKey] [query]
  * - model: ModelScope model name (default: Qwen/Qwen3-4B)
  * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
  * - query: User query (default: "Need a migration plan for next week.")
@@ -29,7 +29,7 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
  * - planner -> support
  * - support (final agent, no handoffs)
  */
-public class Example05AgentGroupWithHandoffs
+public class Example06AgentGroupWithHandoffs
 {
     public static void main(String[] args)
     {
