@@ -18,23 +18,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * SSE-based MCP server client that connects to real MCP servers using Server-Sent Events transport.
- * <p>
- * This client implements the MCP (Model Context Protocol) JSON-RPC 2.0 protocol
- * over SSE, supporting tool listing and invocation.
- * <p>
- * Usage:
- * <pre>
- * SseMcpServerClient client = new SseMcpServerClient();
- * McpServerConfiguration config = new McpServerConfiguration("my-server", "http://localhost:9000/sse", Map.of());
- * client.connect(config);
- * List<McpToolDescriptor> tools = client.listTools(config);
- * String result = client.callTool(config, "add", Map.of("a", 1, "b", 2));
- * </pre>
  */
 public class SseMcpServerClient implements IMcpServerClient
 {
@@ -42,6 +33,8 @@ public class SseMcpServerClient implements IMcpServerClient
     private final ObjectMapper objectMapper;
     private final Duration timeout;
     private final Map<String, String> messageEndpoints;
+    private final Map<String, BlockingQueue<JsonNode>> pendingResponses;
+    private final Map<String, Thread> streamReaders;
     private final AtomicLong requestIdCounter;
 
     public SseMcpServerClient()
@@ -52,11 +45,11 @@ public class SseMcpServerClient implements IMcpServerClient
     public SseMcpServerClient(Duration timeout)
     {
         this.timeout = timeout;
-        this.httpClient = HttpClient.newBuilder()
-            .connectTimeout(timeout)
-            .build();
+        this.httpClient = HttpClient.newBuilder().connectTimeout(timeout).build();
         this.objectMapper = new ObjectMapper();
         this.messageEndpoints = new ConcurrentHashMap<>();
+        this.pendingResponses = new ConcurrentHashMap<>();
+        this.streamReaders = new ConcurrentHashMap<>();
         this.requestIdCounter = new AtomicLong(0);
     }
 
@@ -66,67 +59,106 @@ public class SseMcpServerClient implements IMcpServerClient
         {
             return;
         }
-        
+
         try
         {
             String sseEndpoint = config.getEndpoint();
             URI sseUri = URI.create(sseEndpoint);
             String baseUrl = sseUri.getScheme() + "://" + sseUri.getHost() + (sseUri.getPort() > 0 ? ":" + sseUri.getPort() : "");
-            
+
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(sseUri)
                 .header("Accept", "text/event-stream")
                 .timeout(timeout)
                 .GET()
                 .build();
-            
+
             HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
-            
             if (response.statusCode() >= 400)
             {
                 throw new RuntimeException("Failed to connect to MCP server: status " + response.statusCode());
             }
-            
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8)))
-            {
-                String line;
-                while ((line = reader.readLine()) != null)
-                {
-                    if (line.startsWith("event:"))
-                    {
-                        String eventType = line.substring("event:".length()).trim();
-                        line = reader.readLine();
-                        if (line != null && line.startsWith("data:"))
-                        {
-                            String data = line.substring("data:".length()).trim();
-                            System.out.println("[DEBUG] SSE event: " + eventType + ", data: " + data);
-                            if ("endpoint".equals(eventType))
-                            {
-                                String messageEndpoint = data;
-                                if (!messageEndpoint.startsWith("http"))
-                                {
-                                    messageEndpoint = baseUrl + messageEndpoint;
-                                }
-                                System.out.println("[DEBUG] Message endpoint: " + messageEndpoint);
-                                messageEndpoints.put(config.getServerId(), messageEndpoint);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            String messageEndpoint = messageEndpoints.get(config.getServerId());
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8));
+            String messageEndpoint = waitForEndpoint(reader, baseUrl);
             if (messageEndpoint == null)
             {
                 throw new RuntimeException("Failed to get message endpoint from MCP server");
             }
-            
+
+            messageEndpoints.put(config.getServerId(), messageEndpoint);
+            Thread readerThread = new Thread(() -> readSseMessages(reader), "mcp-sse-" + config.getServerId());
+            readerThread.setDaemon(true);
+            readerThread.start();
+            streamReaders.put(config.getServerId(), readerThread);
+
             initialize(config);
         }
         catch (Exception ex)
         {
             throw new RuntimeException("Failed to connect to MCP server: " + config.getServerId(), ex);
+        }
+    }
+
+    private String waitForEndpoint(BufferedReader reader, String baseUrl) throws Exception
+    {
+        long deadline = System.currentTimeMillis() + timeout.toMillis();
+        String currentEvent = "";
+        String line;
+        while (System.currentTimeMillis() < deadline && (line = reader.readLine()) != null)
+        {
+            if (line.startsWith("event:"))
+            {
+                currentEvent = line.substring("event:".length()).trim();
+            }
+            else if (line.startsWith("data:"))
+            {
+                String data = line.substring("data:".length()).trim();
+                if ("endpoint".equals(currentEvent))
+                {
+                    if (!data.startsWith("http"))
+                    {
+                        return baseUrl + data;
+                    }
+                    return data;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void readSseMessages(BufferedReader reader)
+    {
+        try
+        {
+            String line;
+            while ((line = reader.readLine()) != null)
+            {
+                if (!line.startsWith("data:"))
+                {
+                    continue;
+                }
+                String data = line.substring("data:".length()).trim();
+                if (data.isBlank())
+                {
+                    continue;
+                }
+                JsonNode payload = objectMapper.readTree(data);
+                JsonNode idNode = payload.get("id");
+                if (idNode != null)
+                {
+                    String id = idNode.asText();
+                    BlockingQueue<JsonNode> queue = pendingResponses.get(id);
+                    if (queue != null)
+                    {
+                        queue.offer(payload);
+                    }
+                }
+            }
+        }
+        catch (Exception ignored)
+        {
+            // stream ended/disconnected
         }
     }
 
@@ -140,9 +172,14 @@ public class SseMcpServerClient implements IMcpServerClient
             clientInfo.put("name", "gundam-core");
             clientInfo.put("version", "1.0.0");
             params.put("protocolVersion", "2024-11-05");
-            
+            params.putObject("capabilities").putObject("tools");
+
             JsonNode response = sendRequest(config, initRequest);
-            
+            if (response.has("error"))
+            {
+                throw new RuntimeException("Initialize failed: " + response.path("error"));
+            }
+
             ObjectNode initializedRequest = createRequest("notifications/initialized");
             sendNotification(config, initializedRequest);
         }
@@ -158,10 +195,9 @@ public class SseMcpServerClient implements IMcpServerClient
         try
         {
             ensureConnected(config);
-            
             ObjectNode request = createRequest("tools/list");
             JsonNode response = sendRequest(config, request);
-            
+
             List<McpToolDescriptor> tools = new ArrayList<>();
             JsonNode toolsNode = response.path("result").path("tools");
             if (toolsNode.isArray())
@@ -193,41 +229,15 @@ public class SseMcpServerClient implements IMcpServerClient
         try
         {
             ensureConnected(config);
-            
             ObjectNode request = createRequest("tools/call");
             ObjectNode params = request.putObject("params");
             params.put("name", toolName);
             if (args != null && !args.isEmpty())
             {
                 ObjectNode argsNode = params.putObject("arguments");
-                args.forEach((key, value) -> {
-                    if (value instanceof String)
-                    {
-                        argsNode.put(key, (String) value);
-                    }
-                    else if (value instanceof Integer)
-                    {
-                        argsNode.put(key, (Integer) value);
-                    }
-                    else if (value instanceof Long)
-                    {
-                        argsNode.put(key, (Long) value);
-                    }
-                    else if (value instanceof Double)
-                    {
-                        argsNode.put(key, (Double) value);
-                    }
-                    else if (value instanceof Boolean)
-                    {
-                        argsNode.put(key, (Boolean) value);
-                    }
-                    else
-                    {
-                        argsNode.set(key, objectMapper.valueToTree(value));
-                    }
-                });
+                args.forEach((key, value) -> argsNode.set(key, objectMapper.valueToTree(value)));
             }
-            
+
             JsonNode response = sendRequest(config, request);
             JsonNode content = response.path("result").path("content");
             if (content.isArray() && content.size() > 0)
@@ -235,8 +245,7 @@ public class SseMcpServerClient implements IMcpServerClient
                 StringBuilder result = new StringBuilder();
                 for (JsonNode item : content)
                 {
-                    String type = item.path("type").asText();
-                    if ("text".equals(type))
+                    if ("text".equals(item.path("type").asText()))
                     {
                         result.append(item.path("text").asText());
                     }
@@ -257,10 +266,8 @@ public class SseMcpServerClient implements IMcpServerClient
         try
         {
             ensureConnected(config);
-            
             ObjectNode request = createRequest("resources/list");
             JsonNode response = sendRequest(config, request);
-            
             List<McpResource> resources = new ArrayList<>();
             JsonNode resourcesNode = response.path("result").path("resources");
             if (resourcesNode.isArray())
@@ -292,19 +299,15 @@ public class SseMcpServerClient implements IMcpServerClient
         try
         {
             ensureConnected(config);
-            
             ObjectNode request = createRequest("resources/read");
             ObjectNode params = request.putObject("params");
             params.put("uri", uri);
-            
             JsonNode response = sendRequest(config, request);
             JsonNode contents = response.path("result").path("contents");
             if (contents.isArray() && contents.size() > 0)
             {
                 JsonNode first = contents.get(0);
-                String content = first.path("text").asText("");
-                String mimeType = first.path("mimeType").asText("text/plain");
-                return new McpResource(uri, mimeType, content);
+                return new McpResource(uri, first.path("mimeType").asText("text/plain"), first.path("text").asText(""));
             }
             return new McpResource(uri, "text/plain", "");
         }
@@ -338,25 +341,36 @@ public class SseMcpServerClient implements IMcpServerClient
         {
             throw new RuntimeException("Not connected to MCP server: " + config.getServerId());
         }
-        
-        String body = objectMapper.writeValueAsString(request);
-        
-        HttpRequest httpRequest = HttpRequest.newBuilder()
-            .uri(URI.create(messageEndpoint))
-            .header("Content-Type", "application/json")
-            .timeout(timeout)
-            .POST(HttpRequest.BodyPublishers.ofString(body))
-            .build();
-        
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-        
-        if (response.statusCode() >= 400)
+
+        String requestId = request.path("id").asText();
+        BlockingQueue<JsonNode> queue = new LinkedBlockingQueue<>(1);
+        pendingResponses.put(requestId, queue);
+        try
         {
-            throw new RuntimeException("MCP server returned status " + response.statusCode() + ": " + response.body());
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(messageEndpoint))
+                .header("Content-Type", "application/json")
+                .timeout(timeout)
+                .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(request)))
+                .build();
+
+            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 400)
+            {
+                throw new RuntimeException("MCP server returned status " + response.statusCode() + ": " + response.body());
+            }
+
+            JsonNode payload = queue.poll(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            if (payload == null)
+            {
+                throw new RuntimeException("Timed out waiting for SSE response for request id " + requestId);
+            }
+            return payload;
         }
-        
-        String responseBody = response.body();
-        return objectMapper.readTree(responseBody);
+        finally
+        {
+            pendingResponses.remove(requestId);
+        }
     }
 
     private void sendNotification(McpServerConfiguration config, ObjectNode notification) throws Exception
@@ -366,17 +380,19 @@ public class SseMcpServerClient implements IMcpServerClient
         {
             throw new RuntimeException("Not connected to MCP server: " + config.getServerId());
         }
-        
+
         notification.remove("id");
-        String body = objectMapper.writeValueAsString(notification);
-        
         HttpRequest httpRequest = HttpRequest.newBuilder()
             .uri(URI.create(messageEndpoint))
             .header("Content-Type", "application/json")
             .timeout(timeout)
-            .POST(HttpRequest.BodyPublishers.ofString(body))
+            .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(notification)))
             .build();
-        
-        httpClient.send(httpRequest, HttpResponse.BodyHandlers.discarding());
+
+        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() >= 400)
+        {
+            throw new RuntimeException("MCP server returned status " + response.statusCode() + ": " + response.body());
+        }
     }
 }

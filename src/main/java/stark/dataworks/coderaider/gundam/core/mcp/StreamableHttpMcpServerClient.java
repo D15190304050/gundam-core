@@ -223,17 +223,20 @@ public class StreamableHttpMcpServerClient implements IMcpServerClient
         
         try
         {
-            String newSessionId = UUID.randomUUID().toString();
-            sessionIds.put(config.getServerId(), newSessionId);
-            
             ObjectNode initRequest = createRequest("initialize");
             ObjectNode params = initRequest.putObject("params");
             ObjectNode clientInfo = params.putObject("clientInfo");
             clientInfo.put("name", "gundam-core");
             clientInfo.put("version", "1.0.0");
             params.put("protocolVersion", "2024-11-05");
-            
+            ObjectNode capabilities = params.putObject("capabilities");
+            capabilities.putObject("tools");
+
             JsonNode response = sendRequest(config, initRequest);
+            if (response.has("error"))
+            {
+                throw new RuntimeException("Initialize failed: " + response.path("error").toString());
+            }
             String serverSessionId = response.path("result").path("sessionId").asText("");
             if (!serverSessionId.isBlank())
             {
@@ -292,7 +295,11 @@ public class StreamableHttpMcpServerClient implements IMcpServerClient
         }
         
         String responseBody = response.body();
-        String newSessionId = response.headers().firstValue("mcp-session-id").orElse("");
+        String newSessionId = response.headers().map().entrySet().stream()
+            .filter(entry -> "mcp-session-id".equalsIgnoreCase(entry.getKey()))
+            .flatMap(entry -> entry.getValue().stream())
+            .findFirst()
+            .orElse("");
         if (!newSessionId.isBlank())
         {
             sessionIds.put(config.getServerId(), newSessionId);

@@ -1,27 +1,27 @@
 """
-A simple MCP server for testing purposes using SSE (Server-Sent Events) transport.
+A simple MCP server for testing purposes using Streamable HTTP transport.
 Provides basic tools: add, echo, kb_search, and policy_lookup.
 
 Requirements:
     pip install mcp[cli] uvicorn
 
 Usage:
-    python simple_mcp_server_http.py [port]
+    python simple_mcp_server_streamable_http.py [port]
 
-The server uses SSE transport for HTTP communication.
-Default port is 8765.
+The server uses streamable-http transport for HTTP communication.
+Default port is 8766.
 """
 
 import sys
 from mcp.server.fastmcp import FastMCP
 
-# Get port from command line or use default
-port = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
+port = int(sys.argv[1]) if len(sys.argv) > 1 else 8766
 
 mcp = FastMCP(
-    "Simple Test MCP Server (SSE)",
+    "Simple Test MCP Server (Streamable HTTP)",
     host="0.0.0.0",
     port=port,
+    stateless_http=True,
 )
 
 
@@ -39,15 +39,7 @@ def echo(message: str) -> str:
 
 @mcp.tool()
 def kb_search(query: str, limit: int = 5) -> str:
-    """Search the knowledge base for relevant documents.
-
-    Args:
-        query: The search query string
-        limit: Maximum number of results to return (default: 5)
-
-    Returns:
-        A formatted string with search results
-    """
+    """Search the knowledge base for relevant documents."""
     mock_results = [
         {"title": "Onboarding Policy", "content": "New employees must complete orientation within 30 days."},
         {"title": "Remote Work Policy", "content": "Employees may work remotely up to 3 days per week."},
@@ -69,14 +61,7 @@ def kb_search(query: str, limit: int = 5) -> str:
 
 @mcp.tool()
 def policy_lookup(topic: str) -> str:
-    """Look up company policies by topic.
-
-    Args:
-        topic: The policy topic to look up
-
-    Returns:
-        The policy content for the given topic
-    """
+    """Look up company policies by topic."""
     policies = {
         "onboarding": "New employees must complete orientation within 30 days. Required documents: ID, bank info, emergency contact.",
         "remote_work": "Employees may work remotely up to 3 days per week. Must be available during core hours (10am-3pm).",
@@ -94,5 +79,5 @@ def policy_lookup(topic: str) -> str:
 
 
 if __name__ == "__main__":
-    print(f"Starting MCP server with SSE transport on port {port}", file=sys.stderr, flush=True)
-    mcp.run(transport="sse")
+    print(f"Starting MCP server with Streamable HTTP transport on port {port}", file=sys.stderr, flush=True)
+    mcp.run(transport="streamable-http")

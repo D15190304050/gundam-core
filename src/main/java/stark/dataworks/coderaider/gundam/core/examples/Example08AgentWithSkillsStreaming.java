@@ -33,12 +33,12 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolParameterSchema;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 
 /**
- * 7) How to load a local skill, expose file tools, and stream output.
+ * 8) How to load a local skill, expose file tools, and stream output.
  *
  * Usage:
- * java Example07AgentWithSkillsStreaming [model] [apiKey] [prompt] [localSkillName|skillId] [skillId]
+ * java Example08AgentWithSkillsStreaming [model] [apiKey] [prompt] [localSkillName|skillId] [skillId]
  */
-public class Example07AgentWithSkillsStreaming
+public class Example08AgentWithSkillsStreaming
 {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final int MAX_TOOL_OUTPUT_CHARS = 12000;
@@ -140,7 +140,7 @@ public class Example07AgentWithSkillsStreaming
     private static String loadSkillMarkdown(String localSkillName)
     {
         String resourcePath = "skills/" + localSkillName + "/SKILL.md";
-        try (InputStream inputStream = Example07AgentWithSkillsStreaming.class.getClassLoader().getResourceAsStream(resourcePath))
+        try (InputStream inputStream = Example08AgentWithSkillsStreaming.class.getClassLoader().getResourceAsStream(resourcePath))
         {
             if (inputStream == null)
             {

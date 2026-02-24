@@ -287,7 +287,7 @@ public class HttpMcpServerClient implements IMcpServerClient
     private JsonNode sendRequest(McpServerConfiguration config, ObjectNode request) throws Exception
     {
         String endpoint = config.getEndpoint().replaceAll("/$", "");
-        String messageEndpoint = endpoint + "/message";
+        String messageEndpoint = endpoint + "/messages/";
 
         String body = objectMapper.writeValueAsString(request);
         System.out.println("[MCP-HTTP] Sending: " + body);
@@ -350,7 +350,7 @@ public class HttpMcpServerClient implements IMcpServerClient
     private void sendNotification(McpServerConfiguration config, ObjectNode notification) throws Exception
     {
         String endpoint = config.getEndpoint().replaceAll("/$", "");
-        String messageEndpoint = endpoint + "/message";
+        String messageEndpoint = endpoint + "/messages/";
 
         String body = objectMapper.writeValueAsString(notification);
         System.out.println("[MCP-HTTP] Sending notification: " + body);

@@ -18,22 +18,22 @@ import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 
 /**
- * Structured output by prompting the model with user-defined schema and JSON mode.
+ * 10) Structured output by declaring Java type from developer side.
  * 
- * Usage: java Example10StructuredOutputByPrompt [provider] [model] [apiKey] [topic]
+ * Usage: java Example10StructuredOutputByClass [provider] [model] [apiKey] [prompt]
  * - provider: Provider type - "modelscope" (default) or "volcengine" (Seed/Doubao)
  * - model: Model name (default: Qwen/Qwen3-4B for modelscope, doubao-seed-1-6-251015 for volcengine)
  * - apiKey: API key (default: MODEL_SCOPE_API_KEY for modelscope, VOLCENGINE_API_KEY for volcengine)
- * - topic: Topic for JSON generation (default: "Java")
+ * - prompt: User prompt (default: "Generate a JSON summary of a sprint plan.")
  */
-public class Example10StructuredOutputByPrompt
+public class Example10StructuredOutputByClass
 {
     public static void main(String[] args)
     {
-        String provider = args.length > 0 ? args[0] : "volcengine";
+        String provider = args.length > 0 ? args[0] : "modelscope";
         String model = args.length > 1 ? args[1] : getDefaultModel(provider);
         String apiKey = args.length > 2 ? args[2] : getApiKey(provider);
-        String topic = args.length > 3 ? args[3] : "Java";
+        String prompt = args.length > 3 ? args[3] : "Generate a JSON summary of a sprint plan.";
 
         if (apiKey == null || apiKey.isBlank())
         {
@@ -45,56 +45,48 @@ public class Example10StructuredOutputByPrompt
         ILlmClient llmClient = createLlmClient(provider, apiKey, model);
 
         AgentDefinition definition = new AgentDefinition();
-        definition.setId("structured-by-prompt");
-        definition.setName("Structured By Prompt");
+        definition.setId("structured-by-class");
+        definition.setName("Structured By Class");
         definition.setModel(model);
-        definition.setSystemPrompt("Always obey user schema exactly.");
-        definition.setModelReasoning(Map.of("effort", "low"));
+        definition.setSystemPrompt("Return concise structured summaries.");
+//        definition.setModelReasoning(Map.of("effort", "low"));
 
-        AgentRegistry registry = new AgentRegistry();
-        registry.register(new Agent(definition));
+        AgentRegistry agentRegistry = new AgentRegistry();
+        agentRegistry.register(new Agent(definition));
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(llmClient)
             .toolRegistry(new ToolRegistry())
-            .agentRegistry(registry)
+            .agentRegistry(agentRegistry)
             .eventPublisher(createConsoleStreamingPublisher())
             .build();
 
-        String prompt = "Return only JSON with fields: topic(string), score(number), tags(array). Topic = " + topic + ".";
-        RunConfiguration config = new RunConfiguration(8, null, 0.2, 512, "auto", "json_object", Map.of());
-        RunResult result = runner.runStreamed(registry.get("structured-by-prompt").orElseThrow(), prompt, config, ExampleSupport.noopHooks());
-
-        System.out.println("\nPrompt-defined JSON: " + result.getFinalOutput());
+        RunResult result = runner.runStreamed(agentRegistry.get("structured-by-class").orElseThrow(), prompt, RunConfiguration.defaults(), ExampleSupport.noopHooks(), SprintSummary.class);
+        System.out.println("\nFinal output: " + result.getFinalOutput());
+        if (!result.getItems().isEmpty())
+        {
+            Object payload = result.getItems().get(result.getItems().size() - 1).getMetadata();
+            System.out.println("Structured output payload: " + payload);
+        }
         System.out.println("Total token usage: " + result.getUsage().getTotalTokens() + " (input: " + result.getUsage().getInputTokens() + ", output: " + result.getUsage().getOutputTokens() + ")");
     }
 
     private static ILlmClient createLlmClient(String provider, String apiKey, String model)
     {
-        switch (provider.toLowerCase())
+        return switch (provider.toLowerCase())
         {
-            case "volcengine":
-            case "seed":
-            case "doubao":
-                return new SeedLlmClient(apiKey, model);
-            case "modelscope":
-            default:
-                return new ModelScopeLlmClient(apiKey, model);
-        }
+            case "volcengine", "seed", "doubao" -> new SeedLlmClient(apiKey, model);
+            default -> new ModelScopeLlmClient(apiKey, model);
+        };
     }
 
     private static String getDefaultModel(String provider)
     {
-        switch (provider.toLowerCase())
+        return switch (provider.toLowerCase())
         {
-            case "volcengine":
-            case "seed":
-            case "doubao":
-                return "doubao-seed-1-6-251015";
-            case "modelscope":
-            default:
-                return "Qwen/Qwen3-4B";
-        }
+            case "volcengine", "seed", "doubao" -> "doubao-seed-1-6-251015";
+            default -> "Qwen/Qwen3-4B";
+        };
     }
 
     private static String getApiKey(String provider)
@@ -113,16 +105,11 @@ public class Example10StructuredOutputByPrompt
 
     private static String getApiKeyEnvVar(String provider)
     {
-        switch (provider.toLowerCase())
+        return switch (provider.toLowerCase())
         {
-            case "volcengine":
-            case "seed":
-            case "doubao":
-                return "VOLCENGINE_API_KEY";
-            case "modelscope":
-            default:
-                return "MODEL_SCOPE_API_KEY";
-        }
+            case "volcengine", "seed", "doubao" -> "VOLCENGINE_API_KEY";
+            default -> "MODEL_SCOPE_API_KEY";
+        };
     }
 
     private static RunEventPublisher createConsoleStreamingPublisher()
@@ -153,5 +140,12 @@ public class Example10StructuredOutputByPrompt
             }
         });
         return publisher;
+    }
+
+    private static final class SprintSummary
+    {
+        private String title;
+        private int priority;
+        private boolean blocked;
     }
 }
