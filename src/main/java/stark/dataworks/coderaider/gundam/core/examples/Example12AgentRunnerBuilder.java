@@ -9,7 +9,7 @@ import stark.dataworks.coderaider.gundam.core.event.RunEvent;
 import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmClientRegistry;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
@@ -51,7 +51,7 @@ public class Example12AgentRunnerBuilder
             .eventPublisher(createConsoleStreamingPublisher())
             .build();
 
-        RunResult result = runner.runStreamed(
+        ContextResult result = runner.runStreamed(
             new Agent(definition), 
             prompt, 
             RunConfiguration.defaults(), 

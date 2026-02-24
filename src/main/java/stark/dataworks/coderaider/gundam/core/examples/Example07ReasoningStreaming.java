@@ -8,7 +8,7 @@ import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
 import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
@@ -51,7 +51,7 @@ public class Example07ReasoningStreaming
             .eventPublisher(createConsoleStreamingPublisher())
             .build();
 
-        RunResult result = runner.runStreamed(registry.get("reasoning-agent").orElseThrow(), prompt, RunConfiguration.defaults(), ExampleSupport.noopHooks());
+        ContextResult result = runner.runStreamed(registry.get("reasoning-agent").orElseThrow(), prompt, RunConfiguration.defaults(), ExampleSupport.noopHooks());
         System.out.println("\nFinal output: " + result.getFinalOutput());
     }
 

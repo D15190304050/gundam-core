@@ -1,4 +1,4 @@
-package stark.dataworks.coderaider.gundam.core.result;
+package stark.dataworks.coderaider.gundam.core.context;
 
 import lombok.Getter;
 
@@ -13,7 +13,7 @@ import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
  * RunResult implements normalized run result structures.
  */
 @Getter
-public class RunResult
+public class ContextResult
 {
 
     /**
@@ -34,7 +34,7 @@ public class RunResult
     /**
      * Internal state for items; used while coordinating runtime behavior.
      */
-    private final List<RunItem> items;
+    private final List<ContextItem> items;
 
     /**
      * Internal state for events; used while coordinating runtime behavior.
@@ -49,11 +49,11 @@ public class RunResult
      * @param items The items used by this operation.
      * @param events The events used by this operation.
      */
-    public RunResult(String finalOutput,
-                     String finalAgentId,
-                     TokenUsage usage,
-                     List<RunItem> items,
-                     List<RunEvent> events)
+    public ContextResult(String finalOutput,
+                         String finalAgentId,
+                         TokenUsage usage,
+                         List<ContextItem> items,
+                         List<RunEvent> events)
     {
         this.finalOutput = finalOutput == null ? "" : finalOutput;
         this.finalAgentId = Objects.requireNonNull(finalAgentId, "finalAgentId");

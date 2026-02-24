@@ -10,7 +10,7 @@ import stark.dataworks.coderaider.gundam.core.agent.IAgent;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
 import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsageTracker;
-import stark.dataworks.coderaider.gundam.core.result.RunItem;
+import stark.dataworks.coderaider.gundam.core.context.ContextItem;
 
 /**
  * RunnerContext implements end-to-end run orchestration including retries, guardrails, handoffs, and events.
@@ -26,7 +26,7 @@ public class RunnerContext
     /**
      * Timeline items describing user/model/tool actions.
      */
-    private final List<RunItem> items = new ArrayList<>();
+    private final List<ContextItem> items = new ArrayList<>();
 
     /**
      * Internal state for memory; used while coordinating runtime behavior.

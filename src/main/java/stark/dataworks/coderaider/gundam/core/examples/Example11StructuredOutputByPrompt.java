@@ -10,7 +10,7 @@ import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.SeedLlmClient;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
@@ -63,7 +63,7 @@ public class Example11StructuredOutputByPrompt
 
         String prompt = "Return only JSON with fields: topic(string), score(number), tags(array). Topic = " + topic + ".";
         RunConfiguration config = new RunConfiguration(8, null, 0.2, 512, "auto", "json_object", Map.of());
-        RunResult result = runner.runStreamed(registry.get("structured-by-prompt").orElseThrow(), prompt, config, ExampleSupport.noopHooks());
+        ContextResult result = runner.runStreamed(registry.get("structured-by-prompt").orElseThrow(), prompt, config, ExampleSupport.noopHooks());
 
         System.out.println("\nPrompt-defined JSON: " + result.getFinalOutput());
         System.out.println("Total token usage: " + result.getUsage().getTotalTokens() + " (input: " + result.getUsage().getInputTokens() + ", output: " + result.getUsage().getOutputTokens() + ")");

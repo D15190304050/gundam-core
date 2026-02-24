@@ -1,7 +1,5 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
-import java.util.Map;
-
 import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
@@ -10,7 +8,7 @@ import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.SeedLlmClient;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
@@ -61,7 +59,7 @@ public class Example10StructuredOutputByClass
             .eventPublisher(createConsoleStreamingPublisher())
             .build();
 
-        RunResult result = runner.runStreamed(agentRegistry.get("structured-by-class").orElseThrow(), prompt, RunConfiguration.defaults(), ExampleSupport.noopHooks(), SprintSummary.class);
+        ContextResult result = runner.runStreamed(agentRegistry.get("structured-by-class").orElseThrow(), prompt, RunConfiguration.defaults(), ExampleSupport.noopHooks(), SprintSummary.class);
         System.out.println("\nFinal output: " + result.getFinalOutput());
         if (!result.getItems().isEmpty())
         {

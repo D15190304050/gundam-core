@@ -13,7 +13,7 @@ import stark.dataworks.coderaider.gundam.core.mcp.McpManager;
 import stark.dataworks.coderaider.gundam.core.mcp.McpServerConfiguration;
 import stark.dataworks.coderaider.gundam.core.mcp.McpToolDescriptor;
 import stark.dataworks.coderaider.gundam.core.mcp.StdioMcpServerClient;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
@@ -89,7 +89,7 @@ public class Example03AgentWithMcp
             .build();
 
         System.out.print("Streaming output: ");
-        RunResult result = runner.runStreamed(agentRegistry.get("mcp-agent").orElseThrow(), query, RunConfiguration.defaults(), ExampleSupport.noopHooks());
+        ContextResult result = runner.runStreamed(agentRegistry.get("mcp-agent").orElseThrow(), query, RunConfiguration.defaults(), ExampleSupport.noopHooks());
         System.out.println();
         System.out.println("Final output: " + result.getFinalOutput());
         

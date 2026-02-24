@@ -16,7 +16,7 @@ import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.output.OutputSchemaRegistry;
 import stark.dataworks.coderaider.gundam.core.output.OutputValidator;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.IRunHooks;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
@@ -62,7 +62,7 @@ public class SimpleAgentExample
             new OutputValidator(),
             new RunEventPublisher());
 
-        RunResult result = runner.run(agentRegistry.get("assistant").orElseThrow(), prompt, RunConfiguration.defaults(), new NoopRunHooks());
+        ContextResult result = runner.run(agentRegistry.get("assistant").orElseThrow(), prompt, RunConfiguration.defaults(), new NoopRunHooks());
         System.out.println("Model: " + model);
         System.out.println("Base URL: " + baseUrl + " (placeholder)");
         System.out.println("Output: " + result.getFinalOutput());

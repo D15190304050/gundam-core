@@ -18,7 +18,7 @@ import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.model.ToolCall;
 import stark.dataworks.coderaider.gundam.core.output.OutputSchemaRegistry;
 import stark.dataworks.coderaider.gundam.core.output.OutputValidator;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.IRunHooks;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
@@ -79,7 +79,7 @@ public class ToolCallingAgentExample
             new OutputValidator(),
             new RunEventPublisher());
 
-        RunResult result = runner.run(agentRegistry.get("weather-agent").orElseThrow(), "What's the weather in " + city + "?", RunConfiguration.defaults(), new NoopRunHooks());
+        ContextResult result = runner.run(agentRegistry.get("weather-agent").orElseThrow(), "What's the weather in " + city + "?", RunConfiguration.defaults(), new NoopRunHooks());
         System.out.println(result.getFinalOutput());
     }
 

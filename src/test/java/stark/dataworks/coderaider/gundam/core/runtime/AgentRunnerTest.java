@@ -29,8 +29,8 @@ import stark.dataworks.coderaider.gundam.core.model.ToolCall;
 import stark.dataworks.coderaider.gundam.core.output.IOutputSchema;
 import stark.dataworks.coderaider.gundam.core.output.OutputSchemaRegistry;
 import stark.dataworks.coderaider.gundam.core.output.OutputValidator;
-import stark.dataworks.coderaider.gundam.core.result.RunItemType;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextItemType;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.runner.IRunHooks;
@@ -69,7 +69,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        RunResult result = runner.run(new Agent(def), "hello", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(new Agent(def), "hello", RunConfiguration.defaults(), new IRunHooks()
         {
         });
         assertTrue(result.getFinalOutput().contains("Blocked by input guardrail"));
@@ -125,11 +125,11 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        RunResult result = runner.run(new Agent(def), "start", new RunConfiguration(8, "s1", 0.1, 128, "auto", "text", Map.of()), new IRunHooks()
+        ContextResult result = runner.run(new Agent(def), "start", new RunConfiguration(8, "s1", 0.1, 128, "auto", "text", Map.of()), new IRunHooks()
         {
         });
         assertEquals("done", result.getFinalOutput());
-        assertTrue(result.getItems().stream().anyMatch(i -> i.getType() == RunItemType.TOOL_RESULT));
+        assertTrue(result.getItems().stream().anyMatch(i -> i.getType() == ContextItemType.TOOL_RESULT));
         assertTrue(sessions.load("s1").isPresent());
     }
 
@@ -173,7 +173,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        RunResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
         assertEquals("ok", result.getFinalOutput());
@@ -217,7 +217,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        RunResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -296,13 +296,13 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        RunResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
         assertEquals("done", result.getFinalOutput());
         assertEquals(8, result.getUsage().getTotalTokens());
-        assertTrue(result.getItems().stream().anyMatch(i -> i.getType() == RunItemType.TOOL_RESULT));
+        assertTrue(result.getItems().stream().anyMatch(i -> i.getType() == ContextItemType.TOOL_RESULT));
     }
 
     @Test
@@ -328,7 +328,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        RunResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -379,7 +379,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        RunResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -420,7 +420,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        RunResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -446,7 +446,7 @@ class AgentRunnerTest
             .agentRegistry(agents)
             .build();
 
-        RunResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
         {
         }, ScoreSummary.class);
 
@@ -466,7 +466,7 @@ class AgentRunnerTest
             .agentRegistry(agents)
             .build();
 
-        RunResult result = runner.run(new Agent(def), "hello", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(new Agent(def), "hello", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -492,7 +492,7 @@ class AgentRunnerTest
             .agentRegistry(agents)
             .build();
 
-        RunResult result = runner.run(new Agent(def), "hello", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(new Agent(def), "hello", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 

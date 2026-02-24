@@ -22,7 +22,7 @@ import stark.dataworks.coderaider.gundam.core.event.RunEvent;
 import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.policy.RetryPolicy;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
@@ -101,7 +101,7 @@ public class Example08AgentWithSkillsStreaming
         RunConfiguration config = new RunConfiguration(24, null, 0.2, 4096, "auto", "text", Map.of(), new RetryPolicy(3, 1500));
         System.out.println("Workspace root: " + workspaceRoot);
         System.out.println("Loaded local skill: " + localSkillName);
-        RunResult result = runner.runStreamed(registry.get("skills-agent").orElseThrow(), prompt, config, ExampleSupport.noopHooks());
+        ContextResult result = runner.runStreamed(registry.get("skills-agent").orElseThrow(), prompt, config, ExampleSupport.noopHooks());
         System.out.println("\nFinal output: " + result.getFinalOutput());
     }
 

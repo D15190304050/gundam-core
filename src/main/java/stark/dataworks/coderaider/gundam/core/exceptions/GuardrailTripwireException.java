@@ -1,4 +1,4 @@
-package stark.dataworks.coderaider.gundam.core.errors;
+package stark.dataworks.coderaider.gundam.core.exceptions;
 
 /**
  * GuardrailTripwireException implements core runtime responsibilities.

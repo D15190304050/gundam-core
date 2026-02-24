@@ -8,7 +8,7 @@ import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
 import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
@@ -82,7 +82,7 @@ public class Example06AgentGroupWithHandoffs
             .build();
 
         System.out.print("Streaming output: ");
-        RunResult result = runner.runStreamed(registry.get("triage").orElseThrow(), query, RunConfiguration.defaults(), ExampleSupport.noopHooks());
+        ContextResult result = runner.runStreamed(registry.get("triage").orElseThrow(), query, RunConfiguration.defaults(), ExampleSupport.noopHooks());
         System.out.println();
 
         System.out.println("FinalAgent=" + result.getFinalAgentId());

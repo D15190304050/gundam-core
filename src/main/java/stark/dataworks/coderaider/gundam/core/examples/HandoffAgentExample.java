@@ -16,7 +16,7 @@ import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.output.OutputSchemaRegistry;
 import stark.dataworks.coderaider.gundam.core.output.OutputValidator;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.IRunHooks;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
@@ -64,7 +64,7 @@ public class HandoffAgentExample
             new OutputValidator(),
             new RunEventPublisher());
 
-        RunResult result = runner.run(registry.get("triage").orElseThrow(), "I need help with billing", RunConfiguration.defaults(), new NoopRunHooks());
+        ContextResult result = runner.run(registry.get("triage").orElseThrow(), "I need help with billing", RunConfiguration.defaults(), new NoopRunHooks());
         System.out.println("Final agent: " + result.getFinalAgentId());
         System.out.println("Output: " + result.getFinalOutput());
     }

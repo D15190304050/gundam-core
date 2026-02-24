@@ -1,4 +1,4 @@
-package stark.dataworks.coderaider.gundam.core.result;
+package stark.dataworks.coderaider.gundam.core.context;
 
 import lombok.Getter;
 
@@ -10,13 +10,13 @@ import java.util.Objects;
  * RunItem implements normalized run result structures.
  */
 @Getter
-public class RunItem
+public class ContextItem
 {
 
     /**
      * Internal state for type; used while coordinating runtime behavior.
      */
-    private final RunItemType type;
+    private final ContextItemType type;
 
     /**
      * Internal state for content; used while coordinating runtime behavior.
@@ -34,7 +34,7 @@ public class RunItem
      * @param content The content used by this operation.
      * @param metadata The metadata used by this operation.
      */
-    public RunItem(RunItemType type, String content, Map<String, Object> metadata)
+    public ContextItem(ContextItemType type, String content, Map<String, Object> metadata)
     {
         this.type = Objects.requireNonNull(type, "type");
         this.content = content == null ? "" : content;

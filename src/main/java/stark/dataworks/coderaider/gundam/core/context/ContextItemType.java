@@ -1,9 +1,9 @@
-package stark.dataworks.coderaider.gundam.core.result;
+package stark.dataworks.coderaider.gundam.core.context;
 
 /**
  * RunItemType implements normalized run result structures.
  */
-public enum RunItemType
+public enum ContextItemType
 {
     USER_MESSAGE,
     ASSISTANT_MESSAGE,

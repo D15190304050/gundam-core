@@ -13,7 +13,7 @@ import stark.dataworks.coderaider.gundam.core.mcp.McpManager;
 import stark.dataworks.coderaider.gundam.core.mcp.McpServerConfiguration;
 import stark.dataworks.coderaider.gundam.core.mcp.McpToolDescriptor;
 import stark.dataworks.coderaider.gundam.core.mcp.StreamableHttpMcpServerClient;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.session.InMemorySessionStore;
@@ -89,13 +89,13 @@ public class Example05MultiRoundSingleAgentWithToolsAndStreamableHttpMcp
 
         System.out.println("=== Round 1: Tax Estimation ===");
         System.out.print("Streaming output: ");
-        RunResult round1 = runner.runStreamed(agentRegistry.get("hybrid-streamable-http-agent").orElseThrow(), "Please estimate tax for amount 100.", config, ExampleSupport.noopHooks());
+        ContextResult round1 = runner.runStreamed(agentRegistry.get("hybrid-streamable-http-agent").orElseThrow(), "Please estimate tax for amount 100.", config, ExampleSupport.noopHooks());
         System.out.println();
         System.out.println("Round 1 output: " + round1.getFinalOutput());
 
         System.out.println("\n=== Round 2: Policy Constraints ===");
         System.out.print("Streaming output: ");
-        RunResult round2 = runner.runStreamed(agentRegistry.get("hybrid-streamable-http-agent").orElseThrow(), "What policy constraints should I know about tax?", config, ExampleSupport.noopHooks());
+        ContextResult round2 = runner.runStreamed(agentRegistry.get("hybrid-streamable-http-agent").orElseThrow(), "What policy constraints should I know about tax?", config, ExampleSupport.noopHooks());
         System.out.println();
         System.out.println("Round 2 output: " + round2.getFinalOutput());
     }

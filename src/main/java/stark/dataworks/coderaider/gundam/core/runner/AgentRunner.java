@@ -14,11 +14,11 @@ import stark.dataworks.coderaider.gundam.core.approval.ToolApprovalDecision;
 import stark.dataworks.coderaider.gundam.core.approval.IToolApprovalPolicy;
 import stark.dataworks.coderaider.gundam.core.approval.ToolApprovalRequest;
 import stark.dataworks.coderaider.gundam.core.context.IContextBuilder;
-import stark.dataworks.coderaider.gundam.core.errors.GuardrailTripwireException;
-import stark.dataworks.coderaider.gundam.core.errors.HandoffDeniedException;
-import stark.dataworks.coderaider.gundam.core.errors.MaxTurnsExceededException;
-import stark.dataworks.coderaider.gundam.core.errors.ModelInvocationException;
-import stark.dataworks.coderaider.gundam.core.errors.ToolExecutionFailureException;
+import stark.dataworks.coderaider.gundam.core.exceptions.GuardrailTripwireException;
+import stark.dataworks.coderaider.gundam.core.exceptions.HandoffDeniedException;
+import stark.dataworks.coderaider.gundam.core.exceptions.MaxTurnsExceededException;
+import stark.dataworks.coderaider.gundam.core.exceptions.ModelInvocationException;
+import stark.dataworks.coderaider.gundam.core.exceptions.ToolExecutionFailureException;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
 import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.guardrail.GuardrailDecision;
@@ -43,9 +43,9 @@ import stark.dataworks.coderaider.gundam.core.output.OutputSchemaMapper;
 import stark.dataworks.coderaider.gundam.core.output.OutputSchemaRegistry;
 import stark.dataworks.coderaider.gundam.core.output.OutputValidationResult;
 import stark.dataworks.coderaider.gundam.core.output.OutputValidator;
-import stark.dataworks.coderaider.gundam.core.result.RunItem;
-import stark.dataworks.coderaider.gundam.core.result.RunItemType;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextItem;
+import stark.dataworks.coderaider.gundam.core.context.ContextItemType;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runerror.RunErrorData;
 import stark.dataworks.coderaider.gundam.core.runerror.RunErrorHandlerResult;
 import stark.dataworks.coderaider.gundam.core.runerror.RunErrorKind;
@@ -219,12 +219,12 @@ public class AgentRunner
      * @param runHooks Lifecycle callbacks invoked for run/step/tool events.
      * @return Final run output, agent id, usage metrics, emitted events, and timeline items.
      */
-    public RunResult run(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks)
+    public ContextResult run(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks)
     {
         return run(startingAgent, userInput, runConfiguration, runHooks, null);
     }
 
-    public RunResult run(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, Class<?> outputType)
+    public ContextResult run(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, Class<?> outputType)
     {
         return runInternal(startingAgent, userInput, runConfiguration, runHooks, false, outputType);
     }
@@ -237,12 +237,12 @@ public class AgentRunner
      * @param runHooks Lifecycle callbacks invoked for run/step/tool events.
      * @return Final run output, agent id, usage metrics, emitted events, and timeline items.
      */
-    public RunResult runStreamed(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks)
+    public ContextResult runStreamed(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks)
     {
         return runStreamed(startingAgent, userInput, runConfiguration, runHooks, null);
     }
 
-    public RunResult runStreamed(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, Class<?> outputType)
+    public ContextResult runStreamed(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, Class<?> outputType)
     {
         return runInternal(startingAgent, userInput, runConfiguration, runHooks, true, outputType);
     }
@@ -256,7 +256,7 @@ public class AgentRunner
      * @param streamModelResponse Whether model output should be streamed as delta events.
      * @return Final run output, agent id, usage metrics, emitted events, and timeline items.
      */
-    private RunResult runInternal(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, boolean streamModelResponse, Class<?> outputType)
+    private ContextResult runInternal(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, boolean streamModelResponse, Class<?> outputType)
     {
         // TODO: Make this memory configurable.
         // Options: in-memory, redis, mysql, context-service (will be implemented somewhere else I suppose).
@@ -274,7 +274,7 @@ public class AgentRunner
         if (userInput != null && !userInput.isBlank())
         {
             context.getMemory().append(new Message(Role.USER, userInput));
-            context.getItems().add(new RunItem(RunItemType.USER_MESSAGE, userInput, Map.of()));
+            context.getItems().add(new ContextItem(ContextItemType.USER_MESSAGE, userInput, Map.of()));
         }
 
         try
@@ -334,7 +334,7 @@ public class AgentRunner
                 if (!effectiveResponse.getContent().isBlank())
                 {
                     context.getMemory().append(new Message(Role.ASSISTANT, effectiveResponse.getContent()));
-                    context.getItems().add(new RunItem(RunItemType.ASSISTANT_MESSAGE, effectiveResponse.getContent(), effectiveResponse.getStructuredOutput()));
+                    context.getItems().add(new ContextItem(ContextItemType.ASSISTANT_MESSAGE, effectiveResponse.getContent(), effectiveResponse.getStructuredOutput()));
                 }
 
                 if (effectiveResponse.getHandoffAgentId().isPresent())
@@ -349,7 +349,7 @@ public class AgentRunner
                     IAgent next = agentRegistry.get(toAgent)
                         .orElseThrow(() -> new IllegalStateException("Handoff agent not found: " + toAgent));
                     context.setCurrentAgent(next);
-                    context.getItems().add(new RunItem(RunItemType.HANDOFF, toAgent, Map.of("from", handoff.getFromAgentId())));
+                    context.getItems().add(new ContextItem(ContextItemType.HANDOFF, toAgent, Map.of("from", handoff.getFromAgentId())));
                     emit(context, runHooks, RunEventType.HANDOFF_OCCURRED, Map.of("from", handoff.getFromAgentId(), "to", toAgent));
                     if (context.getCurrentAgent().definition().isResetInputAfterHandoff())
                     {
@@ -371,7 +371,7 @@ public class AgentRunner
                                 new ToolApprovalRequest(context.getCurrentAgent().definition().getId(), call.getToolName(), call.getArguments()));
                             if (!decision.isApproved())
                             {
-                                context.getItems().add(new RunItem(RunItemType.SYSTEM_EVENT,
+                                context.getItems().add(new ContextItem(ContextItemType.SYSTEM_EVENT,
                                     "Tool call denied: " + decision.getReason(), Map.of("tool", call.getToolName())));
                                 continue;
                             }
@@ -385,8 +385,8 @@ public class AgentRunner
                             String result = tool.execute(call.getArguments());
                             hookManager.afterTool(call.getToolName(), result);
                             context.getMemory().append(new Message(Role.TOOL, result, call.getToolCallId()));
-                            context.getItems().add(new RunItem(RunItemType.TOOL_CALL, call.getToolName(), call.getArguments()));
-                            context.getItems().add(new RunItem(RunItemType.TOOL_RESULT, result, Map.of("tool", call.getToolName())));
+                            context.getItems().add(new ContextItem(ContextItemType.TOOL_CALL, call.getToolName(), call.getArguments()));
+                            context.getItems().add(new ContextItem(ContextItemType.TOOL_RESULT, result, Map.of("tool", call.getToolName())));
                             emit(context, runHooks, RunEventType.TOOL_CALL_COMPLETED, Map.of("tool", call.getToolName()));
                         }
                         catch (RuntimeException ex)
@@ -406,7 +406,7 @@ public class AgentRunner
                     : outputValidator.validate(effectiveResponse.getStructuredOutput(), classSchema);
                 if (!classValidation.isValid())
                 {
-                    context.getItems().add(new RunItem(RunItemType.SYSTEM_EVENT, "Structured output invalid: " + classValidation.getReason(), Map.of()));
+                    context.getItems().add(new ContextItem(ContextItemType.SYSTEM_EVENT, "Structured output invalid: " + classValidation.getReason(), Map.of()));
                     continue;
                 }
 
@@ -418,7 +418,7 @@ public class AgentRunner
                         .orElse(OutputValidationResult.fail("Output schema not found: " + context.getCurrentAgent().definition().getOutputSchemaName()));
                     if (!validation.isValid())
                     {
-                        context.getItems().add(new RunItem(RunItemType.SYSTEM_EVENT, "Structured output invalid: " + validation.getReason(), Map.of()));
+                        context.getItems().add(new ContextItem(ContextItemType.SYSTEM_EVENT, "Structured output invalid: " + validation.getReason(), Map.of()));
                         continue;
                     }
                 }
@@ -566,7 +566,7 @@ public class AgentRunner
      * @param error The error used by this operation.
      * @return The value produced by this operation.
      */
-    private RunResult handleError(RunnerContext context, RunConfiguration config, RuntimeException error, ExecutionContext legacyContext)
+    private ContextResult handleError(RunnerContext context, RunConfiguration config, RuntimeException error, ExecutionContext legacyContext)
     {
         RunErrorKind kind = classify(error);
         RunErrorHandlerResult decision = config.getRunErrorHandlers().get(kind)
@@ -594,7 +594,7 @@ public class AgentRunner
             finalOutput = "Run failed: " + errorMessage;
         }
 
-        context.getItems().add(new RunItem(RunItemType.SYSTEM_EVENT, finalOutput, Map.of("errorKind", kind.name())));
+        context.getItems().add(new ContextItem(ContextItemType.SYSTEM_EVENT, finalOutput, Map.of("errorKind", kind.name())));
 
         if (kind == RunErrorKind.INPUT_GUARDRAIL || kind == RunErrorKind.OUTPUT_GUARDRAIL)
         {
@@ -718,7 +718,7 @@ public class AgentRunner
      * @param config The config used by this operation.
      * @return The value produced by this operation.
      */
-    private RunResult finalizeResult(RunnerContext context, String finalOutput, RunConfiguration config, ExecutionContext legacyContext)
+    private ContextResult finalizeResult(RunnerContext context, String finalOutput, RunConfiguration config, ExecutionContext legacyContext)
     {
         legacyContext.setAgent(context.getCurrentAgent());
         hookManager.afterRun(legacyContext);
@@ -731,7 +731,7 @@ public class AgentRunner
         emit(context, new IRunHooks()
         {
         }, RunEventType.RUN_COMPLETED, attrs);
-        return new RunResult(
+        return new ContextResult(
             finalOutput,
             context.getCurrentAgent().definition().getId(),
             context.getUsageTracker().snapshot(),

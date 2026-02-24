@@ -24,7 +24,7 @@ import stark.dataworks.coderaider.gundam.core.mcp.McpResource;
 import stark.dataworks.coderaider.gundam.core.mcp.McpResourceTemplate;
 import stark.dataworks.coderaider.gundam.core.output.OutputSchemaRegistry;
 import stark.dataworks.coderaider.gundam.core.output.OutputValidator;
-import stark.dataworks.coderaider.gundam.core.result.RunResult;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runerror.RunErrorHandlers;
 import stark.dataworks.coderaider.gundam.core.runerror.RunErrorKind;
 import stark.dataworks.coderaider.gundam.core.runerror.RunErrorHandlerResult;
@@ -94,7 +94,7 @@ class McpAndErrorHandlingTest
         RunConfiguration cfg = new RunConfiguration(2, null, 0.2, 128, "auto", "text", Map.of(),
             new RetryPolicy(1, 0), handlers);
 
-        RunResult result = runner.run(new Agent(def), "hello", cfg, new IRunHooks()
+        ContextResult result = runner.run(new Agent(def), "hello", cfg, new IRunHooks()
         {
         });
         assertEquals("fallback output", result.getFinalOutput());
