@@ -17,7 +17,7 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 
 /**
  * 1) How to create & run a single simple agent with streaming output.
- * 
+ * <p>
  * Usage: java Example01SingleSimpleAgent [model] [apiKey] [prompt]
  * - model: ModelScope model name (default: Qwen/Qwen3-4B)
  * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
