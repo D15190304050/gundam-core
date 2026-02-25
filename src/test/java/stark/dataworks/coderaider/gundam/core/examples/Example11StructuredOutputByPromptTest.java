@@ -36,7 +36,7 @@ public class Example11StructuredOutputByPromptTest
     {
         Dotenv env = Dotenv.configure().filename(".env.local").ignoreIfMalformed().ignoreIfMissing().load();
 
-        String provider = "volcengine";
+        String provider = "modelscope";
         String model = getDefaultModel(provider);
         String apiKey = getApiKey(provider, env);
         String topic = "Java";
@@ -55,7 +55,6 @@ public class Example11StructuredOutputByPromptTest
         definition.setName("Structured By Prompt");
         definition.setModel(model);
         definition.setSystemPrompt("Always obey user schema exactly.");
-        definition.setModelReasoning(Map.of("effort", "low"));
 
         AgentRegistry registry = new AgentRegistry();
         registry.register(new Agent(definition));
@@ -67,7 +66,7 @@ public class Example11StructuredOutputByPromptTest
             .eventPublisher(createConsoleStreamingPublisher())
             .build();
 
-        String prompt = "Return only JSON with fields: topic(string), score(number), tags(array). Topic = " + topic + ".";
+        String prompt = "Return a JSON response following this schema: {\"topic\":\"string\",\"score\":\"number\",\"tags\":[\"string1\",\"string2\"]}. Topic = " + topic + ".";
         RunConfiguration config = new RunConfiguration(8, null, 0.2, 512, "auto", "json_object", Map.of());
         ContextResult result = runner.runStreamed(registry.get("structured-by-prompt").orElseThrow(), prompt, config, ExampleSupport.noopHooks());
 
@@ -85,7 +84,7 @@ public class Example11StructuredOutputByPromptTest
                 return new SeedLlmClient(apiKey, model);
             case "modelscope":
             default:
-                return new ModelScopeLlmClient(apiKey, model);
+                return new ModelScopeLlmClient(apiKey, model, false);
         }
     }
 

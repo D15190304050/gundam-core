@@ -3,6 +3,8 @@ package stark.dataworks.coderaider.gundam.core.examples;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
@@ -52,7 +54,7 @@ public class Example10StructuredOutputByClassTest
         definition.setId("structured-by-class");
         definition.setName("Structured By Class");
         definition.setModel(model);
-        definition.setSystemPrompt("Return concise structured summaries.");
+        definition.setSystemPrompt("Generate a JSON object with fields: title (string), priority (number), blocked (boolean). Return only the JSON, nothing else.");
 //        definition.setModelReasoning(Map.of("effort", "low"));
 
         AgentRegistry agentRegistry = new AgentRegistry();
@@ -65,7 +67,8 @@ public class Example10StructuredOutputByClassTest
             .eventPublisher(createConsoleStreamingPublisher())
             .build();
 
-        ContextResult result = runner.runStreamed(agentRegistry.get("structured-by-class").orElseThrow(), prompt, RunConfiguration.defaults(), ExampleSupport.noopHooks(), SprintSummary.class);
+        RunConfiguration config = new RunConfiguration(12, null, 0.2, 512, "auto", "json_object", Map.of());
+        ContextResult result = runner.runStreamed(agentRegistry.get("structured-by-class").orElseThrow(), prompt, config, ExampleSupport.noopHooks());
         System.out.println("\nFinal output: " + result.getFinalOutput());
         if (!result.getItems().isEmpty())
         {
@@ -80,7 +83,7 @@ public class Example10StructuredOutputByClassTest
         return switch (provider.toLowerCase())
         {
             case "volcengine", "seed", "doubao" -> new SeedLlmClient(apiKey, model);
-            default -> new ModelScopeLlmClient(apiKey, model);
+            default -> new ModelScopeLlmClient(apiKey, model, false);
         };
     }
 
