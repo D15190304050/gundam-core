@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 
@@ -109,6 +111,7 @@ public class Example05MultiRoundSingleAgentWithToolsAndStreamableHttpMcpTest
     private static RunEventPublisher createConsoleStreamingPublisher()
     {
         RunEventPublisher publisher = new RunEventPublisher();
+        ObjectMapper objectMapper = new ObjectMapper();
         publisher.subscribe(new IRunEventListener()
         {
             @Override
@@ -126,12 +129,33 @@ public class Example05MultiRoundSingleAgentWithToolsAndStreamableHttpMcpTest
                 else if (event.getType() == RunEventType.TOOL_CALL_REQUESTED)
                 {
                     String tool = (String) event.getAttributes().get("tool");
-                    System.out.println("\n[Tool call: " + tool + "]");
+                    Object args = event.getAttributes().get("arguments");
+                    String argsJson;
+                    try
+                    {
+                        argsJson = objectMapper.writeValueAsString(args);
+                    }
+                    catch (Exception e)
+                    {
+                        argsJson = args.toString();
+                    }
+                    System.out.println("\n[Tool call: " + tool + " with arguments: " + argsJson + "]");
                 }
                 else if (event.getType() == RunEventType.TOOL_CALL_COMPLETED)
                 {
                     String tool = (String) event.getAttributes().get("tool");
-                    System.out.println("[Tool completed: " + tool + "]");
+                    Object result = event.getAttributes().get("result");
+                    String resultJson;
+                    try
+                    {
+                        Object parsedResult = result instanceof String ? objectMapper.readValue((String) result, Object.class) : result;
+                        resultJson = objectMapper.writeValueAsString(parsedResult);
+                    }
+                    catch (Exception e)
+                    {
+                        resultJson = result.toString();
+                    }
+                    System.out.println("[Tool completed: " + tool + " with result: " + resultJson + "]");
                     System.out.print("Continuing stream: ");
                 }
             }
