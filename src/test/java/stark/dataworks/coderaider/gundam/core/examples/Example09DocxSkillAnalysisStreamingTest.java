@@ -1,13 +1,16 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assumptions;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -46,18 +49,24 @@ public class Example09DocxSkillAnalysisStreamingTest
 
         String model = "Qwen/Qwen3-4B";
         String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
-        String prompt = "Analyze src/main/resources/DocsForAnalysis/162235007倪英杰一种分布式存储系统中的元数据管理技术研究与实现.docx "
-            + "using the loaded docx skill. Write analysis markdown to "
-            + "src/main/resources/DocsForAnalysis/162235007倪英杰一种分布式存储系统中的元数据管理技术研究与实现-analysis.md.";
+        String prompt = "Use the loaded docx skill end-to-end for "
+            + "src/main/resources/DocsForAnalysis/162235007倪英杰一种分布式存储系统中的元数据管理技术研究与实现.docx. "
+            + "Mandatory workflow: "
+            + "(1) inspect the docx skill files and scripts with list_files/read_file; "
+            + "(2) inspect the target docx and related analysis markdown; "
+            + "(3) run shell tools from the skill (for example pandoc) to extract content; "
+            + "(4) update src/main/resources/DocsForAnalysis/162235007倪英杰一种分布式存储系统中的元数据管理技术研究与实现-analysis.md "
+            + "with comprehensive analysis and workflow notes. "
+            + "Do not stop early. Complete all 4 steps before final response.";
         String localSkillName = "docx";
         Path workspaceRoot = Path.of("").toAbsolutePath().normalize();
+        Path analysisPath = workspaceRoot.resolve("src/main/resources/DocsForAnalysis/162235007倪英杰一种分布式存储系统中的元数据管理技术研究与实现-analysis.md");
         String skillMarkdown = loadSkillMarkdown(localSkillName);
 
-        if (apiKey == null || apiKey.isBlank())
-        {
-            System.err.println("Error: ModelScope API key is required.");
-            System.exit(1);
-        }
+        Assumptions.assumeTrue(apiKey != null && !apiKey.isBlank(), "MODEL_SCOPE_API_KEY is required for this integration test.");
+
+        String beforeContent = readFileIfExists(analysisPath);
+        FileTime beforeModifiedTime = readLastModifiedIfExists(analysisPath);
 
         AgentDefinition def = new AgentDefinition();
         def.setId("docx-skills-agent");
@@ -86,7 +95,17 @@ public class Example09DocxSkillAnalysisStreamingTest
         System.out.println("Workspace root: " + workspaceRoot);
         System.out.println("Loaded local skill: " + localSkillName);
         ContextResult result = runner.runStreamed(registry.get("docx-skills-agent").orElseThrow(), prompt, config, ExampleSupport.noopHooks());
-        System.out.println("\nFinal output: " + result.getFinalOutput());
+        String finalOutput = result.getFinalOutput();
+        System.out.println("\nFinal output: " + finalOutput);
+        Assumptions.assumeFalse(finalOutput != null && finalOutput.startsWith("Run failed:"),
+            "Skipping update assertions because model invocation failed: " + finalOutput);
+
+        String afterContent = readFileIfExists(analysisPath);
+        FileTime afterModifiedTime = readLastModifiedIfExists(analysisPath);
+        Assertions.assertNotNull(afterContent, "analysis markdown must exist");
+        boolean contentChanged = beforeContent == null || !beforeContent.equals(afterContent);
+        boolean modifiedTimeChanged = beforeModifiedTime == null || !beforeModifiedTime.equals(afterModifiedTime);
+        Assertions.assertTrue(contentChanged || modifiedTimeChanged, "analysis markdown was not updated");
     }
 
     private static String loadSkillMarkdown(String localSkillName)
@@ -110,6 +129,8 @@ public class Example09DocxSkillAnalysisStreamingTest
     {
         return "You are a practical engineering assistant.\n"
             + "Use tools to inspect files, run shell commands, and update files when needed.\n"
+            + "Follow the loaded skill definition exactly.\n"
+            + "Never shortcut the workflow. Verify skill scripts and repository files before final answer.\n"
             + "Workspace root is: " + workspaceRoot + "\n\n"
             + "Loaded skill definition:\n"
             + skillMarkdown;
@@ -160,7 +181,8 @@ public class Example09DocxSkillAnalysisStreamingTest
                     "List files and directories within the workspace.",
                     List.of(
                         new ToolParameterSchema("path", "string", true, "Relative or absolute path inside workspace"),
-                        new ToolParameterSchema("max_depth", "number", false, "Max recursion depth (default 2)")));
+                        new ToolParameterSchema("max_depth", "number", false, "Max recursion depth (default 2)"),
+                        new ToolParameterSchema("max_entries", "number", false, "Max number of entries to return (default 200)")));
             }
 
             @Override
@@ -169,13 +191,14 @@ public class Example09DocxSkillAnalysisStreamingTest
                 try
                 {
                     String rawPath = String.valueOf(input.getOrDefault("path", "."));
-                    int maxDepth = Integer.parseInt(String.valueOf(input.getOrDefault("max_depth", 2)));
+                    int maxDepth = readInt(input, "max_depth", 2, 0, 12);
+                    int maxEntries = readInt(input, "max_entries", 200, 1, 2000);
                     Path target = resolveWorkspacePath(workspaceRoot, rawPath);
                     try (Stream<Path> stream = Files.walk(target, Math.max(0, Math.min(maxDepth, 8))))
                     {
                         return truncateToolOutput(stream
                             .map(path -> toWorkspacePath(workspaceRoot, path))
-                            .limit(300)
+                            .limit(maxEntries)
                             .reduce((a, b) -> a + "\n" + b)
                             .orElse("(empty)"));
                     }
@@ -198,7 +221,10 @@ public class Example09DocxSkillAnalysisStreamingTest
                 return new ToolDefinition(
                     "read_file",
                     "Read a UTF-8 text file from the workspace.",
-                    List.of(new ToolParameterSchema("path", "string", true, "Relative or absolute path inside workspace")));
+                    List.of(
+                        new ToolParameterSchema("path", "string", true, "Relative or absolute path inside workspace"),
+                        new ToolParameterSchema("start_line", "number", false, "1-based start line (default 1)"),
+                        new ToolParameterSchema("max_lines", "number", false, "Maximum lines to return (default 120)")));
             }
 
             @Override
@@ -211,7 +237,29 @@ public class Example09DocxSkillAnalysisStreamingTest
                     {
                         return "ERROR: not a file: " + file;
                     }
-                    return truncateToolOutput(Files.readString(file, StandardCharsets.UTF_8));
+
+                    int startLine = readInt(input, "start_line", 1, 1, Integer.MAX_VALUE);
+                    int maxLines = readInt(input, "max_lines", 120, 1, 500);
+                    List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
+                    if (lines.isEmpty())
+                    {
+                        return "file=" + toWorkspacePath(workspaceRoot, file) + "\n(empty file)";
+                    }
+
+                    int from = Math.min(startLine - 1, lines.size() - 1);
+                    int to = Math.min(from + maxLines, lines.size());
+                    StringBuilder output = new StringBuilder();
+                    output.append("file=").append(toWorkspacePath(workspaceRoot, file)).append('\n');
+                    output.append("lines=").append(from + 1).append('-').append(to).append(" of ").append(lines.size()).append('\n');
+                    for (int lineIndex = from; lineIndex < to; lineIndex++)
+                    {
+                        output.append(lineIndex + 1).append(": ").append(lines.get(lineIndex)).append('\n');
+                    }
+                    if (to < lines.size())
+                    {
+                        output.append("...truncated...");
+                    }
+                    return truncateToolOutput(output.toString());
                 }
                 catch (Exception exception)
                 {
@@ -337,5 +385,40 @@ public class Example09DocxSkillAnalysisStreamingTest
             return value;
         }
         return value.substring(0, MAX_TOOL_OUTPUT_CHARS) + "\n...truncated-by-tool-output-limit...";
+    }
+
+    private static int readInt(Map<String, Object> input, String key, int defaultValue, int min, int max)
+    {
+        Object raw = input.get(key);
+        if (raw == null)
+        {
+            return defaultValue;
+        }
+        int parsed = Integer.parseInt(String.valueOf(raw));
+        return Math.max(min, Math.min(max, parsed));
+    }
+
+    private static String readFileIfExists(Path path)
+    {
+        try
+        {
+            return Files.exists(path) ? Files.readString(path, StandardCharsets.UTF_8) : null;
+        }
+        catch (IOException exception)
+        {
+            throw new IllegalStateException("Failed to read file: " + path, exception);
+        }
+    }
+
+    private static FileTime readLastModifiedIfExists(Path path)
+    {
+        try
+        {
+            return Files.exists(path) ? Files.getLastModifiedTime(path) : null;
+        }
+        catch (IOException exception)
+        {
+            throw new IllegalStateException("Failed to read modified time: " + path, exception);
+        }
     }
 }
