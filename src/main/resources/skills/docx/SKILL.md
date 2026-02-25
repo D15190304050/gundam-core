@@ -53,6 +53,76 @@ python scripts/accept_changes.py input.docx output.docx
 
 ---
 
+## Document Analysis Workflow
+
+When asked to analyze a .docx file and produce a markdown analysis output, follow this comprehensive workflow:
+
+### Step 1: Extract Content
+Use `pandoc` to extract text and tracked changes from the .docx file:
+```bash
+pandoc --track-changes=all document.docx -o output.md
+```
+
+### Step 2: Read and Analyze Extracted Content
+Read the extracted markdown file using the `read_file` tool to understand:
+- Document structure (headings, sections)
+- Main topics and themes
+- Key findings, conclusions, or arguments
+- Tables, figures, and other visual elements
+- References or citations
+
+### Step 3: Identify Document Type and Purpose
+Determine what type of document this is:
+- Academic thesis/dissertation
+- Research paper
+- Technical report
+- Business document
+- Other
+
+### Step 4: Create Comprehensive Analysis
+Write a detailed markdown analysis that includes:
+
+1. **Document Overview**
+   - Title and author
+   - Document type and purpose
+   - Key subject matter
+
+2. **Structure Analysis**
+   - Table of contents
+   - Section organization
+   - Chapter/section breakdown
+
+3. **Content Summary**
+   - Main topics covered
+   - Key arguments or findings
+   - Methodology (if applicable)
+   - Results and conclusions
+
+4. **Technical Details**
+   - Technical concepts or terminology
+   - Systems, frameworks, or technologies mentioned
+   - Data or statistics presented
+
+5. **Key Insights**
+   - Most important findings
+   - Novel contributions
+   - Practical applications
+
+6. **References and Citations**
+   - List of references (if present)
+   - Key sources cited
+
+### Step 5: Write Analysis Output
+Use the `write_file` tool to write the complete analysis to the specified markdown file. Ensure the analysis is:
+- Well-structured with clear headings
+- Comprehensive and detailed
+- Written in a professional tone
+- Accurate based on the extracted content
+
+**Important:** Always complete ALL steps of this workflow. Do not stop after just extracting content with pandoc. The analysis must be comprehensive and detailed, covering all aspects of the document.
+
+---
+
 ## Creating New Documents
 
 Generate .docx files with JavaScript, then validate. Install: `npm install -g docx`
