@@ -1,5 +1,8 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -32,20 +35,21 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
  * Usage:
  * java Example09DocxSkillAnalysisStreaming [model] [apiKey] [prompt] [localSkillName]
  */
-public class Example09DocxSkillAnalysisStreaming
+public class Example09DocxSkillAnalysisStreamingTest
 {
     private static final int MAX_TOOL_OUTPUT_CHARS = 12000;
 
-    public static void main(String[] args)
+    @Test
+    public void run()
     {
-        String model = args.length > 0 ? args[0] : "Qwen/Qwen3-4B";
-        String apiKey = args.length > 1 ? args[1] : System.getenv("MODEL_SCOPE_API_KEY");
-        String prompt = args.length > 2
-            ? args[2]
-            : "Analyze src/main/resources/DocsForAnalysis/162235007倪英杰一种分布式存储系统中的元数据管理技术研究与实现.docx "
+        Dotenv env = Dotenv.configure().filename(".env.local").ignoreIfMalformed().ignoreIfMissing().load();
+
+        String model = "Qwen/Qwen3-4B";
+        String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
+        String prompt = "Analyze src/main/resources/DocsForAnalysis/162235007倪英杰一种分布式存储系统中的元数据管理技术研究与实现.docx "
             + "using the loaded docx skill. Write analysis markdown to "
             + "src/main/resources/DocsForAnalysis/162235007倪英杰一种分布式存储系统中的元数据管理技术研究与实现-analysis.md.";
-        String localSkillName = args.length > 3 ? args[3] : "docx";
+        String localSkillName = "docx";
         Path workspaceRoot = Path.of("").toAbsolutePath().normalize();
         String skillMarkdown = loadSkillMarkdown(localSkillName);
 
@@ -88,7 +92,7 @@ public class Example09DocxSkillAnalysisStreaming
     private static String loadSkillMarkdown(String localSkillName)
     {
         String resourcePath = "skills/" + localSkillName + "/SKILL.md";
-        try (InputStream inputStream = Example09DocxSkillAnalysisStreaming.class.getClassLoader().getResourceAsStream(resourcePath))
+        try (InputStream inputStream = Example09DocxSkillAnalysisStreamingTest.class.getClassLoader().getResourceAsStream(resourcePath))
         {
             if (inputStream == null)
             {

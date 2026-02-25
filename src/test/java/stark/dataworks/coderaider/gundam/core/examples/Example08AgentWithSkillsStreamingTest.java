@@ -1,5 +1,8 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import org.junit.jupiter.api.Test;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -38,23 +41,26 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
  * Usage:
  * java Example08AgentWithSkillsStreaming [model] [apiKey] [prompt] [localSkillName|skillId] [skillId]
  */
-public class Example08AgentWithSkillsStreaming
+public class Example08AgentWithSkillsStreamingTest
 {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final int MAX_TOOL_OUTPUT_CHARS = 12000;
 
-    public static void main(String[] args)
+    @Test
+    public void run()
     {
-        String model = args.length > 0 ? args[0] : "Qwen/Qwen3-Coder-480B-A35B-Instruct";
-        String apiKey = args.length > 1 ? args[1] : System.getenv("MODEL_SCOPE_API_KEY");
-        String prompt = args.length > 2 ? args[2] : System.getenv("EXAMPLE07_PROMPT");
+        Dotenv env = Dotenv.configure().filename(".env.local").ignoreIfMalformed().ignoreIfMissing().load();
+
+        String model = "Qwen/Qwen3-Coder-480B-A35B-Instruct";
+        String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
+        String prompt = env.get("EXAMPLE07_PROMPT");
         if (prompt == null || prompt.isBlank())
         {
             prompt = "Use the loaded skill to analyze this repository and update the target document accordingly. "
                 + "When writing a file, perform a single write_file call with complete final content.";
         }
-        String localSkillName = resolveLocalSkillName(args);
-        String skillId = resolveSkillId(args);
+        String localSkillName = resolveLocalSkillName(env);
+        String skillId = resolveSkillId(env);
         Path workspaceRoot = Path.of("").toAbsolutePath().normalize();
         String skillMarkdown = loadSkillMarkdown(localSkillName);
 
@@ -78,11 +84,6 @@ public class Example08AgentWithSkillsStreaming
                 "skill_id", skillId)));
             System.out.println("Using remote skill reference: " + skillId);
         }
-        else if (args.length > 3 && args[3].startsWith("skill_"))
-        {
-            System.out.println("No local skill argument provided. Falling back to default local skill: " + localSkillName);
-        }
-
         AgentRegistry registry = new AgentRegistry();
         registry.register(new Agent(def));
 
@@ -105,42 +106,30 @@ public class Example08AgentWithSkillsStreaming
         System.out.println("\nFinal output: " + result.getFinalOutput());
     }
 
-    private static String resolveLocalSkillName(String[] args)
+    private static String resolveLocalSkillName(Dotenv env)
     {
-        String localSkillName = System.getenv("LOCAL_SKILL_NAME");
+        String localSkillName = env.get("LOCAL_SKILL_NAME", System.getenv("LOCAL_SKILL_NAME"));
         if (localSkillName == null || localSkillName.isBlank())
         {
             localSkillName = "architecture-analyzer";
         }
-        if (args.length > 3 && !args[3].startsWith("skill_"))
-        {
-            return args[3];
-        }
         return localSkillName;
     }
 
-    private static String resolveSkillId(String[] args)
+    private static String resolveSkillId(Dotenv env)
     {
-        if (args.length > 4 && !args[4].isBlank())
-        {
-            return args[4];
-        }
-        if (args.length > 3 && args[3].startsWith("skill_"))
-        {
-            return args[3];
-        }
-        String modelSkillId = System.getenv("MODEL_SKILL_ID");
+        String modelSkillId = env.get("MODEL_SKILL_ID", System.getenv("MODEL_SKILL_ID"));
         if (modelSkillId != null && !modelSkillId.isBlank())
         {
             return modelSkillId;
         }
-        return System.getenv("ANTHROPIC_SKILL_ID");
+        return env.get("ANTHROPIC_SKILL_ID", System.getenv("ANTHROPIC_SKILL_ID"));
     }
 
     private static String loadSkillMarkdown(String localSkillName)
     {
         String resourcePath = "skills/" + localSkillName + "/SKILL.md";
-        try (InputStream inputStream = Example08AgentWithSkillsStreaming.class.getClassLoader().getResourceAsStream(resourcePath))
+        try (InputStream inputStream = Example08AgentWithSkillsStreamingTest.class.getClassLoader().getResourceAsStream(resourcePath))
         {
             if (inputStream == null)
             {

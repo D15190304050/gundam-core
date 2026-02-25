@@ -1,5 +1,8 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import org.junit.jupiter.api.Test;
+
 import java.util.List;
 
 import stark.dataworks.coderaider.gundam.core.agent.Agent;
@@ -29,13 +32,16 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
  * - planner -> support
  * - support (final agent, no handoffs)
  */
-public class Example06AgentGroupWithHandoffs
+public class Example06AgentGroupWithHandoffsTest
 {
-    public static void main(String[] args)
+    @Test
+    public void run()
     {
-        String model = args.length > 0 ? args[0] : "Qwen/Qwen3-4B";
-        String apiKey = args.length > 1 ? args[1] : System.getenv("MODEL_SCOPE_API_KEY");
-        String query = args.length > 2 ? args[2] : "Need a migration plan for next week.";
+        Dotenv env = Dotenv.configure().filename(".env.local").ignoreIfMalformed().ignoreIfMissing().load();
+
+        String model = "Qwen/Qwen3-4B";
+        String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
+        String query = "Need a migration plan for next week.";
 
         if (apiKey == null || apiKey.isBlank())
         {

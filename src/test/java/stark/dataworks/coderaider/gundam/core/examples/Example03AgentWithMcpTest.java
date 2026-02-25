@@ -1,5 +1,8 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import org.junit.jupiter.api.Test;
+
 import java.util.List;
 import java.util.Map;
 
@@ -34,14 +37,17 @@ import stark.dataworks.coderaider.gundam.core.tool.builtin.mcp.HostedMcpTool;
  * 1. Install mcp package: pip install mcp[cli]
  * 2. Run this example - the MCP server will be started and terminated automatically.
  */
-public class Example03AgentWithMcp
+public class Example03AgentWithMcpTest
 {
-    public static void main(String[] args)
+    @Test
+    public void run()
     {
-        String model = args.length > 0 ? args[0] : "Qwen/Qwen3-4B";
-        String apiKey = args.length > 1 ? args[1] : System.getenv("MODEL_SCOPE_API_KEY");
-        String query = args.length > 2 ? args[2] : "Find onboarding policy";
-        String mcpServerCommand = args.length > 3 ? args[3] : "python src/main/resources/mcp/simple_mcp_server_stdio.py";
+        Dotenv env = Dotenv.configure().filename(".env.local").ignoreIfMalformed().ignoreIfMissing().load();
+
+        String model = "Qwen/Qwen3-4B";
+        String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
+        String query = "Find onboarding policy";
+        String mcpServerCommand = "python src/main/resources/mcp/simple_mcp_server_stdio.py";
 
         if (apiKey == null || apiKey.isBlank())
         {
