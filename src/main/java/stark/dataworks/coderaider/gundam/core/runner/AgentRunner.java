@@ -387,7 +387,7 @@ public class AgentRunner
                             context.getMemory().append(new Message(Role.TOOL, result, call.getToolCallId()));
                             context.getItems().add(new ContextItem(ContextItemType.TOOL_CALL, call.getToolName(), call.getArguments()));
                             context.getItems().add(new ContextItem(ContextItemType.TOOL_RESULT, result, Map.of("tool", call.getToolName())));
-                            emit(context, runHooks, RunEventType.TOOL_CALL_COMPLETED, Map.of("tool", call.getToolName()));
+                            emit(context, runHooks, RunEventType.TOOL_CALL_COMPLETED, Map.of("tool", call.getToolName(), "result", result));
                         }
                         catch (RuntimeException ex)
                         {

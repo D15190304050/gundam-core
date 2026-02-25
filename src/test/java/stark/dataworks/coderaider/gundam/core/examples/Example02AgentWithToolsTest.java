@@ -113,7 +113,18 @@ public class Example02AgentWithToolsTest
                 else if (event.getType() == RunEventType.TOOL_CALL_COMPLETED)
                 {
                     String tool = (String) event.getAttributes().get("tool");
-                    System.out.println("[Tool completed: " + tool + "]");
+                    Object result = event.getAttributes().get("result");
+                    String resultJson;
+                    try
+                    {
+                        Object parsedResult = result instanceof String ? objectMapper.readValue((String) result, Object.class) : result;
+                        resultJson = objectMapper.writeValueAsString(parsedResult);
+                    }
+                    catch (Exception e)
+                    {
+                        resultJson = result.toString();
+                    }
+                    System.out.println("[Tool completed: " + tool + " with result: " + resultJson + "]");
                     System.out.print("Continuing stream: ");
                 }
             }
