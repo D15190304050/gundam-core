@@ -1,5 +1,8 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import org.junit.jupiter.api.Test;
+
 import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.agent.Agent;
@@ -19,13 +22,16 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 /**
  * 12) Demonstrates the AgentRunner builder API with streaming and reasoning support.
  */
-public class Example12AgentRunnerBuilder
+public class Example12AgentRunnerBuilderTest
 {
-    public static void main(String[] args)
+    @Test
+    public void run()
     {
-        String model = args.length > 0 ? args[0] : "Qwen/Qwen3-4B";
-        String apiKey = args.length > 1 ? args[1] : System.getenv("MODEL_SCOPE_API_KEY");
-        String prompt = args.length > 2 ? args[2] : "天空为什么是蓝色的？请逐步思考，回答必须包含瑞利散射。";
+        Dotenv env = Dotenv.configure().filename(".env.local").ignoreIfMalformed().ignoreIfMissing().load();
+
+        String model = "Qwen/Qwen3-4B";
+        String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
+        String prompt = "天空为什么是蓝色的？请逐步思考，回答必须包含瑞利散射。";
 
         if (apiKey == null || apiKey.isBlank())
         {

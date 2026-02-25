@@ -29,10 +29,10 @@ public class Example01SingleSimpleAgentTest
     @Test
     public void run()
     {
-        Dotenv env = Dotenv.configure().filename(".env.local").load();
+        Dotenv env = Dotenv.configure().filename(".env.local").ignoreIfMalformed().ignoreIfMissing().load();
 
         String model = "Qwen/Qwen3-4B";
-        String apiKey = env.get("MODEL_SCOPE_API_KEY");
+        String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
         String prompt = "如何制作红烧牛肉面？我需要详细的说明。";
 
         if (apiKey == null || apiKey.isBlank())

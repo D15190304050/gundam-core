@@ -1,5 +1,8 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import org.junit.jupiter.api.Test;
+
 import java.util.List;
 import java.util.Map;
 
@@ -27,13 +30,16 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
  * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
  * - city: City name for weather lookup (default: Shanghai)
  */
-public class Example02AgentWithTools
+public class Example02AgentWithToolsTest
 {
-    public static void main(String[] args)
+    @Test
+    public void run()
     {
-        String model = args.length > 0 ? args[0] : "Qwen/Qwen3-4B";
-        String apiKey = args.length > 1 ? args[1] : System.getenv("MODEL_SCOPE_API_KEY");
-        String city = args.length > 2 ? args[2] : "Shanghai";
+        Dotenv env = Dotenv.configure().filename(".env.local").ignoreIfMalformed().ignoreIfMissing().load();
+
+        String model = "Qwen/Qwen3-4B";
+        String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
+        String city = "Shanghai";
 
         if (apiKey == null || apiKey.isBlank())
         {

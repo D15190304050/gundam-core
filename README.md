@@ -319,24 +319,23 @@ This repository is designed as a runtime kernel; providers/adapters can plug in 
 
 The examples are organized from basic to complex, all with **real streaming output** using **ModelScope** with Qwen models:
 
-1. `Example01SingleSimpleAgent` - Basic agent with streaming
-2. `Example02AgentWithTools` - Agent with tools and streaming
-3. `Example03AgentWithMcp` - Agent with MCP tools and streaming
-4. `Example04MultiRoundSingleAgentWithToolsAndMcp` - Multi-round conversation with streaming
-5. `Example05MultiRoundSingleAgentWithToolsAndStreamableHttpMcp` - Multi-round conversation via Streamable HTTP MCP
-6. `Example06AgentGroupWithHandoffs` - Agent group with handoffs and streaming
-7. `Example07ReasoningStreaming` - Streaming + reasoning trace events
-8. `Example08AgentWithSkillsStreaming` - Streaming with model skills payload
-9. `Example09DocxSkillAnalysisStreaming` - Streaming docx analysis using local `docx` skill
-10. `Example10StructuredOutputByClass` - Structured output by developer-provided `Type.class`
-11. `Example11StructuredOutputByPrompt` - Structured output by user prompt schema
-12. `Example12AgentRunnerBuilder` - Minimal `AgentRunner` setup via builder defaults
+1. `Example01SingleSimpleAgentTest` - Basic agent with streaming
+2. `Example02AgentWithToolsTest` - Agent with tools and streaming
+3. `Example03AgentWithMcpTest` - Agent with MCP tools and streaming
+4. `Example04MultiRoundSingleAgentWithToolsAndMcpTest` - Multi-round conversation with streaming
+5. `Example05MultiRoundSingleAgentWithToolsAndStreamableHttpMcpTest` - Multi-round conversation via Streamable HTTP MCP
+6. `Example06AgentGroupWithHandoffsTest` - Agent group with handoffs and streaming
+7. `Example07ReasoningStreamingTest` - Streaming + reasoning trace events
+8. `Example08AgentWithSkillsStreamingTest` - Streaming with model skills payload
+9. `Example09DocxSkillAnalysisStreamingTest` - Streaming docx analysis using local `docx` skill
+10. `Example10StructuredOutputByClassTest` - Structured output by developer-provided `Type.class`
+11. `Example11StructuredOutputByPromptTest` - Structured output by user prompt schema
+12. `Example12AgentRunnerBuilderTest` - Minimal `AgentRunner` setup via builder defaults
 
 ## Prerequisites
 
 All examples require a **ModelScope API key**. You can provide it via:
 - Environment variable: `MODEL_SCOPE_API_KEY`
-- Command-line argument (second argument)
 
 Get your API key from: https://modelscope.cn/
 
@@ -347,46 +346,22 @@ pip install mcp[cli]
 
 ## Run from IDE
 
-Run each class' `main` method. Make sure to set the `MODEL_SCOPE_API_KEY` environment variable first.
+Run each JUnit test class directly from IDE (single test run), with `.env.local` configured in project root.
 
 ## Run with Maven
 
-```powershell
-# Set your API key (PowerShell)
-$env:MODEL_SCOPE_API_KEY="ms-xxx"
+```bash
+# Run all example tests
+mvn -Dtest="stark.dataworks.coderaider.gundam.core.examples.Example*Test" test
 
-# Run Example01
-& "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
-  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example01SingleSimpleAgentTest
+# Run one specific example test
+mvn -Dtest=stark.dataworks.coderaider.gundam.core.examples.Example03AgentWithMcpTest test
+```
 
-# Run Example02 with custom city
-& "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
-  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example02AgentWithTools `
-  -Dexec.args="Qwen/Qwen3-4B $env:MODEL_SCOPE_API_KEY Beijing"
-
-# Run Example03 (MCP server starts automatically)
-& "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
-  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example03AgentWithMcp
-
-## For Example04 and Example05, start their corresponding MCP servers first
-# python src/main/resources/mcp/simple_mcp_server_http.py 8765
-# python src/main/resources/mcp/simple_mcp_server_streamable_http.py 8766
-
-# Run Example04 (SSE MCP)
-& "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
-  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example04MultiRoundSingleAgentWithToolsAndMcp
-
-# Run Example05 (Streamable HTTP MCP)
-& "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
-  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example05MultiRoundSingleAgentWithToolsAndStreamableHttpMcp
-
-# Run Example06
-& "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
-  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example06AgentGroupWithHandoffs
-
-# Run Example09 (docx skill)
-& "D:\Software\IntelliJ IDEA 2025.2.4\plugins\maven\lib\maven3\bin\mvn.cmd" -q -DskipTests exec:java `
-  -Dexec.mainClass=stark.dataworks.coderaider.gundam.core.examples.Example09DocxSkillAnalysisStreaming
+For Example04 and Example05, start their corresponding MCP servers first:
+```bash
+python src/main/resources/mcp/simple_mcp_server_http.py 8765
+python src/main/resources/mcp/simple_mcp_server_streamable_http.py 8766
 ```
 
 ## Streaming Output
