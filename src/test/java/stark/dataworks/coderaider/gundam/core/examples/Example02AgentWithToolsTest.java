@@ -72,7 +72,7 @@ public class Example02AgentWithToolsTest
             .build();
 
         System.out.print("Streaming output: ");
-        ContextResult result = ExampleSupport.chatClient(runner, agentRegistry, "tool-agent").prompt().user("What's the weather in " + city + "?").runConfiguration(RunConfiguration.defaults()).runHooks(ExampleSupport.noopHooks()).call().contextResult();
+        ContextResult result = runner.chatClient("tool-agent").prompt().user("What's the weather in " + city + "?").runConfiguration(RunConfiguration.defaults()).runHooks(ExampleSupport.noopHooks()).call().contextResult();
         System.out.println();
         System.out.println("Final output: " + result.getFinalOutput());
     }

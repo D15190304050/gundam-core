@@ -18,6 +18,7 @@ import stark.dataworks.coderaider.gundam.core.agent.IAgentRegistry;
 import stark.dataworks.coderaider.gundam.core.approval.ToolApprovalDecision;
 import stark.dataworks.coderaider.gundam.core.approval.IToolApprovalPolicy;
 import stark.dataworks.coderaider.gundam.core.approval.ToolApprovalRequest;
+import stark.dataworks.coderaider.gundam.core.client.AgentChatClient;
 import stark.dataworks.coderaider.gundam.core.context.IContextBuilder;
 import stark.dataworks.coderaider.gundam.core.exceptions.GuardrailTripwireException;
 import stark.dataworks.coderaider.gundam.core.exceptions.HandoffDeniedException;
@@ -216,6 +217,17 @@ public class AgentRunner
         }
     }
 
+
+    public IAgentRegistry getAgentRegistry()
+    {
+        return agentRegistry;
+    }
+
+    public AgentChatClient chatClient(String defaultAgentId)
+    {
+        return AgentChatClient.create(this, defaultAgentId);
+    }
+
     /**
      * Executes an agent session until a final answer is produced, a guardrail blocks execution, or limits are reached.
      * @param startingAgent First agent that receives the user request.
@@ -263,6 +275,8 @@ public class AgentRunner
      */
     private ContextResult runInternal(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, boolean streamModelResponse, Class<?> outputType)
     {
+        ITraceSpan runSpan = traceProvider.startSpan("agent.run");
+        runSpan.annotate("agent", startingAgent.definition().getId());
         // TODO: Make this memory configurable.
         // Options: in-memory, redis, mysql, context-service (will be implemented somewhere else I suppose).
         IAgentMemory memory = new OpenAiLikeAgentMemory();
@@ -413,7 +427,12 @@ public class AgentRunner
         }
         catch (RuntimeException error)
         {
+            runSpan.annotate("error", error.getMessage());
             return handleError(context, runConfiguration, error, legacyContext);
+        }
+        finally
+        {
+            runSpan.close();
         }
     }
 
@@ -709,6 +728,8 @@ public class AgentRunner
         {
             ITool tool = toolRegistry.get(call.getToolName())
                 .orElseThrow(() -> new IllegalStateException("Tool not found: " + call.getToolName()));
+            ITraceSpan span = traceProvider.startSpan("agent.tool_call");
+            span.annotate("tool", call.getToolName());
             try
             {
                 hookLock.lock();
@@ -736,7 +757,12 @@ public class AgentRunner
             }
             catch (RuntimeException ex)
             {
+                span.annotate("error", ex.getMessage());
                 throw new ToolExecutionFailureException(call.getToolName(), ex);
+            }
+            finally
+            {
+                span.close();
             }
         };
     }

@@ -68,7 +68,7 @@ public class Example10StructuredOutputByClassTest
             .build();
 
         RunConfiguration config = new RunConfiguration(12, null, 0.2, 512, "auto", "json_object", Map.of());
-        ContextResult result = ExampleSupport.chatClient(runner, agentRegistry, "structured-by-class").prompt().user(prompt).runConfiguration(config).runHooks(ExampleSupport.noopHooks()).outputType(SprintSummary.class).call().contextResult();
+        ContextResult result = runner.chatClient("structured-by-class").prompt().user(prompt).runConfiguration(config).runHooks(ExampleSupport.noopHooks()).outputType(SprintSummary.class).call().contextResult();
         System.out.println("\nFinal output: " + result.getFinalOutput());
         if (!result.getItems().isEmpty())
         {

@@ -57,7 +57,7 @@ public class Example07ReasoningStreamingTest
             .eventPublisher(createConsoleStreamingPublisher())
             .build();
 
-        ContextResult result = ExampleSupport.chatClient(runner, registry, "reasoning-agent").prompt().user(prompt).runConfiguration(RunConfiguration.defaults()).runHooks(ExampleSupport.noopHooks()).call().contextResult();
+        ContextResult result = runner.chatClient("reasoning-agent").prompt().user(prompt).runConfiguration(RunConfiguration.defaults()).runHooks(ExampleSupport.noopHooks()).call().contextResult();
         System.out.println("\nFinal output: " + result.getFinalOutput());
     }
 

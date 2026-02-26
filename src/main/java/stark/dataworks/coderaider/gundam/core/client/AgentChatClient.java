@@ -5,7 +5,6 @@ import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
 import stark.dataworks.coderaider.gundam.core.agent.IAgent;
-import stark.dataworks.coderaider.gundam.core.agent.IAgentRegistry;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.IRunHooks;
@@ -18,15 +17,14 @@ import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 public class AgentChatClient
 {
     private final AgentRunner runner;
-    private final IAgentRegistry agentRegistry;
     private final String defaultAgentId;
     private final RunConfiguration defaultRunConfiguration;
     private final IRunHooks defaultRunHooks;
     private final boolean streamByDefault;
 
-    public static AgentChatClient create(AgentRunner runner, IAgentRegistry registry, String defaultAgentId)
+    public static AgentChatClient create(AgentRunner runner, String defaultAgentId)
     {
-        return new AgentChatClient(runner, registry, defaultAgentId, RunConfiguration.defaults(), new IRunHooks()
+        return new AgentChatClient(runner, defaultAgentId, RunConfiguration.defaults(), new IRunHooks()
         {
         }, true);
     }
@@ -39,7 +37,7 @@ public class AgentChatClient
     private CallSpec execute(PromptSpec spec)
     {
         String agentId = spec.agentId == null || spec.agentId.isBlank() ? defaultAgentId : spec.agentId;
-        IAgent agent = agentRegistry.get(agentId)
+        IAgent agent = runner.getAgentRegistry().get(agentId)
             .orElseThrow(() -> new IllegalArgumentException("Agent not found: " + agentId));
         ContextResult result = spec.stream
             ? runner.runStreamed(agent, spec.userInput, spec.runConfiguration, spec.runHooks, spec.outputType)

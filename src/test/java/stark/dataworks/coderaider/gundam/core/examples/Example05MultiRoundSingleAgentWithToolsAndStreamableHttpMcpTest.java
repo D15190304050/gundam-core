@@ -103,13 +103,13 @@ public class Example05MultiRoundSingleAgentWithToolsAndStreamableHttpMcpTest
 
             System.out.println("=== Round 1: Tax Estimation ===");
             System.out.print("Streaming output: ");
-            ContextResult round1 = ExampleSupport.chatClient(runner, agentRegistry, "hybrid-streamable-http-agent").prompt().user("Please estimate tax for amount 100.").runConfiguration(config).runHooks(ExampleSupport.noopHooks()).call().contextResult();
+            ContextResult round1 = runner.chatClient("hybrid-streamable-http-agent").prompt().user("Please estimate tax for amount 100.").runConfiguration(config).runHooks(ExampleSupport.noopHooks()).call().contextResult();
             System.out.println();
             System.out.println("Round 1 output: " + round1.getFinalOutput());
 
             System.out.println("\n=== Round 2: Policy Constraints ===");
             System.out.print("Streaming output: ");
-            ContextResult round2 = ExampleSupport.chatClient(runner, agentRegistry, "hybrid-streamable-http-agent").prompt().user("What policy constraints should I know about tax?").runConfiguration(config).runHooks(ExampleSupport.noopHooks()).call().contextResult();
+            ContextResult round2 = runner.chatClient("hybrid-streamable-http-agent").prompt().user("What policy constraints should I know about tax?").runConfiguration(config).runHooks(ExampleSupport.noopHooks()).call().contextResult();
             System.out.println();
             System.out.println("Round 2 output: " + round2.getFinalOutput());
         }

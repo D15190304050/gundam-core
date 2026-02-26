@@ -68,7 +68,7 @@ public class Example11StructuredOutputByPromptTest
 
         String prompt = "Return a JSON response following this schema: {\"topic\":\"string\",\"score\":\"number\",\"tags\":[\"string1\",\"string2\"]}. Topic = " + topic + ".";
         RunConfiguration config = new RunConfiguration(8, null, 0.2, 512, "auto", "json_object", Map.of());
-        ContextResult result = ExampleSupport.chatClient(runner, registry, "structured-by-prompt").prompt().user(prompt).runConfiguration(config).runHooks(ExampleSupport.noopHooks()).call().contextResult();
+        ContextResult result = runner.chatClient("structured-by-prompt").prompt().user(prompt).runConfiguration(config).runHooks(ExampleSupport.noopHooks()).call().contextResult();
 
         System.out.println("\nPrompt-defined JSON: " + result.getFinalOutput());
         System.out.println("Total token usage: " + result.getUsage().getTotalTokens() + " (input: " + result.getUsage().getInputTokens() + ", output: " + result.getUsage().getOutputTokens() + ")");

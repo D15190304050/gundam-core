@@ -58,7 +58,7 @@ public class Example01SingleSimpleAgentTest
             .build();
 
         System.out.print("Streaming output: ");
-        String output = ExampleSupport.chatClient(runner, agentRegistry, "simple-agent")
+        String output = runner.chatClient("simple-agent")
             .prompt()
             .user(prompt)
             .runConfiguration(RunConfiguration.defaults())

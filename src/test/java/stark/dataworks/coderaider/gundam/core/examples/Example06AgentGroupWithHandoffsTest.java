@@ -88,7 +88,7 @@ public class Example06AgentGroupWithHandoffsTest
             .build();
 
         System.out.print("Streaming output: ");
-        ContextResult result = ExampleSupport.chatClient(runner, registry, "triage").prompt().user(query).runConfiguration(RunConfiguration.defaults()).runHooks(ExampleSupport.noopHooks()).call().contextResult();
+        ContextResult result = runner.chatClient("triage").prompt().user(query).runConfiguration(RunConfiguration.defaults()).runHooks(ExampleSupport.noopHooks()).call().contextResult();
         System.out.println();
 
         System.out.println("FinalAgent=" + result.getFinalAgentId());

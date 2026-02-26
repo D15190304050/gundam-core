@@ -1,82 +1,79 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
-import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
-import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
-import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
-import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
+import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
-import stark.dataworks.coderaider.gundam.core.tracing.ProcessorTraceProvider;
-import stark.dataworks.coderaider.gundam.core.tracing.processor.TracingProcessors;
+import stark.dataworks.coderaider.gundam.core.tracing.DistributedTraceEvent;
+import stark.dataworks.coderaider.gundam.core.tracing.DistributedTraceProvider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
 
+/**
+ * 14) Multi-round distributed tracing (same session) with a real LLM call.
+ */
 public class Example14TracingMultiRoundTest
 {
     @Test
     public void run()
     {
+        Dotenv env = Dotenv.configure().filename(".env.local").ignoreIfMalformed().ignoreIfMissing().load();
+        String model = "Qwen/Qwen3-4B";
+        String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
+        Assertions.assertNotNull(apiKey, "MODEL_SCOPE_API_KEY is required");
+
         AgentDefinition definition = new AgentDefinition();
         definition.setId("trace-multi");
         definition.setName("trace-multi");
-        definition.setModel("Qwen/Qwen3-4B");
+        definition.setModel(model);
         definition.setSystemPrompt("You are concise.");
 
         AgentRegistry agentRegistry = new AgentRegistry();
         agentRegistry.register(new Agent(definition));
 
-        TracingProcessors processors = new TracingProcessors();
-        List<String> spans = new ArrayList<>();
-        processors.add(event -> spans.add(event.spanName()));
-
+        List<DistributedTraceEvent> spans = new ArrayList<>();
         AgentRunner runner = AgentRunner.builder()
-            .llmClient(new CounterLlmClient())
+            .llmClient(new ModelScopeLlmClient(apiKey, model))
             .toolRegistry(new ToolRegistry())
             .agentRegistry(agentRegistry)
-            .traceProvider(new ProcessorTraceProvider(processors))
+            .traceProvider(new DistributedTraceProvider(spans::add))
             .build();
 
-        RunConfiguration config = new RunConfiguration(12, "trace-session", 0.2, 512, "auto", "text", java.util.Map.of());
-
-        String first = ExampleSupport.chatClient(runner, agentRegistry, "trace-multi")
+        RunConfiguration cfg = new RunConfiguration(12, "trace-session", 0.2, 512, "auto", "text", Map.of());
+        String first = runner.chatClient("trace-multi")
             .prompt()
-            .user("turn-1")
-            .runConfiguration(config)
+            .user("第一轮：请给我一句话解释什么是追踪ID。")
+            .runConfiguration(cfg)
             .runHooks(ExampleSupport.noopHooks())
             .stream(false)
             .call()
             .content();
-        String second = ExampleSupport.chatClient(runner, agentRegistry, "trace-multi")
+        String second = runner.chatClient("trace-multi")
             .prompt()
-            .user("turn-2")
-            .runConfiguration(config)
+            .user("第二轮：再用一句话解释跨度ID。")
+            .runConfiguration(cfg)
             .runHooks(ExampleSupport.noopHooks())
             .stream(false)
             .call()
             .content();
 
-        Assertions.assertEquals("answer-1", first);
-        Assertions.assertEquals("answer-2", second);
-        Assertions.assertTrue(spans.size() >= 2);
-    }
+        Assertions.assertFalse(first.isBlank());
+        Assertions.assertFalse(second.isBlank());
 
-    private static final class CounterLlmClient implements ILlmClient
-    {
-        private final AtomicInteger turn = new AtomicInteger();
+        long runSpans = spans.stream().filter(s -> "agent.run".equals(s.spanName())).count();
+        long modelSpans = spans.stream().filter(s -> "agent.model_call".equals(s.spanName())).count();
+        Assertions.assertTrue(runSpans >= 2);
+        Assertions.assertTrue(modelSpans >= 2);
 
-        @Override
-        public LlmResponse chat(LlmRequest request)
-        {
-            int i = turn.incrementAndGet();
-            return new LlmResponse("answer-" + i, List.of(), null, new TokenUsage(1, 1));
-        }
+        spans.forEach(span -> System.out.printf("trace=%s span=%s parent=%s name=%s attrs=%s%n",
+            span.traceId(), span.spanId(), span.parentSpanId(), span.spanName(), span.attributes()));
     }
 }

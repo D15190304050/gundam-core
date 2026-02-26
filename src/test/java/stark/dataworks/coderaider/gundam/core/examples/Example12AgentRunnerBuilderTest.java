@@ -57,7 +57,7 @@ public class Example12AgentRunnerBuilderTest
             .eventPublisher(createConsoleStreamingPublisher())
             .build();
 
-        ContextResult result = ExampleSupport.chatClient(runner, agentRegistry, "builder-agent")
+        ContextResult result = runner.chatClient("builder-agent")
             .prompt()
             .user(prompt)
             .runConfiguration(RunConfiguration.defaults())
