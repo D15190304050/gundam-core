@@ -80,7 +80,7 @@ public class ModelScopeLlmClient extends OpenAiCompatibleLlmClient implements IM
             Map<String, Object> payload = new HashMap<>();
             payload.put("model", model);
             payload.put("prompt", request.getPrompt());
-            payload.putAll(request.getProviderOptions());
+            payload.putAll(filterGenerationPayloadOptions(request.getProviderOptions()));
             if (!request.getSize().isBlank())
             {
                 payload.put("size", request.getSize());
@@ -169,6 +169,21 @@ public class ModelScopeLlmClient extends OpenAiCompatibleLlmClient implements IM
     public GeneratedAsset generate(AudioGenerationRequest request)
     {
         throw new UnsupportedOperationException("ModelScope audio generation is not implemented yet.");
+    }
+
+
+    private static Map<String, Object> filterGenerationPayloadOptions(Map<String, Object> options)
+    {
+        Map<String, Object> filtered = new HashMap<>();
+        for (Map.Entry<String, Object> entry : options.entrySet())
+        {
+            if ("pollIntervalMillis".equals(entry.getKey()) || "maxPollCount".equals(entry.getKey()))
+            {
+                continue;
+            }
+            filtered.put(entry.getKey(), entry.getValue());
+        }
+        return filtered;
     }
 
     private static int intOption(Map<String, Object> options, String key, int defaultValue)

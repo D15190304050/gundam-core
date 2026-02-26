@@ -2,7 +2,7 @@ package stark.dataworks.coderaider.gundam.core.llmspi.adapter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
+import stark.dataworks.coderaider.gundam.core.llmspi.IMultimodalLlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.ILlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
@@ -10,8 +10,12 @@ import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.model.Message;
 import stark.dataworks.coderaider.gundam.core.model.Role;
 import stark.dataworks.coderaider.gundam.core.model.ToolCall;
+import stark.dataworks.coderaider.gundam.core.multimodal.AudioGenerationRequest;
+import stark.dataworks.coderaider.gundam.core.multimodal.GeneratedAsset;
+import stark.dataworks.coderaider.gundam.core.multimodal.ImageGenerationRequest;
 import stark.dataworks.coderaider.gundam.core.multimodal.MessagePart;
 import stark.dataworks.coderaider.gundam.core.multimodal.MessagePartType;
+import stark.dataworks.coderaider.gundam.core.multimodal.VideoGenerationRequest;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
 import stark.dataworks.coderaider.gundam.core.tool.ToolSchemaJson;
 
@@ -37,7 +41,7 @@ import java.util.Map;
  * - Converts native tool-call payloads to {@link ToolCall}.
  * - Converts handoff markers from content/tool-call conventions into {@code handoffAgentId}.
  */
-public class OpenAiCompatibleLlmClient implements ILlmClient
+public class OpenAiCompatibleLlmClient implements IMultimodalLlmClient
 {
     private final OpenAiCompatibleConfiguration configuration;
     private final HttpClient httpClient;
@@ -89,6 +93,25 @@ public class OpenAiCompatibleLlmClient implements ILlmClient
         {
             throw new IllegalStateException("Failed to stream from provider " + configuration.getProvider(), ex);
         }
+    }
+
+
+    @Override
+    public GeneratedAsset generate(ImageGenerationRequest request)
+    {
+        throw new UnsupportedOperationException("Image generation is not implemented for provider " + configuration.getProvider());
+    }
+
+    @Override
+    public GeneratedAsset generate(VideoGenerationRequest request)
+    {
+        throw new UnsupportedOperationException("Video generation is not implemented for provider " + configuration.getProvider());
+    }
+
+    @Override
+    public GeneratedAsset generate(AudioGenerationRequest request)
+    {
+        throw new UnsupportedOperationException("Audio generation is not implemented for provider " + configuration.getProvider());
     }
 
     private HttpRequest buildHttpRequest(String payload)

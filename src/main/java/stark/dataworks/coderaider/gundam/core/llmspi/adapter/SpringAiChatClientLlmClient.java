@@ -1,11 +1,15 @@
 package stark.dataworks.coderaider.gundam.core.llmspi.adapter;
 
 import org.springframework.ai.chat.client.ChatClient;
-import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
+import stark.dataworks.coderaider.gundam.core.llmspi.IMultimodalLlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.ILlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.gundam.core.model.Message;
+import stark.dataworks.coderaider.gundam.core.multimodal.AudioGenerationRequest;
+import stark.dataworks.coderaider.gundam.core.multimodal.GeneratedAsset;
+import stark.dataworks.coderaider.gundam.core.multimodal.ImageGenerationRequest;
+import stark.dataworks.coderaider.gundam.core.multimodal.VideoGenerationRequest;
 import stark.dataworks.coderaider.gundam.core.model.Role;
 
 import java.lang.reflect.Method;
@@ -18,7 +22,7 @@ import java.util.Map;
  * This keeps kernel contracts unchanged while allowing applications to plug in Spring AI configured clients.
  * Tool-call and handoff extraction is still normalized by {@link OpenAiCompatibleResponseConverter#parseHandoff(String, List)} conventions.
  */
-public class SpringAiChatClientLlmClient implements ILlmClient
+public class SpringAiChatClientLlmClient implements IMultimodalLlmClient
 {
     private final ChatClient chatClient;
 
@@ -81,6 +85,25 @@ public class SpringAiChatClientLlmClient implements ILlmClient
             listener.onCompleted(response);
         }
         return response;
+    }
+
+
+    @Override
+    public GeneratedAsset generate(ImageGenerationRequest request)
+    {
+        throw new UnsupportedOperationException("Image generation is not implemented for Spring AI ChatClient adapter.");
+    }
+
+    @Override
+    public GeneratedAsset generate(VideoGenerationRequest request)
+    {
+        throw new UnsupportedOperationException("Video generation is not implemented for Spring AI ChatClient adapter.");
+    }
+
+    @Override
+    public GeneratedAsset generate(AudioGenerationRequest request)
+    {
+        throw new UnsupportedOperationException("Audio generation is not implemented for Spring AI ChatClient adapter.");
     }
 
     private static Object invoke(Object target, String method, Object arg) throws Exception

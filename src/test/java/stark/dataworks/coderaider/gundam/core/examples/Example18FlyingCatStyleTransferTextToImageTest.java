@@ -9,13 +9,8 @@ import stark.dataworks.coderaider.gundam.core.multimodal.GeneratedAsset;
 import stark.dataworks.coderaider.gundam.core.multimodal.ImageGenerationRequest;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -34,6 +29,7 @@ public class Example18FlyingCatStyleTransferTextToImageTest
         Assertions.assertNotNull(apiKey, "MODEL_SCOPE_API_KEY is required");
 
         ModelScopeLlmClient client = new ModelScopeLlmClient(apiKey, MODEL);
+        GeneratedImageSaveHook saveHook = new GeneratedImageSaveHook();
 
         System.out.println("Round-1 (before): generating realistic flying cat image.");
         GeneratedAsset realistic;
@@ -51,20 +47,20 @@ public class Example18FlyingCatStyleTransferTextToImageTest
             return;
         }
 
-        Path realisticOutputPath = Path.of("src/test/resources/outputs/images/flying-cat-in-sky-realistic.png");
-        Files.createDirectories(realisticOutputPath.getParent());
-        downloadToFile(realistic.getUri(), realisticOutputPath);
-        System.out.println("Round-1 (after): saved to " + realisticOutputPath.toAbsolutePath());
+        Path realisticOutputPath = saveHook.onGenerated("Round-1", realistic, "flying-cat-in-sky-realistic.png");
 
-        System.out.println("Round-2 (before): changing style to cartoon.");
+        System.out.println("Round-2 (before): changing style to cartoon with the round-1 image as source.");
         GeneratedAsset cartoon;
         try
         {
             cartoon = client.generate(new ImageGenerationRequest(
-                "Based on the same scene of a flying cat in the sky, change the style to cartoon style.",
+                "Use the provided source image and regenerate the same scene in cartoon style.",
                 MODEL,
                 "",
-                Map.of("pollIntervalMillis", 5000, "maxPollCount", 60)));
+                Map.of(
+                    "image_url", realistic.getUri(),
+                    "pollIntervalMillis", 5000,
+                    "maxPollCount", 60)));
         }
         catch (IllegalStateException ex)
         {
@@ -72,27 +68,11 @@ public class Example18FlyingCatStyleTransferTextToImageTest
             return;
         }
 
-        Path cartoonOutputPath = Path.of("src/test/resources/outputs/images/flying-cat-in-sky-cartoon.png");
-        downloadToFile(cartoon.getUri(), cartoonOutputPath);
-        System.out.println("Round-2 (after): saved to " + cartoonOutputPath.toAbsolutePath());
+        Path cartoonOutputPath = saveHook.onGenerated("Round-2", cartoon, "flying-cat-in-sky-cartoon.png");
 
         Assertions.assertTrue(Files.exists(realisticOutputPath));
         Assertions.assertTrue(Files.exists(cartoonOutputPath));
         Assertions.assertTrue(Files.size(realisticOutputPath) > 0);
         Assertions.assertTrue(Files.size(cartoonOutputPath) > 0);
-    }
-
-    private static void downloadToFile(String url, Path outputPath)
-            throws IOException, InterruptedException
-    {
-        HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build();
-        HttpResponse<byte[]> response = httpClient.send(
-            HttpRequest.newBuilder(URI.create(url)).GET().build(),
-            HttpResponse.BodyHandlers.ofByteArray());
-        if (response.statusCode() < 200 || response.statusCode() >= 300)
-        {
-            throw new IllegalStateException("Failed to download generated image, status=" + response.statusCode());
-        }
-        Files.write(outputPath, response.body());
     }
 }
