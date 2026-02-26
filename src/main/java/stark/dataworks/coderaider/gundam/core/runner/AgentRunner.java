@@ -18,6 +18,7 @@ import stark.dataworks.coderaider.gundam.core.agent.IAgentRegistry;
 import stark.dataworks.coderaider.gundam.core.approval.ToolApprovalDecision;
 import stark.dataworks.coderaider.gundam.core.approval.IToolApprovalPolicy;
 import stark.dataworks.coderaider.gundam.core.approval.ToolApprovalRequest;
+import stark.dataworks.coderaider.gundam.core.client.AgentChatClient;
 import stark.dataworks.coderaider.gundam.core.context.IContextBuilder;
 import stark.dataworks.coderaider.gundam.core.exceptions.GuardrailTripwireException;
 import stark.dataworks.coderaider.gundam.core.exceptions.HandoffDeniedException;
@@ -39,7 +40,7 @@ import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.gundam.core.llmspi.ILlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
-import stark.dataworks.coderaider.gundam.core.memory.InMemoryAgentMemory;
+import stark.dataworks.coderaider.gundam.core.memory.OpenAiLikeAgentMemory;
 import stark.dataworks.coderaider.gundam.core.model.Message;
 import stark.dataworks.coderaider.gundam.core.model.Role;
 import stark.dataworks.coderaider.gundam.core.model.ToolCall;
@@ -216,6 +217,17 @@ public class AgentRunner
         }
     }
 
+
+    public IAgentRegistry getAgentRegistry()
+    {
+        return agentRegistry;
+    }
+
+    public AgentChatClient chatClient(String defaultAgentId)
+    {
+        return AgentChatClient.create(this, defaultAgentId);
+    }
+
     /**
      * Executes an agent session until a final answer is produced, a guardrail blocks execution, or limits are reached.
      * @param startingAgent First agent that receives the user request.
@@ -263,12 +275,24 @@ public class AgentRunner
      */
     private ContextResult runInternal(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, boolean streamModelResponse, Class<?> outputType)
     {
+        ITraceSpan runSpan = traceProvider.startSpan("agent.run");
+        runSpan.annotate("agent", startingAgent.definition().getId());
         // TODO: Make this memory configurable.
         // Options: in-memory, redis, mysql, context-service (will be implemented somewhere else I suppose).
-        IAgentMemory memory = new InMemoryAgentMemory();
+        IAgentMemory memory = new OpenAiLikeAgentMemory();
         if (runConfiguration.getSessionId() != null)
         {
-            sessionStore.load(runConfiguration.getSessionId()).ifPresent(s -> s.getMessages().forEach(memory::append));
+            sessionStore.load(runConfiguration.getSessionId()).ifPresent(s ->
+            {
+                if (memory instanceof OpenAiLikeAgentMemory openAiLikeMemory && !s.getItems().isEmpty())
+                {
+                    s.getItems().forEach(openAiLikeMemory::appendItem);
+                }
+                else
+                {
+                    s.getMessages().forEach(memory::append);
+                }
+            });
         }
 
         RunnerContext context = new RunnerContext(startingAgent, memory);
@@ -403,7 +427,12 @@ public class AgentRunner
         }
         catch (RuntimeException error)
         {
+            runSpan.annotate("error", error.getMessage());
             return handleError(context, runConfiguration, error, legacyContext);
+        }
+        finally
+        {
+            runSpan.close();
         }
     }
 
@@ -699,6 +728,8 @@ public class AgentRunner
         {
             ITool tool = toolRegistry.get(call.getToolName())
                 .orElseThrow(() -> new IllegalStateException("Tool not found: " + call.getToolName()));
+            ITraceSpan span = traceProvider.startSpan("agent.tool_call");
+            span.annotate("tool", call.getToolName());
             try
             {
                 hookLock.lock();
@@ -726,7 +757,12 @@ public class AgentRunner
             }
             catch (RuntimeException ex)
             {
+                span.annotate("error", ex.getMessage());
                 throw new ToolExecutionFailureException(call.getToolName(), ex);
+            }
+            finally
+            {
+                span.close();
             }
         };
     }
@@ -823,7 +859,14 @@ public class AgentRunner
         hookManager.afterRun(legacyContext);
         if (config.getSessionId() != null)
         {
-            sessionStore.save(new Session(config.getSessionId(), context.getMemory().messages()));
+            if (context.getMemory() instanceof OpenAiLikeAgentMemory openAiLikeMemory)
+            {
+                sessionStore.save(new Session(config.getSessionId(), context.getMemory().messages(), openAiLikeMemory.items(), null));
+            }
+            else
+            {
+                sessionStore.save(new Session(config.getSessionId(), context.getMemory().messages()));
+            }
         }
         Map<String, Object> attrs = new HashMap<>();
         attrs.put("finalAgent", context.getCurrentAgent().definition().getId());

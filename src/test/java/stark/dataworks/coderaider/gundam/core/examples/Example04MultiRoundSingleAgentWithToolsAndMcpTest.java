@@ -109,19 +109,19 @@ public class Example04MultiRoundSingleAgentWithToolsAndMcpTest
 
             System.out.println("=== Round 1: Tax Estimation ===");
             System.out.print("Streaming output: ");
-            ContextResult round1 = runner.runStreamed(agentRegistry.get("hybrid-agent").orElseThrow(), "Please estimate tax for amount 100.", config, ExampleSupport.noopHooks());
+            ContextResult round1 = runner.chatClient("hybrid-agent").prompt().user("Please estimate tax for amount 100.").runConfiguration(config).runHooks(ExampleSupport.noopHooks()).call().contextResult();
             System.out.println();
             System.out.println("Round 1 output: " + round1.getFinalOutput());
 
             System.out.println("\n=== Round 2: Policy Constraints ===");
             System.out.print("Streaming output: ");
-            ContextResult round2 = runner.runStreamed(agentRegistry.get("hybrid-agent").orElseThrow(), "What policy constraints should I know about tax?", config, ExampleSupport.noopHooks());
+            ContextResult round2 = runner.chatClient("hybrid-agent").prompt().user("What policy constraints should I know about tax?").runConfiguration(config).runHooks(ExampleSupport.noopHooks()).call().contextResult();
             System.out.println();
             System.out.println("Round 2 output: " + round2.getFinalOutput());
 
             System.out.println("\n=== Round 3: Combined Query ===");
             System.out.print("Streaming output: ");
-            ContextResult round3 = runner.runStreamed(agentRegistry.get("hybrid-agent").orElseThrow(), "Calculate tax for 500 and check relevant policies.", config, ExampleSupport.noopHooks());
+            ContextResult round3 = runner.chatClient("hybrid-agent").prompt().user("Calculate tax for 500 and check relevant policies.").runConfiguration(config).runHooks(ExampleSupport.noopHooks()).call().contextResult();
             System.out.println();
             System.out.println("Round 3 output: " + round3.getFinalOutput());
         }

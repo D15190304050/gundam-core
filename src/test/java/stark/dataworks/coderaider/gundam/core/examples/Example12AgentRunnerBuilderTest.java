@@ -57,11 +57,13 @@ public class Example12AgentRunnerBuilderTest
             .eventPublisher(createConsoleStreamingPublisher())
             .build();
 
-        ContextResult result = runner.runStreamed(
-            new Agent(definition), 
-            prompt, 
-            RunConfiguration.defaults(), 
-            ExampleSupport.noopHooks());
+        ContextResult result = runner.chatClient("builder-agent")
+            .prompt()
+            .user(prompt)
+            .runConfiguration(RunConfiguration.defaults())
+            .runHooks(ExampleSupport.noopHooks())
+            .call()
+            .contextResult();
         
         System.out.println("\n\n=== Final Output ===");
         System.out.println(result.getFinalOutput());

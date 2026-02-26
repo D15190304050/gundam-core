@@ -97,7 +97,7 @@ public class Example03AgentWithMcpTest
             .build();
 
         System.out.print("Streaming output: ");
-        ContextResult result = runner.runStreamed(agentRegistry.get("mcp-agent").orElseThrow(), query, RunConfiguration.defaults(), ExampleSupport.noopHooks());
+        ContextResult result = runner.chatClient("mcp-agent").prompt().user(query).runConfiguration(RunConfiguration.defaults()).runHooks(ExampleSupport.noopHooks()).call().contextResult();
         System.out.println();
         System.out.println("Final output: " + result.getFinalOutput());
         

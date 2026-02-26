@@ -8,7 +8,6 @@ import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
 import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
-import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
@@ -59,9 +58,15 @@ public class Example01SingleSimpleAgentTest
             .build();
 
         System.out.print("Streaming output: ");
-        ContextResult result = runner.runStreamed(agentRegistry.get("simple-agent").orElseThrow(), prompt, RunConfiguration.defaults(), ExampleSupport.noopHooks());
+        String output = runner.chatClient("simple-agent")
+            .prompt()
+            .user(prompt)
+            .runConfiguration(RunConfiguration.defaults())
+            .runHooks(ExampleSupport.noopHooks())
+            .call()
+            .content();
         System.out.println();
-        System.out.println("Final output: " + result.getFinalOutput());
+        System.out.println("Final output: " + output);
     }
 
     private static RunEventPublisher createConsoleStreamingPublisher()

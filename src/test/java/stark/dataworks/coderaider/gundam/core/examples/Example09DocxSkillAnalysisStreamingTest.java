@@ -88,7 +88,7 @@ public class Example09DocxSkillAnalysisStreamingTest
         RunConfiguration config = new RunConfiguration(24, null, 0.2, 4096, "auto", "text", Map.of(), new RetryPolicy(3, 1500));
         System.out.println("Workspace root: " + workspaceRoot);
         System.out.println("Loaded local skill: " + localSkillName);
-        ContextResult result = runner.runStreamed(registry.get("docx-skills-agent").orElseThrow(), prompt, config, ExampleSupport.noopHooks());
+        ContextResult result = runner.chatClient("docx-skills-agent").prompt().user(prompt).runConfiguration(config).runHooks(ExampleSupport.noopHooks()).call().contextResult();
         System.out.println("\nFinal output: " + result.getFinalOutput());
     }
 
