@@ -18,7 +18,7 @@ import stark.dataworks.coderaider.gundam.core.agent.IAgentRegistry;
 import stark.dataworks.coderaider.gundam.core.approval.ToolApprovalDecision;
 import stark.dataworks.coderaider.gundam.core.approval.IToolApprovalPolicy;
 import stark.dataworks.coderaider.gundam.core.approval.ToolApprovalRequest;
-import stark.dataworks.coderaider.gundam.core.client.AgentChatClient;
+import stark.dataworks.coderaider.gundam.core.agent.AgentChatClient;
 import stark.dataworks.coderaider.gundam.core.context.IContextBuilder;
 import stark.dataworks.coderaider.gundam.core.exceptions.GuardrailTripwireException;
 import stark.dataworks.coderaider.gundam.core.exceptions.HandoffDeniedException;

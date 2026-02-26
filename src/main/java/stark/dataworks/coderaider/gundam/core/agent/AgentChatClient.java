@@ -1,10 +1,9 @@
-package stark.dataworks.coderaider.gundam.core.client;
+package stark.dataworks.coderaider.gundam.core.agent;
 
 import java.util.Map;
 import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
-import stark.dataworks.coderaider.gundam.core.agent.IAgent;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.IRunHooks;
