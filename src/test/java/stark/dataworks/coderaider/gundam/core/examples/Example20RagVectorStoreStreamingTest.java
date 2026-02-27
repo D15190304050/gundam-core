@@ -15,7 +15,7 @@ import stark.dataworks.coderaider.gundam.core.rag.SimpleHashEmbeddingModel;
 /**
  * 14) RAG + vector store baseline with streaming-style console output.
  */
-public class Example14RagVectorStoreStreamingTest
+public class Example20RagVectorStoreStreamingTest
 {
     @Test
     public void run()

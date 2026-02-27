@@ -23,7 +23,7 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 /**
  * 15) Single-session, multi-round handoff across different providers/models with streaming output.
  */
-public class Example15MultiRoundMultiProviderHandoffStreamingTest
+public class Example19MultiRoundMultiProviderHandoffStreamingTest
 {
     @Test
     public void run()
