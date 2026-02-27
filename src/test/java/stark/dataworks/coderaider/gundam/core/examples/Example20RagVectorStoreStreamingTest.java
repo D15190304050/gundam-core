@@ -101,7 +101,7 @@ public class Example20RagVectorStoreStreamingTest
             String userInput = userTurns.get(i);
             List<String> roundTimeline = new ArrayList<>();
 
-            System.out.println("\\n========== ROUND " + roundNumber + " START ==========");
+            System.out.println("\n========== ROUND " + roundNumber + " START ==========");
             System.out.println("[round-" + roundNumber + "] user_input: " + userInput);
 
             roundTimeline.add("rag_retrieve_start");
@@ -133,7 +133,7 @@ public class Example20RagVectorStoreStreamingTest
             ContextResult roundResult = runner.runStreamed(agent, prompt, cfg, ExampleSupport.noopHooks());
             roundTimeline.add("llm_generate_end");
 
-            System.out.println("\\n[round-" + roundNumber + "] final_output: " + roundResult.getFinalOutput());
+            System.out.println("\n[round-" + roundNumber + "] final_output: " + roundResult.getFinalOutput());
             System.out.println("========== ROUND " + roundNumber + " END ==========");
 
             assertFalse(roundResult.getFinalOutput().isBlank());
