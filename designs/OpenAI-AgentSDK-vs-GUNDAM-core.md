@@ -1,6 +1,6 @@
 # OpenAI Agents SDK vs GUNDAM-core: feature comparison, current progress, and next steps
 
-This document compares the current capabilities of **OpenAI Agents SDK** (reference implementation in `references/openai-agents-python-main`) and **GUNDAM-core**.
+This document compares the current capabilities of **OpenAI Agents SDK** (reference implementation in `references/openai-agents-python-main`) and **GUNDAM-core`.
 
 ## Scope
 
@@ -29,11 +29,11 @@ This document compares the current capabilities of **OpenAI Agents SDK** (refere
 | RAG / Vector store | ✅ | ✅ | `RagService`, `InMemoryVectorStore`, `EmbeddingModel` implemented. |
 | Tool output trimming | ✅ | ✅ | `ToolOutputTrimmer` extension implemented. |
 | Handoff history filters | ✅ | ✅ | `HandoffHistoryFilters` utilities implemented. |
-| Computer tool | ✅ | 🟡 Partial | `ComputerTool` stub exists, full browser automation not implemented. |
+| Computer tool | ✅ | ✅ | `ComputerTool` with full interface (`IComputer`, `AbstractComputer`, `SimulatedComputer`), supports screenshot, click, double_click, scroll, type, wait, move, keypress, drag. |
 | Voice pipeline | ✅ | 🟡 Partial | `IVoicePipeline` interface exists, full workflow not implemented. |
 | Multimodal generation (audio/image/video) | ✅ | 🟡 Partial | Interfaces exist (`IAudioGenerator`, `IImageGenerator`, `IVideoGenerator`), no providers. |
-| Agent tool state tracking | ✅ | ⚪ Not implemented | OpenAI has `AgentToolUseTracker` for model_settings resets. |
-| Editor (file diff/patch) | ✅ | ⚪ Not implemented | OpenAI has `ApplyPatchEditor` for file operations. |
+| Agent tool state tracking | ✅ | ✅ | `AgentToolUseTracker` implemented with serialization/hydration support. |
+| Editor (file diff/patch) | ✅ | ✅ | `ApplyPatchTool`, `IApplyPatchEditor`, `DiffApplier` implemented for file operations. |
 | Realtime voice/webhook workflows | ✅ | ⚪ Partial | Interfaces exist (`IRealtimeClient`, `IRealtimeSession`), no full implementation. |
 | Codex/experimental features | ✅ | ⚪ Not implemented | OpenAI has experimental codex module. |
 | Error handling registry | ✅ | ✅ | `RunErrorHandlers`, `IRunErrorHandler`, `RunErrorKind` implemented. |
@@ -55,7 +55,10 @@ Legend: ✅ implemented, 🟡 partial/in progress, ⚪ not implemented.
 10. **Spring AI compatibility**: `SpringAiToolAdapters` and `SpringAiChatClientLlmClient` enable Spring AI `@Tool` annotation compatibility.
 11. **Multimodal interfaces**: `IAudioGenerator`, `IImageGenerator`, `IVideoGenerator`, `IMultimodalLlmClient` interfaces defined for future provider implementations.
 12. **Realtime interfaces**: `IRealtimeClient`, `IRealtimeSession`, `IRealtimeEventListener`, and transport abstractions (SSE, webhook) defined.
-13. **Existing strengths retained**: lifecycle hooks, retries, guardrails, tracing, handoffs, MCP, and structured output remain aligned with design goals.
+13. **Agent tool state tracking**: `AgentToolUseTracker` implemented to track which tools each agent has used, with serialization/hydration support for session persistence.
+14. **Apply patch editor**: `ApplyPatchTool`, `IApplyPatchEditor`, `ApplyPatchOperation`, `ApplyPatchResult`, and `DiffApplier` implemented for file diff/patch operations (create, update, delete).
+15. **Computer tool completed**: Full `IComputer` interface with `AbstractComputer` base class and `SimulatedComputer` for testing. Supports all operations: screenshot, click, double_click, scroll, type, wait, move, keypress, drag.
+16. **Existing strengths retained**: lifecycle hooks, retries, guardrails, tracing, handoffs, MCP, and structured output remain aligned with design goals.
 
 ## New examples demonstrating capabilities
 
@@ -69,50 +72,68 @@ The following examples have been added to demonstrate new features:
 - **Example18FlyingCatStyleTransferTest**: Style transfer image generation.
 - **Example19MultiRoundMultiProviderHandoffStreamingTest**: Cross-provider handoffs (ModelScope + Seed/Doubao) in single session.
 - **Example20RagVectorStoreStreamingTest**: RAG with `RagService`, `InMemoryVectorStore`, and `SimpleHashEmbeddingModel`.
+- **Example21ToolUseTrackerTest**: Demonstrates `AgentToolUseTracker` for tracking tool usage across agents.
+- **Example22ApplyPatchToolTest**: Demonstrates `ApplyPatchTool` for file diff/patch operations.
+- **Example23ComputerToolTest**: Demonstrates `ComputerTool` for browser/desktop automation.
 
-## What’s next (recommended roadmap)
+## What's next (recommended roadmap)
 
-### 1) Agent tool state tracking (immediate priority)
-
-- Implement `AgentToolUseTracker` equivalent to track which tools each agent has used.
-- Enable model_settings resets based on tool usage history (OpenAI uses this for gpt-5 reasoning models).
-- Add serialization/hydration for tool state across session persistence.
-
-### 2) Editor / file operations (high priority)
-
-- Implement `ApplyPatchEditor` interface for file diff/patch operations.
-- Support create_file, update_file, delete_file operations with diff application.
-- Integrate with tool registry for code editing workflows.
-
-### 3) Computer tool completion (medium priority)
-
-- Complete `ComputerTool` implementation with full browser automation.
-- Implement screenshot, click, double_click, scroll, type, wait, move operations.
-- Support multiple environments (mac, windows, ubuntu, browser).
-
-### 4) Realtime workflow implementation (medium priority)
+### 1) Realtime workflow implementation (medium priority)
 
 - Complete `IRealtimeClient` and `IRealtimeSession` implementations.
 - Implement SSE and webhook transport adapters.
 - Add voice-to-text and text-to-voice pipeline integration.
 
-### 5) Multimodal provider implementations (medium priority)
+### 2) Multimodal provider implementations (medium priority)
 
 - Implement providers for `IAudioGenerator`, `IImageGenerator`, `IVideoGenerator`.
 - Integrate with `IMultimodalLlmClient` for multimodal message handling.
 - Add examples for audio/image/video generation workflows.
 
-### 6) Codex/experimental features (lower priority)
+### 3) Voice pipeline implementation (medium priority)
+
+- Complete `IVoicePipeline` implementation.
+- Add speech-to-text and text-to-speech integration.
+- Support real-time audio streaming.
+
+### 4) Codex/experimental features (lower priority)
 
 - Evaluate OpenAI's experimental codex module for relevant patterns.
 - Consider implementing codex tool interfaces if applicable to use cases.
 
-### 7) Production hardening
+### 5) Production hardening
 
 - Concurrency tests for multi-session + multi-agent runs on non-memory backends.
 - Fault-injection tests for network partitions/timeouts on context-service memory.
 - Idempotency and exactly-once semantics for session persistence APIs.
 - Performance benchmarks for memory lifecycle policies and RAG operations.
+
+## New classes and packages
+
+### Tracking Package (`stark.dataworks.coderaider.gundam.core.tracking`)
+
+- `AgentToolUseTracker`: Tracks which tools each agent has used during a run. Supports serialization/hydration for session persistence.
+- `ToolUseTrackerSerializer`: Utility methods for serializing and hydrating tracker state.
+
+### Editor Package (`stark.dataworks.coderaider.gundam.core.editor`)
+
+- `IApplyPatchEditor`: Interface for host-defined editors that apply diffs on disk.
+- `ApplyPatchOperation`: Represents a single apply_patch editor operation (create_file, update_file, delete_file).
+- `ApplyPatchResult`: Optional metadata returned by editor operations.
+- `DiffApplier`: Utility for applying V4A diffs against text inputs.
+
+### Computer Package (`stark.dataworks.coderaider.gundam.core.computer`)
+
+- `IComputer`: Interface abstracting operations needed to control a computer or browser.
+- `AbstractComputer`: Base implementation providing common functionality.
+- `SimulatedComputer`: Simulated implementation for testing purposes.
+- `Environment`: Enum for environment types (mac, windows, ubuntu, browser).
+- `Button`: Enum for mouse button types.
+
+### Tool Package Updates (`stark.dataworks.coderaider.gundam.core.tool.builtin`)
+
+- `ApplyPatchTool`: Hosted tool for file mutations via unified diffs.
+- `ComputerTool`: Updated with full implementation supporting all computer operations.
 
 ## References used
 
