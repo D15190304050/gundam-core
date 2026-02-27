@@ -5,6 +5,7 @@ import lombok.Getter;
 import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
+import stark.dataworks.coderaider.gundam.core.memory.policy.MemoryLifecyclePolicy;
 import stark.dataworks.coderaider.gundam.core.policy.RetryPolicy;
 import stark.dataworks.coderaider.gundam.core.runerror.RunErrorHandlers;
 
@@ -66,6 +67,11 @@ public class RunConfiguration
      * Optional externally supplied memory implementation for this run.
      */
     private final IAgentMemory agentMemory;
+
+    /**
+     * Optional lifecycle policy for memory compaction/retention/isolation.
+     */
+    private final MemoryLifecyclePolicy memoryLifecyclePolicy;
 
     /**
      * Performs run config as part of RunConfig runtime responsibilities.
@@ -141,6 +147,22 @@ public class RunConfiguration
                             RunErrorHandlers runErrorHandlers,
                             IAgentMemory agentMemory)
     {
+        this(maxTurns, sessionId, temperature, maxOutputTokens, toolChoice, responseFormat, providerOptions, retryPolicy, runErrorHandlers,
+            agentMemory, null);
+    }
+
+    public RunConfiguration(int maxTurns,
+                            String sessionId,
+                            double temperature,
+                            int maxOutputTokens,
+                            String toolChoice,
+                            String responseFormat,
+                            Map<String, Object> providerOptions,
+                            RetryPolicy retryPolicy,
+                            RunErrorHandlers runErrorHandlers,
+                            IAgentMemory agentMemory,
+                            MemoryLifecyclePolicy memoryLifecyclePolicy)
+    {
         if (maxTurns < 1)
         {
             throw new IllegalArgumentException("maxTurns must be >= 1");
@@ -163,6 +185,7 @@ public class RunConfiguration
         this.retryPolicy = retryPolicy == null ? RetryPolicy.none() : retryPolicy;
         this.runErrorHandlers = runErrorHandlers == null ? new RunErrorHandlers() : runErrorHandlers;
         this.agentMemory = agentMemory;
+        this.memoryLifecyclePolicy = memoryLifecyclePolicy;
     }
 
     /**

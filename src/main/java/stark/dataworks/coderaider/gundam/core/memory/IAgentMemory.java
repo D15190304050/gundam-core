@@ -22,4 +22,14 @@ public interface IAgentMemory
      */
 
     void append(Message message);
+
+    /**
+     * Replaces all messages when lifecycle policies compact/trim memory state.
+     * Implementations that do not support mutation can throw {@link UnsupportedOperationException}.
+     * @param messages The full normalized message list.
+     */
+    default void replaceAll(List<Message> messages)
+    {
+        throw new UnsupportedOperationException("replaceAll is not supported");
+    }
 }

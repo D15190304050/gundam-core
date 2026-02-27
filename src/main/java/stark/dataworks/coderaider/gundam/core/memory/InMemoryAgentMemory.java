@@ -24,4 +24,11 @@ public class InMemoryAgentMemory implements IAgentMemory
     {
         messages.add(message);
     }
+
+    @Override
+    public void replaceAll(List<Message> newMessages)
+    {
+        messages.clear();
+        messages.addAll(newMessages);
+    }
 }

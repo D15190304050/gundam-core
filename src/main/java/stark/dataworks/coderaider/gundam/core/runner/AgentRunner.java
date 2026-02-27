@@ -39,6 +39,7 @@ import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.gundam.core.llmspi.ILlmStreamListener;
 import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
+import stark.dataworks.coderaider.gundam.core.memory.policy.MemoryLifecyclePolicy;
 import stark.dataworks.coderaider.gundam.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.gundam.core.memory.InMemoryAgentMemory;
 import stark.dataworks.coderaider.gundam.core.model.Message;
@@ -280,10 +281,14 @@ public class AgentRunner
         IAgentMemory memory = runConfiguration.getAgentMemory() == null
             ? new InMemoryAgentMemory()
             : runConfiguration.getAgentMemory();
+        MemoryLifecyclePolicy memoryPolicy = runConfiguration.getMemoryLifecyclePolicy() == null
+            ? MemoryLifecyclePolicy.noop()
+            : runConfiguration.getMemoryLifecyclePolicy();
         if (runConfiguration.getSessionId() != null)
         {
             sessionStore.load(runConfiguration.getSessionId())
-                .ifPresent(s -> s.getMessages().forEach(memory::append));
+                .ifPresent(s -> s.getMessages().forEach(message -> appendToMemory(contextForBootstrap(startingAgent, memory), runHooks,
+                    message, runConfiguration.getSessionId(), memoryPolicy, false)));
         }
 
         RunnerContext context = new RunnerContext(startingAgent, memory);
@@ -293,7 +298,7 @@ public class AgentRunner
 
         if (userInput != null && !userInput.isBlank())
         {
-            context.getMemory().append(new Message(Role.USER, userInput));
+            appendToMemory(context, runHooks, new Message(Role.USER, userInput), runConfiguration.getSessionId(), memoryPolicy, true);
             context.getItems().add(new ContextItem(ContextItemType.USER_MESSAGE, userInput, Map.of()));
         }
 
@@ -311,7 +316,7 @@ public class AgentRunner
                     throw new GuardrailTripwireException("input", inputDecision.getReason());
                 }
 
-                List<Message> messages = contextBuilder.build(context.getCurrentAgent(), context.getMemory(), null);
+                List<Message> messages = contextBuilder.build(context.getCurrentAgent(), new SnapshotAgentMemory(readFromMemory(context, runHooks, runConfiguration.getSessionId(), memoryPolicy)), null);
                 List<ToolDefinition> toolDefinitions = resolveTools(context.getCurrentAgent().definition().getToolNames());
                 Map<String, Object> providerOptions = new HashMap<>(context.getCurrentAgent().definition().getModelProviderOptions());
                 providerOptions.putAll(runConfiguration.getProviderOptions());
@@ -353,7 +358,7 @@ public class AgentRunner
 
                 if (!effectiveResponse.getContent().isBlank())
                 {
-                    context.getMemory().append(new Message(Role.ASSISTANT, effectiveResponse.getContent()));
+                    appendToMemory(context, runHooks, new Message(Role.ASSISTANT, effectiveResponse.getContent()), runConfiguration.getSessionId(), memoryPolicy, true);
                     context.getItems().add(new ContextItem(ContextItemType.ASSISTANT_MESSAGE, effectiveResponse.getContent(), effectiveResponse.getStructuredOutput()));
                 }
 
@@ -380,8 +385,8 @@ public class AgentRunner
 
                 if (!effectiveResponse.getToolCalls().isEmpty())
                 {
-                    context.getMemory().append(new Message(Role.ASSISTANT, effectiveResponse.getContent(), effectiveResponse.getToolCalls()));
-                    executeToolCallsInParallel(context, runHooks, effectiveResponse.getToolCalls());
+                    appendToMemory(context, runHooks, new Message(Role.ASSISTANT, effectiveResponse.getContent(), effectiveResponse.getToolCalls()), runConfiguration.getSessionId(), memoryPolicy, true);
+                    executeToolCallsInParallel(context, runHooks, effectiveResponse.getToolCalls(), runConfiguration, memoryPolicy);
                     if (context.getCurrentAgent().definition().isResetInputAfterToolCall())
                     {
                         userInput = null;
@@ -411,7 +416,7 @@ public class AgentRunner
                     }
                 }
 
-                return finalizeResult(context, effectiveResponse.getContent(), runConfiguration, legacyContext);
+                return finalizeResult(context, effectiveResponse.getContent(), runConfiguration, legacyContext, memoryPolicy);
             }
 
             throw new MaxTurnsExceededException(runConfiguration.getMaxTurns());
@@ -419,7 +424,7 @@ public class AgentRunner
         catch (RuntimeException error)
         {
             runSpan.annotate("error", error.getMessage());
-            return handleError(context, runConfiguration, error, legacyContext);
+            return handleError(context, runConfiguration, error, legacyContext, memoryPolicy);
         }
         finally
         {
@@ -559,7 +564,7 @@ public class AgentRunner
      * @param error The error used by this operation.
      * @return The value produced by this operation.
      */
-    private ContextResult handleError(RunnerContext context, RunConfiguration config, RuntimeException error, ExecutionContext legacyContext)
+    private ContextResult handleError(RunnerContext context, RunConfiguration config, RuntimeException error, ExecutionContext legacyContext, MemoryLifecyclePolicy memoryPolicy)
     {
         RunErrorKind kind = classify(error);
         RunErrorHandlerResult decision = config.getRunErrorHandlers().get(kind)
@@ -599,7 +604,7 @@ public class AgentRunner
         emit(context, new IRunHooks()
         {
         }, RunEventType.RUN_FAILED, Map.of("kind", kind.name(), "message", error.getMessage()));
-        return finalizeResult(context, finalOutput, config, legacyContext);
+        return finalizeResult(context, finalOutput, config, legacyContext, memoryPolicy);
     }
 
     /**
@@ -629,7 +634,7 @@ public class AgentRunner
      * @return The value produced by this operation.
      */
 
-    private void executeToolCallsInParallel(RunnerContext context, IRunHooks runHooks, List<ToolCall> toolCalls)
+    private void executeToolCallsInParallel(RunnerContext context, IRunHooks runHooks, List<ToolCall> toolCalls, RunConfiguration config, MemoryLifecyclePolicy memoryPolicy)
     {
         List<ToolCall> approvedCalls = new ArrayList<>();
         for (ToolCall call : toolCalls)
@@ -706,7 +711,7 @@ public class AgentRunner
             {
                 throw new IllegalStateException("Missing tool result for: " + call.getToolName());
             }
-            context.getMemory().append(new Message(Role.TOOL, outcome.result(), call.getToolCallId()));
+            appendToMemory(context, runHooks, new Message(Role.TOOL, outcome.result(), call.getToolCallId()), config.getSessionId(), memoryPolicy, true);
             context.getItems().add(new ContextItem(ContextItemType.TOOL_CALL, call.getToolName(), call.getArguments()));
             context.getItems().add(new ContextItem(ContextItemType.TOOL_RESULT, outcome.result(), Map.of("tool", call.getToolName())));
             emit(context, runHooks, RunEventType.TOOL_CALL_COMPLETED, Map.of("tool", call.getToolName(), "result", outcome.result()));
@@ -760,6 +765,82 @@ public class AgentRunner
 
     private record ToolExecutionOutcome(int index, ToolCall call, String result)
     {
+    }
+
+    private RunnerContext contextForBootstrap(IAgent agent, IAgentMemory memory)
+    {
+        return new RunnerContext(agent, memory);
+    }
+
+    private void appendToMemory(RunnerContext context, IRunHooks hooks, Message message, String sessionId, MemoryLifecyclePolicy memoryPolicy, boolean emitEvent)
+    {
+        ITraceSpan span = traceProvider.startSpan("agent.memory.write");
+        long started = System.nanoTime();
+        try
+        {
+            context.getMemory().append(message);
+            List<Message> normalized = memoryPolicy.onWrite(context.getCurrentAgent().definition().getId(), sessionId, context.getMemory().messages());
+            if (normalized.size() != context.getMemory().messages().size())
+            {
+                rewriteMemory(context.getMemory(), normalized);
+            }
+            if (emitEvent)
+            {
+                emit(context, hooks, RunEventType.MEMORY_WRITE, Map.of("messages", normalized.size(), "durationMs", durationMs(started)));
+            }
+        }
+        finally
+        {
+            span.close();
+        }
+    }
+
+    private List<Message> readFromMemory(RunnerContext context, IRunHooks hooks, String sessionId, MemoryLifecyclePolicy memoryPolicy)
+    {
+        ITraceSpan span = traceProvider.startSpan("agent.memory.read");
+        long started = System.nanoTime();
+        try
+        {
+            List<Message> messages = memoryPolicy.onRead(context.getCurrentAgent().definition().getId(), sessionId, context.getMemory().messages());
+            emit(context, hooks, RunEventType.MEMORY_READ, Map.of("messages", messages.size(), "durationMs", durationMs(started), "cacheHit", false));
+            return messages;
+        }
+        finally
+        {
+            span.close();
+        }
+    }
+
+    private long durationMs(long startedNs)
+    {
+        return Math.max(0, (System.nanoTime() - startedNs) / 1_000_000);
+    }
+
+    private void rewriteMemory(IAgentMemory memory, List<Message> messages)
+    {
+        memory.replaceAll(messages);
+    }
+
+    private static final class SnapshotAgentMemory implements IAgentMemory
+    {
+        private final List<Message> messages;
+
+        private SnapshotAgentMemory(List<Message> messages)
+        {
+            this.messages = List.copyOf(messages);
+        }
+
+        @Override
+        public List<Message> messages()
+        {
+            return messages;
+        }
+
+        @Override
+        public void append(Message message)
+        {
+            throw new UnsupportedOperationException("Snapshot memory is read-only");
+        }
     }
     private LlmResponse invokeModel(ILlmClient llmClient,
                                     LlmRequest request,
@@ -844,13 +925,15 @@ public class AgentRunner
      * @param config The config used by this operation.
      * @return The value produced by this operation.
      */
-    private ContextResult finalizeResult(RunnerContext context, String finalOutput, RunConfiguration config, ExecutionContext legacyContext)
+    private ContextResult finalizeResult(RunnerContext context, String finalOutput, RunConfiguration config, ExecutionContext legacyContext, MemoryLifecyclePolicy memoryPolicy)
     {
         legacyContext.setAgent(context.getCurrentAgent());
         hookManager.afterRun(legacyContext);
         if (config.getSessionId() != null)
         {
-            sessionStore.save(new Session(config.getSessionId(), context.getMemory().messages()));
+            sessionStore.save(new Session(config.getSessionId(), readFromMemory(context, new IRunHooks()
+        {
+        }, config.getSessionId(), memoryPolicy)));
         }
         Map<String, Object> attrs = new HashMap<>();
         attrs.put("finalAgent", context.getCurrentAgent().definition().getId());
