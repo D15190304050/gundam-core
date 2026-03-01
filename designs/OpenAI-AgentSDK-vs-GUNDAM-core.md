@@ -60,8 +60,8 @@ Legend: ✅ implemented, 🟡 partial/in progress, ⚪ not implemented.
 14. **Apply patch editor**: `ApplyPatchTool`, `IApplyPatchEditor`, `ApplyPatchOperation`, `ApplyPatchResult`, and `DiffApplier` implemented for file diff/patch operations (create, update, delete).
 15. **Computer tool completed**: Full `IComputer` interface with `AbstractComputer` base class and `SimulatedComputer` for testing. Supports all operations: screenshot, click, double_click, scroll, type, wait, move, keypress, drag.
 16. **Existing strengths retained**: lifecycle hooks, retries, guardrails, tracing, handoffs, MCP, and structured output remain aligned with design goals.
-17. **ReAct debug-fix workflow hardened**: Example24 now enforces strict streaming turn limits and a plan-only coordinator step to avoid long-running loops while still exercising investigator/fixer/reviewer collaboration.
-18. **Complex ReAct debugging scenario added**: Example25 introduces a harder runtime-logic repair flow on `InvoiceSummaryEngine.java`, requiring coordinated source inspection, multi-defect patching, and runtime output verification (`TOTAL=102.6`).
+17. **ReAct debug-fix workflow hardened**: Example24 now enforces strict streaming turn limits, explicit working-directory tool context, and stricter tool-call prompt constraints (including explicit `apply_patch` argument shape) to reduce repeated-output loops while still exercising investigator/fixer/reviewer collaboration.
+18. **Complex ReAct debugging scenario added**: Example25 introduces a harder runtime-logic repair flow on `InvoiceSummaryEngine.java`, requiring coordinated source inspection, multi-defect patching, runtime behavior verification, explicit working-directory tool context, and stricter patch-call prompt constraints; both Example24/25 now load buggy sources and verifier sources from `src/test/resources/inputs` on each test run.
 
 ## New examples demonstrating capabilities
 

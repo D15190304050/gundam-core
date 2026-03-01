@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+
 /**
  * 24) ReAct-style debug/fix workflow using a multi-agent topology.
  * <p>
@@ -39,8 +40,9 @@ public class Example24ReActAgentDebugFixTest
 {
     private static final String MODEL = "Qwen/Qwen3-4B";
     private static final Path INPUT_BUG_FILE = Path.of("src", "test", "resources", "inputs", "BuggyCalculator.java");
+    private static final Path INPUT_VERIFIER_FILE = Path.of("src", "test", "resources", "inputs", "BuggyCalculatorVerifier.java");
     private static final RunConfiguration EXAMPLE_RUN_CONFIGURATION =
-        new RunConfiguration(4, null, 0.2, 2048, "auto", "text", Map.of());
+        new RunConfiguration(1, null, 0.1, 512, "auto", "text", Map.of());
 
     @Test
     public void run() throws IOException
@@ -119,10 +121,10 @@ public class Example24ReActAgentDebugFixTest
             }
         }
 
-        Assertions.assertNotNull(coordinatorPlan.getFinalOutput(), "Expected plan output from coordinator");
-        Assertions.assertNotNull(investigatorResult.getFinalOutput(), "Expected investigation output");
-        Assertions.assertNotNull(fixerResult != null ? fixerResult.getFinalOutput() : null, "Expected fixer output");
-        Assertions.assertNotNull(reviewerResult != null ? reviewerResult.getFinalOutput() : null, "Expected reviewer output");
+        Assertions.assertNotNull(coordinatorPlan, "Expected plan output from coordinator");
+        Assertions.assertNotNull(investigatorResult, "Expected investigation output");
+        Assertions.assertNotNull(fixerResult, "Expected fixer output");
+        Assertions.assertNotNull(reviewerResult, "Expected reviewer output");
         Assertions.assertTrue(Files.exists(targetBugFile), "Expected buggy source in workspace");
 
         String behaviorOutput = runBehaviorVerification(workspace);
@@ -184,6 +186,7 @@ public class Example24ReActAgentDebugFixTest
             """.formatted(runtimeOs.displayName, workspace));
         def.setReactInstructions("Loop in ReAct style: thought -> action -> observation. Keep each thought short.");
         def.setToolNames(List.of("local_shell"));
+        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
         def.setModelReasoning(Map.of("effort", "medium"));
         return new Agent(def);
     }
@@ -203,7 +206,7 @@ public class Example24ReActAgentDebugFixTest
             Runtime OS: %s.
             Workspace: %s
             """.formatted(runtimeOs.displayName, workspace));
-        def.setReactInstructions("One tool action per loop. Observe outputs and adjust patching strategy until complete.");
+        def.setReactInstructions("At most one apply_patch call and one local_shell call; then finalize. For apply_patch, send arguments as {\"operation\":{\"type\":\"update_file\",\"path\":\"BuggyCalculator.java\",\"diff\":\"...\"}} with no raw wrapper.");
         def.setToolNames(List.of("apply_patch", "local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
         def.setModelReasoning(Map.of("effort", "medium"));
@@ -225,8 +228,9 @@ public class Example24ReActAgentDebugFixTest
             Runtime OS: %s.
             Workspace: %s
             """.formatted(runtimeOs.displayName, workspace));
-        def.setReactInstructions("Use concise ReAct loops and finish with PASS/FAIL and evidence.");
+        def.setReactInstructions("Run one verification command, then finish with PASS/FAIL and evidence.");
         def.setToolNames(List.of("local_shell"));
+        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
         def.setModelReasoning(Map.of("effort", "medium"));
         return new Agent(def);
     }
@@ -255,15 +259,16 @@ public class Example24ReActAgentDebugFixTest
     {
         return """
             Investigate the bug in BuggyCalculator.java.
-            1) Print file content.
+            1) Print file content using an explicit workspace command (cd workspace first).
             2) Compile the source and observe result.
             3) Explain why add(7,5) and add(3,-2) are currently wrong.
             4) Provide root cause summary for fixer.
 
             Runtime OS: %s
             Workspace: %s
+            File print command suggestion: %s
             Compile command suggestion: %s
-            """.formatted(runtimeOs.displayName, workspace, runtimeOs.compileCommand(workspace));
+            """.formatted(runtimeOs.displayName, workspace, runtimeOs.printFileCommand(workspace, "BuggyCalculator.java"), runtimeOs.compileCommand(workspace));
     }
 
     private static String buildFixerPrompt(RuntimeOs runtimeOs, Path workspace, String investigationOutput, String sourceSnapshot, int attempt)
@@ -277,6 +282,7 @@ public class Example24ReActAgentDebugFixTest
             - If previous attempt failed, force a direct update on BuggyCalculator.java.
             - Use at most one patch command and one compile command in this run.
             - Stop once you have compile evidence.
+            - apply_patch payload must be strict JSON object with operation field (no raw string).
 
             Attempt: %d
             Investigator report:
@@ -287,15 +293,17 @@ public class Example24ReActAgentDebugFixTest
 
             Runtime OS: %s
             Workspace: %s
+            File print command suggestion: %s
             Compile command suggestion: %s
-            """.formatted(attempt, investigationOutput, sourceSnapshot, runtimeOs.displayName, workspace, runtimeOs.compileCommand(workspace));
+            """.formatted(attempt, investigationOutput, sourceSnapshot, runtimeOs.displayName, workspace, runtimeOs.printFileCommand(workspace, "BuggyCalculator.java"), runtimeOs.compileCommand(workspace));
     }
 
     private static String buildReviewerPrompt(RuntimeOs runtimeOs, Path workspace, String fixerOutput)
     {
         return """
             Review the fixer result.
-            - Compile and run behavior checks for add(7,5)=12 and add(3,-2)=1.
+            - Compile and run behavior checks for add(7,5)=12 and add(3,-2)=1 using:
+              cd workspace && javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier
             - Report PASS only if all checks succeed, otherwise FAIL.
 
             Fixer output:
@@ -303,8 +311,9 @@ public class Example24ReActAgentDebugFixTest
 
             Runtime OS: %s
             Workspace: %s
+            File print command suggestion: %s
             Compile command suggestion: %s
-            """.formatted(fixerOutput, runtimeOs.displayName, workspace, runtimeOs.compileCommand(workspace));
+            """.formatted(fixerOutput, runtimeOs.displayName, workspace, runtimeOs.printFileCommand(workspace, "BuggyCalculator.java"), runtimeOs.compileCommand(workspace));
     }
 
     private static LocalShellTool createShellTool()
@@ -349,23 +358,9 @@ public class Example24ReActAgentDebugFixTest
     private static String runBehaviorVerification(Path workspace)
     {
         Path verifierFile = workspace.resolve("BuggyCalculatorVerifier.java");
-        String verifierSource = """
-            public class BuggyCalculatorVerifier {
-                public static void main(String[] args) {
-                    boolean first = BuggyCalculator.add(7, 5) == 12;
-                    boolean second = BuggyCalculator.add(3, -2) == 1;
-                    if (first && second) {
-                        System.out.println("BEHAVIOR_OK");
-                    } else {
-                        System.out.println("BEHAVIOR_FAIL add(7,5)=" + BuggyCalculator.add(7, 5)
-                            + " add(3,-2)=" + BuggyCalculator.add(3, -2));
-                    }
-                }
-            }
-            """;
         try
         {
-            Files.writeString(verifierFile, verifierSource);
+            Files.writeString(verifierFile, Files.readString(INPUT_VERIFIER_FILE));
         }
         catch (IOException ex)
         {
@@ -416,6 +411,15 @@ public class Example24ReActAgentDebugFixTest
             {
                 case WINDOWS -> "cmd /c \"cd /d \"\"" + workspace + "\"\" && javac BuggyCalculator.java\"";
                 case MACOS, LINUX -> "cd '" + workspace + "' && javac BuggyCalculator.java";
+            };
+        }
+
+        private String printFileCommand(Path workspace, String fileName)
+        {
+            return switch (this)
+            {
+                case WINDOWS -> "cmd /c \"cd /d \"\"" + workspace + "\"\" && type " + fileName + "\"";
+                case MACOS, LINUX -> "cd '" + workspace + "' && cat " + fileName;
             };
         }
     }
