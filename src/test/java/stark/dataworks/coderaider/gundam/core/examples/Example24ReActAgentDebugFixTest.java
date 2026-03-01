@@ -112,9 +112,8 @@ public class Example24ReActAgentDebugFixTest
                 .call()
                 .contextResult();
 
-            String fixedNow = Files.readString(targetBugFile);
-            String compileNow = compileWithProcessBuilder(workspace, runtimeOs);
-            if (fixedNow.contains("return a + b;") && compileNow.contains("COMPILE_OK"))
+            String behaviorNow = runBehaviorVerification(workspace);
+            if (behaviorNow.contains("BEHAVIOR_OK"))
             {
                 break;
             }
@@ -126,17 +125,14 @@ public class Example24ReActAgentDebugFixTest
         Assertions.assertNotNull(reviewerResult != null ? reviewerResult.getFinalOutput() : null, "Expected reviewer output");
         Assertions.assertTrue(Files.exists(targetBugFile), "Expected buggy source in workspace");
 
-        String fixedSource = Files.readString(targetBugFile);
-        String compileOutput = compileWithProcessBuilder(workspace, runtimeOs);
-        if (!fixedSource.contains("return a + b;") || !compileOutput.contains("COMPILE_OK"))
+        String behaviorOutput = runBehaviorVerification(workspace);
+        if (!behaviorOutput.contains("BEHAVIOR_OK"))
         {
             applyDeterministicFallbackFix(targetBugFile);
-            fixedSource = Files.readString(targetBugFile);
-            compileOutput = compileWithProcessBuilder(workspace, runtimeOs);
+            behaviorOutput = runBehaviorVerification(workspace);
         }
 
-        Assertions.assertTrue(fixedSource.contains("return a + b;"), "Expected source to be fixed to addition");
-        Assertions.assertTrue(compileOutput.contains("COMPILE_OK"), "Expected compilation to pass after fix: " + compileOutput);
+        Assertions.assertTrue(behaviorOutput.contains("BEHAVIOR_OK"), "Expected add behavior verification to pass: " + behaviorOutput);
     }
 
     private static AgentRegistry createAgentRegistry(RuntimeOs runtimeOs, Path workspace)
@@ -161,7 +157,8 @@ public class Example24ReActAgentDebugFixTest
             Produce only a short delegation plan for a multi-agent ReAct workflow:
             1) investigator inspects source and collects observations,
             2) fixer patches + compiles iteratively,
-            3) reviewer verifies compile success.
+            3) reviewer verifies runtime behavior tests pass.
+            Known bug: method add(a, b) currently behaves like subtraction and must return arithmetic sum.
             This coordinator run must not invoke tools or handoffs.
             Runtime OS: %s.
             Workspace: %s
@@ -181,6 +178,7 @@ public class Example24ReActAgentDebugFixTest
         def.setSystemPrompt("""
             You are the investigator. Use shell commands to inspect BuggyCalculator.java and identify the root cause.
             Provide factual observations for the fixer. Do not patch files.
+            Expected correct behavior examples: add(7, 5)=12 and add(3, -2)=1.
             Runtime OS: %s.
             Workspace: %s
             """.formatted(runtimeOs.displayName, workspace));
@@ -199,8 +197,9 @@ public class Example24ReActAgentDebugFixTest
         def.setReactEnabled(true);
         def.setSystemPrompt("""
             You are the fixer.
-            Use apply_patch to modify BuggyCalculator.java and local_shell to compile.
-            Keep iterating until compilation is successful.
+            Use apply_patch to modify BuggyCalculator.java and local_shell to compile/run behavior checks.
+            Known bug: add(a, b) currently subtracts b.
+            Success criteria: behavior tests return add(7,5)=12 and add(3,-2)=1.
             Runtime OS: %s.
             Workspace: %s
             """.formatted(runtimeOs.displayName, workspace));
@@ -220,7 +219,8 @@ public class Example24ReActAgentDebugFixTest
         def.setReactEnabled(true);
         def.setSystemPrompt("""
             You are the reviewer.
-            Verify BuggyCalculator.java contains return a + b; and compile succeeds.
+            Verify runtime correctness by compiling and checking behavior examples.
+            Required behavior: add(7,5)=12 and add(3,-2)=1.
             If not, explain what should be redone.
             Runtime OS: %s.
             Workspace: %s
@@ -239,9 +239,10 @@ public class Example24ReActAgentDebugFixTest
             Requirements:
             - The buggy source is already in: %s
             - Use command style compatible with runtime OS: %s
+            - Known bug: add(a, b) is implemented as subtraction and gives wrong results.
             - Investigator should inspect source and optionally compile first to confirm behavior.
-            - Fixer must patch subtraction to addition and recompile.
-            - Reviewer must verify code + compile success.
+            - Fixer must restore correct addition behavior.
+            - Reviewer must verify runtime behavior checks pass.
             - You are only producing a concise plan in this step, no tool calls.
 
             Recommended compile command:
@@ -256,7 +257,8 @@ public class Example24ReActAgentDebugFixTest
             Investigate the bug in BuggyCalculator.java.
             1) Print file content.
             2) Compile the source and observe result.
-            3) Provide root cause summary for fixer.
+            3) Explain why add(7,5) and add(3,-2) are currently wrong.
+            4) Provide root cause summary for fixer.
 
             Runtime OS: %s
             Workspace: %s
@@ -269,8 +271,8 @@ public class Example24ReActAgentDebugFixTest
         return """
             Fix BuggyCalculator.java using ReAct loop.
             - Read investigator report.
-            - Apply minimal patch to change subtraction to addition.
-            - Compile and confirm success.
+            - Apply minimal patch so add(7,5)=12 and add(3,-2)=1.
+            - Compile and verify behavior.
             - Return final operations summary.
             - If previous attempt failed, force a direct update on BuggyCalculator.java.
             - Use at most one patch command and one compile command in this run.
@@ -293,8 +295,7 @@ public class Example24ReActAgentDebugFixTest
     {
         return """
             Review the fixer result.
-            - Inspect BuggyCalculator.java and ensure it contains return a + b;
-            - Compile once more.
+            - Compile and run behavior checks for add(7,5)=12 and add(3,-2)=1.
             - Report PASS only if all checks succeed, otherwise FAIL.
 
             Fixer output:
@@ -345,12 +346,35 @@ public class Example24ReActAgentDebugFixTest
         Files.writeString(targetBugFile, Files.readString(INPUT_BUG_FILE));
     }
 
-    private static String compileWithProcessBuilder(Path workspace, RuntimeOs runtimeOs)
+    private static String runBehaviorVerification(Path workspace)
     {
-        ProcessBuilder builder = new ProcessBuilder("javac", "BuggyCalculator.java");
-        builder.directory(workspace.toFile());
-        builder.redirectErrorStream(true);
+        Path verifierFile = workspace.resolve("BuggyCalculatorVerifier.java");
+        String verifierSource = """
+            public class BuggyCalculatorVerifier {
+                public static void main(String[] args) {
+                    boolean first = BuggyCalculator.add(7, 5) == 12;
+                    boolean second = BuggyCalculator.add(3, -2) == 1;
+                    if (first && second) {
+                        System.out.println("BEHAVIOR_OK");
+                    } else {
+                        System.out.println("BEHAVIOR_FAIL add(7,5)=" + BuggyCalculator.add(7, 5)
+                            + " add(3,-2)=" + BuggyCalculator.add(3, -2));
+                    }
+                }
+            }
+            """;
+        try
+        {
+            Files.writeString(verifierFile, verifierSource);
+        }
+        catch (IOException ex)
+        {
+            return "Behavior verification setup failed: " + ex.getMessage();
+        }
 
+        ProcessBuilder builder = new ProcessBuilder("bash", "-lc",
+            "cd '" + workspace + "' && javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier");
+        builder.redirectErrorStream(true);
         try
         {
             Process process = builder.start();
@@ -360,16 +384,16 @@ public class Example24ReActAgentDebugFixTest
             {
                 return output + "\nEXIT=" + exitCode;
             }
-            return output + "\nCOMPILE_OK";
+            return output;
         }
         catch (InterruptedException ex)
         {
             Thread.currentThread().interrupt();
-            return "Compile check failed: " + ex.getMessage();
+            return "Behavior verification failed: " + ex.getMessage();
         }
         catch (IOException ex)
         {
-            return "Compile check failed: " + ex.getMessage();
+            return "Behavior verification failed: " + ex.getMessage();
         }
     }
 
