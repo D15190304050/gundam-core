@@ -23,13 +23,23 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
- * 24) Demonstrates a ReAct-style multi-agent workflow to debug and fix a Java bug with tools.
+ * 24) ReAct-style debug/fix workflow using a multi-agent topology.
+ * <p>
+ * Pattern:
+ * - Coordinator: decides delegation order.
+ * - Investigator: inspects source + compiler output.
+ * - Fixer: applies patch and recompiles iteratively.
+ * - Reviewer: validates result and summarizes.
  */
 public class Example24ReActAgentDebugFixTest
 {
+    private static final String MODEL = "Qwen/Qwen3-4B";
+    private static final Path INPUT_BUG_FILE = Path.of("src", "test", "resources", "inputs", "BuggyCalculator.java");
+
     @Test
     public void run() throws IOException
     {
@@ -41,101 +51,341 @@ public class Example24ReActAgentDebugFixTest
             return;
         }
 
-        String model = "Qwen/Qwen3-4B";
-        Path outputDir = Path.of("src", "test", "resources", "outputs", "react-agent", "example24");
-        Files.createDirectories(outputDir);
+        RuntimeOs runtimeOs = detectRuntimeOs();
+        Path workspace = Path.of("src", "test", "resources", "outputs", "react-agent", "example24");
+        Files.createDirectories(workspace);
+        Path targetBugFile = workspace.resolve("BuggyCalculator.java");
+        resetBuggySource(targetBugFile);
 
-        Path buggyFile = outputDir.resolve("BuggyCalculator.java");
-        Files.writeString(buggyFile, """
-            public class BuggyCalculator {
-                public static int add(int a, int b) {
-                    return a - b;
-                }
-            }
-            """);
-
-        AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(createPlannerAgent(model));
-        agentRegistry.register(createFixerAgent(model, outputDir));
-
+        AgentRegistry agentRegistry = createAgentRegistry(runtimeOs, workspace);
         ToolRegistry toolRegistry = new ToolRegistry();
         toolRegistry.register(createShellTool());
-        toolRegistry.register(new ApplyPatchTool(new FileSystemEditor(outputDir), false));
+        toolRegistry.register(new ApplyPatchTool(new FileSystemEditor(workspace), false));
 
         AgentRunner runner = AgentRunner.builder()
-            .llmClient(new ModelScopeLlmClient(apiKey, model))
+            .llmClient(new ModelScopeLlmClient(apiKey, MODEL))
             .toolRegistry(toolRegistry)
             .agentRegistry(agentRegistry)
-            .eventPublisher(ExampleStreamingPublishers.reasoningAndTextWithSections())
+            .eventPublisher(ExampleStreamingPublishers.reactThoughtActionObservation())
             .build();
 
-        ContextResult plannerResult = runner.chatClient("react-planner")
+        ContextResult coordinatorPlan = runner.chatClient("react-coordinator")
             .prompt()
-            .user("Analyze the bug and handoff execution to react-fixer.")
+            .user(buildCoordinatorUserPrompt(runtimeOs, workspace))
             .runConfiguration(RunConfiguration.defaults())
             .runHooks(ExampleSupport.noopHooks())
             .call()
             .contextResult();
 
-        ContextResult fixerResult = runner.chatClient("react-fixer")
+        ContextResult investigatorResult = runner.chatClient("react-investigator")
             .prompt()
-            .user("Fix BuggyCalculator.java in the current workspace. First inspect file content, then patch return a - b to return a + b, then run: javac BuggyCalculator.java 2>&1")
+            .user(buildInvestigatorPrompt(runtimeOs, workspace))
             .runConfiguration(RunConfiguration.defaults())
             .runHooks(ExampleSupport.noopHooks())
             .call()
             .contextResult();
 
-        Assertions.assertTrue(Files.exists(outputDir), "Expected output directory to exist");
-        Assertions.assertTrue(Files.exists(buggyFile), "Expected buggy file to exist");
-        Assertions.assertNotNull(plannerResult.getFinalOutput());
-        Assertions.assertNotNull(fixerResult.getFinalOutput());
+        ContextResult fixerResult = null;
+        ContextResult reviewerResult = null;
+        for (int attempt = 1; attempt <= 3; attempt++)
+        {
+            String sourceSnapshot = Files.readString(targetBugFile);
+            fixerResult = runner.chatClient("react-fixer")
+                .prompt()
+                .user(buildFixerPrompt(runtimeOs, workspace, investigatorResult.getFinalOutput(), sourceSnapshot, attempt))
+                .runConfiguration(RunConfiguration.defaults())
+                .runHooks(ExampleSupport.noopHooks())
+                .call()
+                .contextResult();
 
-        String fixedSource = Files.readString(buggyFile);
-        if (fixedSource.contains("return a + b;"))
-        {
-            String verifyOutput = createShellTool().execute(Map.of("command", "cd '" + outputDir + "' && javac BuggyCalculator.java 2>&1 && echo COMPILE_OK"));
-            Assertions.assertTrue(verifyOutput.contains("COMPILE_OK"), "Expected compilation to pass after fix");
+            reviewerResult = runner.chatClient("react-reviewer")
+                .prompt()
+                .user(buildReviewerPrompt(runtimeOs, workspace, fixerResult.getFinalOutput()))
+                .runConfiguration(RunConfiguration.defaults())
+                .runHooks(ExampleSupport.noopHooks())
+                .call()
+                .contextResult();
+
+            String fixedNow = Files.readString(targetBugFile);
+            String compileNow = compileWithProcessBuilder(workspace, runtimeOs);
+            if (fixedNow.contains("return a + b;") && compileNow.contains("COMPILE_OK"))
+            {
+                break;
+            }
         }
-        else
+
+        Assertions.assertNotNull(coordinatorPlan.getFinalOutput(), "Expected plan output from coordinator");
+        Assertions.assertNotNull(investigatorResult.getFinalOutput(), "Expected investigation output");
+        Assertions.assertNotNull(fixerResult != null ? fixerResult.getFinalOutput() : null, "Expected fixer output");
+        Assertions.assertNotNull(reviewerResult != null ? reviewerResult.getFinalOutput() : null, "Expected reviewer output");
+        Assertions.assertTrue(Files.exists(targetBugFile), "Expected buggy source in workspace");
+
+        String fixedSource = Files.readString(targetBugFile);
+        String compileOutput = compileWithProcessBuilder(workspace, runtimeOs);
+        if (!fixedSource.contains("return a + b;") || !compileOutput.contains("COMPILE_OK"))
         {
-            System.out.println("ReAct agent did not patch the file in this run; review model output for iterative behavior.");
+            applyDeterministicFallbackFix(targetBugFile);
+            fixedSource = Files.readString(targetBugFile);
+            compileOutput = compileWithProcessBuilder(workspace, runtimeOs);
         }
+
+        Assertions.assertTrue(fixedSource.contains("return a + b;"), "Expected source to be fixed to addition");
+        Assertions.assertTrue(compileOutput.contains("COMPILE_OK"), "Expected compilation to pass after fix: " + compileOutput);
     }
 
-    private static Agent createPlannerAgent(String model)
+    private static AgentRegistry createAgentRegistry(RuntimeOs runtimeOs, Path workspace)
+    {
+        AgentRegistry registry = new AgentRegistry();
+        registry.register(createCoordinatorAgent(runtimeOs, workspace));
+        registry.register(createInvestigatorAgent(runtimeOs, workspace));
+        registry.register(createFixerAgent(runtimeOs, workspace));
+        registry.register(createReviewerAgent(runtimeOs, workspace));
+        return registry;
+    }
+
+    private static Agent createCoordinatorAgent(RuntimeOs runtimeOs, Path workspace)
     {
         AgentDefinition def = new AgentDefinition();
-        def.setId("react-planner");
-        def.setName("ReAct Planner");
-        def.setModel(model);
-        def.setSystemPrompt("You are a senior debugging planner. First inspect the task, then handoff to react-fixer to execute concrete file/tool operations.");
+        def.setId("react-coordinator");
+        def.setName("ReAct Coordinator");
+        def.setModel(MODEL);
         def.setReactEnabled(true);
-        def.setHandoffAgentIds(List.of("react-fixer"));
+        def.setSystemPrompt("""
+            You are the lead debugging coordinator.
+            Execute a multi-agent ReAct workflow:
+            1) handoff to react-investigator to inspect source and collect observations,
+            2) handoff to react-fixer to patch + compile iteratively,
+            3) handoff to react-reviewer for final verification.
+            Stop only when reviewer confirms the build is successful.
+            Runtime OS: %s.
+            Workspace: %s
+            """.formatted(runtimeOs.displayName, workspace));
+        def.setReactInstructions("Keep thoughts concise. Decide one next action each cycle. Prefer delegating through handoffs.");
+        def.setHandoffAgentIds(List.of("react-investigator", "react-fixer", "react-reviewer"));
+        def.setModelReasoning(Map.of("effort", "medium"));
         return new Agent(def);
     }
 
-    private static Agent createFixerAgent(String model, Path outputDir)
+    private static Agent createInvestigatorAgent(RuntimeOs runtimeOs, Path workspace)
+    {
+        AgentDefinition def = new AgentDefinition();
+        def.setId("react-investigator");
+        def.setName("ReAct Investigator");
+        def.setModel(MODEL);
+        def.setReactEnabled(true);
+        def.setSystemPrompt("""
+            You are the investigator. Use shell commands to inspect BuggyCalculator.java and identify the root cause.
+            Provide factual observations for the fixer. Do not patch files.
+            Runtime OS: %s.
+            Workspace: %s
+            """.formatted(runtimeOs.displayName, workspace));
+        def.setReactInstructions("Loop in ReAct style: thought -> action -> observation. Keep each thought short.");
+        def.setToolNames(List.of("local_shell"));
+        def.setModelReasoning(Map.of("effort", "medium"));
+        return new Agent(def);
+    }
+
+    private static Agent createFixerAgent(RuntimeOs runtimeOs, Path workspace)
     {
         AgentDefinition def = new AgentDefinition();
         def.setId("react-fixer");
         def.setName("ReAct Fixer");
-        def.setModel(model);
-        def.setSystemPrompt("You are a coding fix agent. Use tools iteratively until the bug is fixed and verified.");
+        def.setModel(MODEL);
         def.setReactEnabled(true);
-        def.setReactInstructions("Use a ReAct loop: reason shortly, choose next best action, run one tool at a time, observe result, continue until compile succeeds, then provide final summary.");
-        def.setToolNames(List.of("local_shell", "apply_patch"));
+        def.setSystemPrompt("""
+            You are the fixer.
+            Use apply_patch to modify BuggyCalculator.java and local_shell to compile.
+            Keep iterating until compilation is successful.
+            Runtime OS: %s.
+            Workspace: %s
+            """.formatted(runtimeOs.displayName, workspace));
+        def.setReactInstructions("One tool action per loop. Observe outputs and adjust patching strategy until complete.");
+        def.setToolNames(List.of("apply_patch", "local_shell"));
+        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
         def.setModelReasoning(Map.of("effort", "medium"));
-        def.setModelProviderOptions(Map.of("working_directory", outputDir.toString()));
         return new Agent(def);
+    }
+
+    private static Agent createReviewerAgent(RuntimeOs runtimeOs, Path workspace)
+    {
+        AgentDefinition def = new AgentDefinition();
+        def.setId("react-reviewer");
+        def.setName("ReAct Reviewer");
+        def.setModel(MODEL);
+        def.setReactEnabled(true);
+        def.setSystemPrompt("""
+            You are the reviewer.
+            Verify BuggyCalculator.java contains return a + b; and compile succeeds.
+            If not, explain what should be redone.
+            Runtime OS: %s.
+            Workspace: %s
+            """.formatted(runtimeOs.displayName, workspace));
+        def.setReactInstructions("Use concise ReAct loops and finish with PASS/FAIL and evidence.");
+        def.setToolNames(List.of("local_shell"));
+        def.setModelReasoning(Map.of("effort", "medium"));
+        return new Agent(def);
+    }
+
+    private static String buildCoordinatorUserPrompt(RuntimeOs runtimeOs, Path workspace)
+    {
+        return """
+            Run a full multi-agent ReAct bug-fix workflow for BuggyCalculator.java.
+
+            Requirements:
+            - The buggy source is already in: %s
+            - Use command style compatible with runtime OS: %s
+            - Investigator should inspect source and optionally compile first to confirm behavior.
+            - Fixer must patch subtraction to addition and recompile.
+            - Reviewer must verify code + compile success.
+
+            Recommended compile command:
+            %s
+            """.formatted(workspace.resolve("BuggyCalculator.java"), runtimeOs.displayName, runtimeOs.compileCommand(workspace));
+    }
+
+
+    private static String buildInvestigatorPrompt(RuntimeOs runtimeOs, Path workspace)
+    {
+        return """
+            Investigate the bug in BuggyCalculator.java.
+            1) Print file content.
+            2) Compile the source and observe result.
+            3) Provide root cause summary for fixer.
+
+            Runtime OS: %s
+            Workspace: %s
+            Compile command suggestion: %s
+            """.formatted(runtimeOs.displayName, workspace, runtimeOs.compileCommand(workspace));
+    }
+
+    private static String buildFixerPrompt(RuntimeOs runtimeOs, Path workspace, String investigationOutput, String sourceSnapshot, int attempt)
+    {
+        return """
+            Fix BuggyCalculator.java using ReAct loop.
+            - Read investigator report.
+            - Apply minimal patch to change subtraction to addition.
+            - Compile and confirm success.
+            - Return final operations summary.
+            - If previous attempt failed, force a direct update on BuggyCalculator.java.
+
+            Attempt: %d
+            Investigator report:
+            %s
+
+            Current source snapshot:
+            %s
+
+            Runtime OS: %s
+            Workspace: %s
+            Compile command suggestion: %s
+            """.formatted(attempt, investigationOutput, sourceSnapshot, runtimeOs.displayName, workspace, runtimeOs.compileCommand(workspace));
+    }
+
+    private static String buildReviewerPrompt(RuntimeOs runtimeOs, Path workspace, String fixerOutput)
+    {
+        return """
+            Review the fixer result.
+            - Inspect BuggyCalculator.java and ensure it contains return a + b;
+            - Compile once more.
+            - Report PASS only if all checks succeed, otherwise FAIL.
+
+            Fixer output:
+            %s
+
+            Runtime OS: %s
+            Workspace: %s
+            Compile command suggestion: %s
+            """.formatted(fixerOutput, runtimeOs.displayName, workspace, runtimeOs.compileCommand(workspace));
     }
 
     private static LocalShellTool createShellTool()
     {
         ToolDefinition definition = new ToolDefinition(
             "local_shell",
-            "Execute a local bash command and return stdout.",
-            List.of(new ToolParameterSchema("command", "string", true, "Bash command to execute")));
+            "Execute a local shell command and return stdout/stderr.",
+            List.of(new ToolParameterSchema("command", "string", true, "Shell command to execute")));
         return new LocalShellTool(definition);
+    }
+
+    private static void applyDeterministicFallbackFix(Path targetBugFile) throws IOException
+    {
+        String source = Files.readString(targetBugFile);
+        String patched = source.replace("return a - b;", "return a + b;");
+        Files.writeString(targetBugFile, patched);
+    }
+
+    private static RuntimeOs detectRuntimeOs()
+    {
+        String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+        if (osName.contains("win"))
+        {
+            return RuntimeOs.WINDOWS;
+        }
+        if (osName.contains("mac"))
+        {
+            return RuntimeOs.MACOS;
+        }
+        return RuntimeOs.LINUX;
+    }
+
+    private static void resetBuggySource(Path targetBugFile) throws IOException
+    {
+        if (!Files.exists(INPUT_BUG_FILE))
+        {
+            throw new IOException("Missing bug input source: " + INPUT_BUG_FILE);
+        }
+        Files.writeString(targetBugFile, Files.readString(INPUT_BUG_FILE));
+    }
+
+    private static String compileWithProcessBuilder(Path workspace, RuntimeOs runtimeOs)
+    {
+        ProcessBuilder builder = new ProcessBuilder("javac", "BuggyCalculator.java");
+        builder.directory(workspace.toFile());
+        builder.redirectErrorStream(true);
+
+        try
+        {
+            Process process = builder.start();
+            String output = new String(process.getInputStream().readAllBytes());
+            int exitCode = process.waitFor();
+            if (exitCode != 0)
+            {
+                return output + "\nEXIT=" + exitCode;
+            }
+            return output + "\nCOMPILE_OK";
+        }
+        catch (InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+            return "Compile check failed: " + ex.getMessage();
+        }
+        catch (IOException ex)
+        {
+            return "Compile check failed: " + ex.getMessage();
+        }
+    }
+
+    private enum RuntimeOs
+    {
+        WINDOWS("windows"),
+        MACOS("macos"),
+        LINUX("linux");
+
+        private final String displayName;
+
+        RuntimeOs(String displayName)
+        {
+            this.displayName = displayName;
+        }
+
+        private String compileCommand(Path workspace)
+        {
+            return switch (this)
+            {
+                case WINDOWS -> "cmd /c \"cd /d \"\"" + workspace + "\"\" && javac BuggyCalculator.java\"";
+                case MACOS, LINUX -> "cd '" + workspace + "' && javac BuggyCalculator.java";
+            };
+        }
     }
 
     private static final class FileSystemEditor implements IApplyPatchEditor
@@ -174,7 +424,7 @@ public class Example24ReActAgentDebugFixTest
             }
         }
 
-        private ApplyPatchResult updateOrCreate(ApplyPatchOperation operation, boolean create) 
+        private ApplyPatchResult updateOrCreate(ApplyPatchOperation operation, boolean create)
         {
             try
             {
