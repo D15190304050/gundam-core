@@ -98,10 +98,8 @@ public class Example25ComplexReActDebugFixTest
                 .call()
                 .contextResult();
 
-            String output = runProgram(workspace);
-            String source = Files.readString(targetFile);
-            if (output.contains("TOTAL=102.6") && source.contains("for (int i = 0; i < items.length; i++)")
-                && source.contains("return 0.08;") && source.contains("Math.round(value * 100.0) / 100.0"))
+            String behaviorNow = runBehaviorVerification(workspace);
+            if (behaviorNow.contains("BEHAVIOR_OK"))
             {
                 break;
             }
@@ -111,20 +109,15 @@ public class Example25ComplexReActDebugFixTest
         Assertions.assertNotNull(fixer != null ? fixer.getFinalOutput() : null, "Expected fixer output");
         Assertions.assertNotNull(reviewer != null ? reviewer.getFinalOutput() : null, "Expected reviewer output");
 
-        String finalSource = Files.readString(targetFile);
-        String runOutput = runProgram(workspace);
+        String runOutput = runBehaviorVerification(workspace);
 
-        if (!runOutput.contains("TOTAL=102.6"))
+        if (!runOutput.contains("BEHAVIOR_OK"))
         {
             applyDeterministicFallbackFix(targetFile);
-            finalSource = Files.readString(targetFile);
-            runOutput = runProgram(workspace);
+            runOutput = runBehaviorVerification(workspace);
         }
 
-        Assertions.assertTrue(finalSource.contains("for (int i = 0; i < items.length; i++)"), "Expected full item iteration");
-        Assertions.assertTrue(finalSource.contains("return 0.08;"), "Expected corrected food tax rate");
-        Assertions.assertTrue(finalSource.contains("Math.round(value * 100.0) / 100.0"), "Expected two-decimal rounding");
-        Assertions.assertTrue(runOutput.contains("TOTAL=102.6"), "Expected runtime verification output: " + runOutput);
+        Assertions.assertTrue(runOutput.contains("BEHAVIOR_OK"), "Expected runtime verification output: " + runOutput);
     }
 
     private static Agent createInvestigatorAgent(Path workspace)
@@ -138,6 +131,11 @@ public class Example25ComplexReActDebugFixTest
             You are an investigator for InvoiceSummaryEngine.java.
             Use local_shell to inspect code and execute the program.
             Identify all logic defects that make TOTAL incorrect.
+            Known defects to confirm: iteration starts at index 1, food tax uses 0.18 instead of 0.08,
+            and round2 keeps one decimal only.
+            Expected behavior examples after fix:
+            - calculateTotal([20,30,50], "food", true) => 102.6
+            - calculateTotal([10,40], "book", false) => 52.0
             Workspace: %s
             """.formatted(workspace));
         def.setReactInstructions("Use concise ReAct reasoning and return concrete defect list.");
@@ -156,7 +154,10 @@ public class Example25ComplexReActDebugFixTest
         def.setSystemPrompt("""
             You are the fixer.
             Use apply_patch to fix InvoiceSummaryEngine.java and use local_shell for compile/run verification.
-            Target behavior: running `java InvoiceSummaryEngine` must print TOTAL=102.6.
+            Known bug types: wrong start index in item loop, wrong food tax rate, and wrong rounding precision.
+            Target behavior checks:
+            - calculateTotal([20,30,50], "food", true) => 102.6
+            - calculateTotal([10,40], "book", false) => 52.0
             Workspace: %s
             """.formatted(workspace));
         def.setReactInstructions("Use at most one patch and one compile/run cycle before finalizing each attempt.");
@@ -175,8 +176,10 @@ public class Example25ComplexReActDebugFixTest
         def.setReactEnabled(true);
         def.setSystemPrompt("""
             You are the reviewer.
-            Validate fixed source by checking loop index, tax rate and rounding precision, then run the program.
-            PASS only when TOTAL=102.6 and all code-level checks are true.
+            Validate runtime correctness using behavior checks, not source string matching.
+            PASS only when both checks are true:
+            - calculateTotal([20,30,50], "food", true) => 102.6
+            - calculateTotal([10,40], "book", false) => 52.0
             Workspace: %s
             """.formatted(workspace));
         def.setReactInstructions("Perform concise ReAct checks and end with PASS or FAIL evidence.");
@@ -190,8 +193,11 @@ public class Example25ComplexReActDebugFixTest
         return """
             Investigate InvoiceSummaryEngine.java.
             1) Print full source.
-            2) Compile and run to capture observed TOTAL output.
-            3) Explain root causes with exact lines/symbols to change.
+            2) Compile and run to capture current output.
+            3) Explain why these expected behaviors fail now:
+               - calculateTotal([20,30,50], "food", true) => 102.6
+               - calculateTotal([10,40], "book", false) => 52.0
+            4) Provide root causes with exact lines/symbols to change.
 
             Recommended commands:
             cd '%s' && javac InvoiceSummaryEngine.java
@@ -214,7 +220,9 @@ public class Example25ComplexReActDebugFixTest
             Constraints:
             - Apply minimal patch with apply_patch.
             - Recompile and run for verification.
-            - Ensure expected line-level corrections are present.
+            - Ensure behavior checks pass:
+              - calculateTotal([20,30,50], "food", true) => 102.6
+              - calculateTotal([10,40], "book", false) => 52.0
 
             Recommended commands:
             cd '%s' && javac InvoiceSummaryEngine.java
@@ -229,10 +237,8 @@ public class Example25ComplexReActDebugFixTest
             %s
 
             Perform checks:
-            - loop starts at i = 0
-            - food tax rate is 0.08
-            - round2 uses 100.0 precision
-            - runtime output equals TOTAL=102.6
+            - calculateTotal([20,30,50], "food", true) == 102.6
+            - calculateTotal([10,40], "book", false) == 52.0
 
             Recommended commands:
             cd '%s' && javac InvoiceSummaryEngine.java
@@ -240,9 +246,38 @@ public class Example25ComplexReActDebugFixTest
             """.formatted(fixerOutput, workspace, workspace);
     }
 
-    private static String runProgram(Path workspace)
+    private static String runBehaviorVerification(Path workspace)
     {
-        ProcessBuilder builder = new ProcessBuilder("bash", "-lc", "cd '" + workspace + "' && javac InvoiceSummaryEngine.java && java InvoiceSummaryEngine");
+        Path verifierFile = workspace.resolve("InvoiceSummaryEngineVerifier.java");
+        String verifierSource = """
+            public class InvoiceSummaryEngineVerifier {
+                private static boolean approx(double value, double expected) {
+                    return Math.abs(value - expected) < 0.0001;
+                }
+
+                public static void main(String[] args) {
+                    double caseA = InvoiceSummaryEngine.calculateTotal(new double[] {20.0, 30.0, 50.0}, "food", true);
+                    double caseB = InvoiceSummaryEngine.calculateTotal(new double[] {10.0, 40.0}, "book", false);
+                    boolean okA = approx(caseA, 102.6);
+                    boolean okB = approx(caseB, 52.0);
+                    if (okA && okB) {
+                        System.out.println("BEHAVIOR_OK caseA=" + caseA + " caseB=" + caseB);
+                    } else {
+                        System.out.println("BEHAVIOR_FAIL caseA=" + caseA + " caseB=" + caseB);
+                    }
+                }
+            }
+            """;
+        try
+        {
+            Files.writeString(verifierFile, verifierSource);
+        }
+        catch (IOException ex)
+        {
+            return "Run failed: " + ex.getMessage();
+        }
+
+        ProcessBuilder builder = new ProcessBuilder("bash", "-lc", "cd '" + workspace + "' && javac InvoiceSummaryEngine.java InvoiceSummaryEngineVerifier.java && java InvoiceSummaryEngineVerifier");
         builder.redirectErrorStream(true);
         try
         {
