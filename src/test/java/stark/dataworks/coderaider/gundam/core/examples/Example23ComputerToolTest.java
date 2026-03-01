@@ -1,103 +1,72 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import stark.dataworks.coderaider.gundam.core.agent.Agent;
+import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
+import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.computer.Environment;
 import stark.dataworks.coderaider.gundam.core.computer.SimulatedComputer;
+import stark.dataworks.coderaider.gundam.core.context.ContextResult;
+import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
+import stark.dataworks.coderaider.gundam.core.llmspi.LlmRequest;
+import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
+import stark.dataworks.coderaider.gundam.core.model.ToolCall;
+import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
+import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
+import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 import stark.dataworks.coderaider.gundam.core.tool.builtin.ComputerTool;
 
 /**
- * Example demonstrating ComputerTool for browser/desktop automation.
- * The tool supports screenshot, click, double_click, scroll, type, wait, move, keypress, and drag operations.
+ * Example demonstrating ComputerTool with Agent + AgentRunner orchestration.
  */
 public class Example23ComputerToolTest
 {
     @Test
     public void run()
     {
-        System.out.println("=== ComputerTool Example ===");
+        System.out.println("=== ComputerTool Agent Example ===");
 
         SimulatedComputer computer = new SimulatedComputer(Environment.BROWSER, 1024, 768);
-        ComputerTool tool = new ComputerTool(computer);
+        ComputerTool computerTool = new ComputerTool(computer);
 
-        System.out.println("\nTool name: " + tool.definition().getName());
-        System.out.println("Tool description: " + tool.definition().getDescription());
-        System.out.println("Computer environment: " + computer.getEnvironment());
-        System.out.println("Display dimensions: " + computer.getDimensions()[0] + "x" + computer.getDimensions()[1]);
+        AgentDefinition agentDefinition = new AgentDefinition();
+        agentDefinition.setId("computer-agent");
+        agentDefinition.setName("Computer Agent");
+        agentDefinition.setModel("scripted-computer-model");
+        agentDefinition.setSystemPrompt("You are a computer-use assistant. Use computer_use_preview to perform actions.");
+        agentDefinition.setToolNames(List.of(computerTool.definition().getName()));
 
-        System.out.println("\n=== Testing Operations ===");
+        AgentRegistry agentRegistry = new AgentRegistry();
+        agentRegistry.register(new Agent(agentDefinition));
 
-        System.out.println("\n1. Screenshot:");
-        String screenshotResult = tool.execute(java.util.Map.of("action", "screenshot"));
-        System.out.println("   Result: " + screenshotResult);
+        ToolRegistry toolRegistry = new ToolRegistry();
+        toolRegistry.register(computerTool);
 
-        System.out.println("\n2. Click:");
-        String clickResult = tool.execute(java.util.Map.of(
-            "action", "click",
-            "x", 100,
-            "y", 200,
-            "button", "left"
-        ));
-        System.out.println("   Result: " + clickResult);
+        AgentRunner runner = AgentRunner.builder()
+            .llmClient(new ScriptedComputerLlmClient())
+            .toolRegistry(toolRegistry)
+            .agentRegistry(agentRegistry)
+            .eventPublisher(ExampleStreamingPublishers.textWithToolLifecycle(""))
+            .build();
 
-        System.out.println("\n3. Double Click:");
-        String doubleClickResult = tool.execute(java.util.Map.of(
-            "action", "double_click",
-            "x", 150,
-            "y", 250
-        ));
-        System.out.println("   Result: " + doubleClickResult);
+        ContextResult result = runner.chatClient("computer-agent")
+            .prompt()
+            .user("Take a screenshot and click at (100, 200).")
+            .runConfiguration(RunConfiguration.defaults())
+            .runHooks(ExampleSupport.noopHooks())
+            .call()
+            .contextResult();
 
-        System.out.println("\n4. Type:");
-        String typeResult = tool.execute(java.util.Map.of(
-            "action", "type",
-            "text", "Hello, World!"
-        ));
-        System.out.println("   Result: " + typeResult);
-
-        System.out.println("\n5. Scroll:");
-        String scrollResult = tool.execute(java.util.Map.of(
-            "action", "scroll",
-            "x", 500,
-            "y", 400,
-            "scroll_x", 0,
-            "scroll_y", -100
-        ));
-        System.out.println("   Result: " + scrollResult);
-
-        System.out.println("\n6. Move:");
-        String moveResult = tool.execute(java.util.Map.of(
-            "action", "move",
-            "x", 300,
-            "y", 300
-        ));
-        System.out.println("   Result: " + moveResult);
-
-        System.out.println("\n7. Keypress:");
-        String keypressResult = tool.execute(java.util.Map.of(
-            "action", "keypress",
-            "keys", List.of("ctrl", "c")
-        ));
-        System.out.println("   Result: " + keypressResult);
-
-        System.out.println("\n8. Drag:");
-        String dragResult = tool.execute(java.util.Map.of(
-            "action", "drag",
-            "path", List.of(
-                List.of(100, 100),
-                List.of(200, 200),
-                List.of(300, 300)
-            )
-        ));
-        System.out.println("   Result: " + dragResult);
-
-        System.out.println("\n9. Wait:");
-        String waitResult = tool.execute(java.util.Map.of("action", "wait"));
-        System.out.println("   Result: " + waitResult);
-
+        System.out.println("\nFinal output: " + result.getFinalOutput());
         System.out.println("\n=== Action Log ===");
+
         List<SimulatedComputer.ComputerAction> actions = computer.getActionLog();
         for (int i = 0; i < actions.size(); i++)
         {
@@ -107,6 +76,50 @@ public class Example23ComputerToolTest
         System.out.println("\n=== Screenshot Count ===");
         System.out.println("Total screenshots: " + computer.getScreenshotCount());
 
+        assertEquals("computer-agent", result.getFinalAgentId());
+        assertEquals(2, actions.size());
+        assertEquals("screenshot", actions.get(0).getAction());
+        assertEquals("click", actions.get(1).getAction());
+        assertEquals(100, actions.get(1).getX());
+        assertEquals(200, actions.get(1).getY());
+        assertEquals(1, computer.getScreenshotCount());
+        assertTrue(result.getFinalOutput().contains("Completed computer actions"));
+
         System.out.println("\nExample completed successfully!");
+    }
+
+    private static class ScriptedComputerLlmClient implements ILlmClient
+    {
+        private int callCount;
+
+        @Override
+        public LlmResponse chat(LlmRequest request)
+        {
+            callCount++;
+            if (callCount == 1)
+            {
+                return new LlmResponse(
+                    "",
+                    List.of(
+                        new ToolCall("computer_use_preview", Map.of("action", "screenshot")),
+                        new ToolCall("computer_use_preview", Map.of(
+                            "action", "click",
+                            "x", 100,
+                            "y", 200,
+                            "button", "left"
+                        ))
+                    ),
+                    null,
+                    null
+                );
+            }
+
+            return new LlmResponse(
+                "Completed computer actions: screenshot and click at (100, 200).",
+                List.of(),
+                null,
+                null
+            );
+        }
     }
 }
