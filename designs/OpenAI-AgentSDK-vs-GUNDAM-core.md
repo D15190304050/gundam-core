@@ -60,6 +60,7 @@ Legend: ✅ implemented, 🟡 partial/in progress, ⚪ not implemented.
 14. **Apply patch editor**: `ApplyPatchTool`, `IApplyPatchEditor`, `ApplyPatchOperation`, `ApplyPatchResult`, and `DiffApplier` implemented for file diff/patch operations (create, update, delete).
 15. **Computer tool completed**: Full `IComputer` interface with `AbstractComputer` base class and `SimulatedComputer` for testing. Supports all operations: screenshot, click, double_click, scroll, type, wait, move, keypress, drag.
 16. **Existing strengths retained**: lifecycle hooks, retries, guardrails, tracing, handoffs, MCP, and structured output remain aligned with design goals.
+17. **ReAct debug-fix workflow refined**: Example24 now uses role-specialized multi-agent handoffs (coordinator, investigator, fixer, reviewer), resets a known buggy input source before each run, and includes OS-aware compile guidance for Windows/macOS/Linux.
 
 ## New examples demonstrating capabilities
 
@@ -76,6 +77,7 @@ The following examples have been added to demonstrate new features:
 - **Example21ToolUseTrackerTest**: Demonstrates `AgentToolUseTracker` for tracking tool usage across agents.
 - **Example22ApplyPatchToolTest**: Demonstrates `ApplyPatchTool` for file diff/patch operations.
 - **Example23ComputerToolTest**: Demonstrates `ComputerTool` for browser/desktop automation.
+- **Example24ReActAgentDebugFixTest**: Demonstrates a coordinator/investigator/fixer/reviewer multi-agent topology where each role follows ReAct loops to debug and patch a Java bug with cross-platform command guidance.
 
 ## What's next (recommended roadmap)
 

@@ -43,6 +43,13 @@ final class ExampleStreamingPublishers
         return publisher;
     }
 
+    static RunEventPublisher reactThoughtActionObservation()
+    {
+        RunEventPublisher publisher = new RunEventPublisher();
+        publisher.subscribe(new ReActTraceListener());
+        return publisher;
+    }
+
     private static String toJsonOrString(Object value)
     {
         if (value == null)
@@ -121,6 +128,79 @@ final class ExampleStreamingPublishers
                 Object result = event.getAttributes().get("result");
                 System.out.println("[" + toolPrefix + "Tool completed: " + tool + " with result: " + toJsonOrString(result) + "]");
                 System.out.print("Continuing stream: ");
+            }
+        }
+    }
+
+    private static final class ReActTraceListener implements IRunEventListener
+    {
+        private boolean thoughtHeaderPrinted;
+        private boolean actionHeaderPrinted;
+        private boolean observationHeaderPrinted;
+        private boolean answerHeaderPrinted;
+
+        @Override
+        public void onEvent(RunEvent event)
+        {
+            if (event.getType() == RunEventType.MODEL_REASONING_DELTA)
+            {
+                String delta = (String) event.getAttributes().get("delta");
+                if (delta != null && !delta.isEmpty())
+                {
+                    if (!thoughtHeaderPrinted)
+                    {
+                        System.out.println("\n[Thought]");
+                        thoughtHeaderPrinted = true;
+                        actionHeaderPrinted = false;
+                        observationHeaderPrinted = false;
+                    }
+                    System.out.print(delta);
+                    System.out.flush();
+                }
+                return;
+            }
+
+            if (event.getType() == RunEventType.TOOL_CALL_REQUESTED)
+            {
+                String tool = (String) event.getAttributes().get("tool");
+                Object args = event.getAttributes().get("arguments");
+                if (!actionHeaderPrinted)
+                {
+                    System.out.println("\n\n[Action]");
+                    actionHeaderPrinted = true;
+                }
+                System.out.println("tool=" + tool + " args=" + toJsonOrString(args));
+                observationHeaderPrinted = false;
+                return;
+            }
+
+            if (event.getType() == RunEventType.TOOL_CALL_COMPLETED)
+            {
+                String tool = (String) event.getAttributes().get("tool");
+                Object result = event.getAttributes().get("result");
+                if (!observationHeaderPrinted)
+                {
+                    System.out.println("[Observation]");
+                    observationHeaderPrinted = true;
+                }
+                System.out.println("tool=" + tool + " result=" + toJsonOrString(result));
+                thoughtHeaderPrinted = false;
+                return;
+            }
+
+            if (event.getType() == RunEventType.MODEL_RESPONSE_DELTA)
+            {
+                String delta = (String) event.getAttributes().get("delta");
+                if (delta != null && !delta.isEmpty())
+                {
+                    if (!answerHeaderPrinted)
+                    {
+                        System.out.println("\n\n[Answer]");
+                        answerHeaderPrinted = true;
+                    }
+                    System.out.print(delta);
+                    System.out.flush();
+                }
             }
         }
     }
