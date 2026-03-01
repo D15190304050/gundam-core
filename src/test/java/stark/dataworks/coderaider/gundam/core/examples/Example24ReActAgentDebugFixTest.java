@@ -367,8 +367,8 @@ public class Example24ReActAgentDebugFixTest
             return "Behavior verification setup failed: " + ex.getMessage();
         }
 
-        ProcessBuilder builder = new ProcessBuilder("bash", "-lc",
-            "cd '" + workspace + "' && javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier");
+        RuntimeOs runtimeOs = detectRuntimeOs();
+        ProcessBuilder builder = createBehaviorVerificationProcessBuilder(runtimeOs, workspace);
         builder.redirectErrorStream(true);
         try
         {
@@ -390,6 +390,17 @@ public class Example24ReActAgentDebugFixTest
         {
             return "Behavior verification failed: " + ex.getMessage();
         }
+    }
+
+    private static ProcessBuilder createBehaviorVerificationProcessBuilder(RuntimeOs runtimeOs, Path workspace)
+    {
+        return switch (runtimeOs)
+        {
+            case WINDOWS -> new ProcessBuilder("cmd", "/c",
+                "cd /d \"" + workspace + "\" && javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier");
+            case MACOS, LINUX -> new ProcessBuilder("bash", "-lc",
+                "cd '" + workspace + "' && javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier");
+        };
     }
 
     private enum RuntimeOs
