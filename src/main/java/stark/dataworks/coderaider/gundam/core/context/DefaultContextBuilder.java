@@ -7,6 +7,7 @@ import stark.dataworks.coderaider.gundam.core.agent.IAgent;
 import stark.dataworks.coderaider.gundam.core.memory.IAgentMemory;
 import stark.dataworks.coderaider.gundam.core.model.Message;
 import stark.dataworks.coderaider.gundam.core.model.Role;
+import stark.dataworks.coderaider.gundam.core.react.ReActPromptComposer;
 
 /**
  * DefaultContextBuilder implements prompt/context assembly before model calls.
@@ -25,7 +26,11 @@ public class DefaultContextBuilder implements IContextBuilder
     public List<Message> build(IAgent agent, IAgentMemory memory, String userInput)
     {
         List<Message> messages = new ArrayList<>();
-        messages.add(new Message(Role.SYSTEM, agent.definition().getSystemPrompt()));
+        String systemPrompt = ReActPromptComposer.compose(
+            agent.definition().getSystemPrompt(),
+            agent.definition().getReactInstructions(),
+            agent.definition().isReactEnabled());
+        messages.add(new Message(Role.SYSTEM, systemPrompt));
         messages.addAll(memory.messages());
         if (userInput != null && !userInput.isBlank())
         {

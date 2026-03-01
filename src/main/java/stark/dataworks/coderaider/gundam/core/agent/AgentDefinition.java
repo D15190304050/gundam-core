@@ -105,6 +105,16 @@ public class AgentDefinition
     private boolean requireToolApproval = false;
 
     /**
+     * Internal state controlling ReAct mode prompt augmentation.
+     */
+    private boolean reactEnabled = false;
+
+    /**
+     * Internal state for custom ReAct instructions appended to the system prompt.
+     */
+    private String reactInstructions;
+
+    /**
      * Internal state for output schema name; used while coordinating runtime behavior.
      */
     private String outputSchemaName;

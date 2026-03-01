@@ -12,6 +12,7 @@ This document compares the current capabilities of **OpenAI Agents SDK** (refere
 | Capability | OpenAI Agents SDK | GUNDAM-core status | Notes |
 |---|---|---|---|
 | Core agent loop (model -> tools -> continue) | ✅ | ✅ | `AgentRunner` implements loop, retries, hooks, guardrails, handoff flow. |
+| ReAct mode (reasoning + iterative action planning) | ✅ | ✅ | `AgentDefinition.reactEnabled` and `reactInstructions` augment system prompts for explicit ReAct loop behavior. |
 | Streaming token events | ✅ | ✅ | `runStreamed` and run-event publication available. |
 | Reasoning stream handling | ✅ | ✅ | Reasoning delta events exposed and consumed in examples. |
 | Tool calling (local tools) | ✅ | ✅ | Mature in both projects. |
