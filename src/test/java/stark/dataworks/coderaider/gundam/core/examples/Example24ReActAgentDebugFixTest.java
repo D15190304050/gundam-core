@@ -39,6 +39,8 @@ public class Example24ReActAgentDebugFixTest
 {
     private static final String MODEL = "Qwen/Qwen3-4B";
     private static final Path INPUT_BUG_FILE = Path.of("src", "test", "resources", "inputs", "BuggyCalculator.java");
+    private static final RunConfiguration EXAMPLE_RUN_CONFIGURATION =
+        new RunConfiguration(4, null, 0.2, 2048, "auto", "text", Map.of());
 
     @Test
     public void run() throws IOException
@@ -71,16 +73,18 @@ public class Example24ReActAgentDebugFixTest
 
         ContextResult coordinatorPlan = runner.chatClient("react-coordinator")
             .prompt()
+            .stream(true)
             .user(buildCoordinatorUserPrompt(runtimeOs, workspace))
-            .runConfiguration(RunConfiguration.defaults())
+            .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
             .runHooks(ExampleSupport.noopHooks())
             .call()
             .contextResult();
 
         ContextResult investigatorResult = runner.chatClient("react-investigator")
             .prompt()
+            .stream(true)
             .user(buildInvestigatorPrompt(runtimeOs, workspace))
-            .runConfiguration(RunConfiguration.defaults())
+            .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
             .runHooks(ExampleSupport.noopHooks())
             .call()
             .contextResult();
@@ -92,16 +96,18 @@ public class Example24ReActAgentDebugFixTest
             String sourceSnapshot = Files.readString(targetBugFile);
             fixerResult = runner.chatClient("react-fixer")
                 .prompt()
+                .stream(true)
                 .user(buildFixerPrompt(runtimeOs, workspace, investigatorResult.getFinalOutput(), sourceSnapshot, attempt))
-                .runConfiguration(RunConfiguration.defaults())
+                .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
                 .runHooks(ExampleSupport.noopHooks())
                 .call()
                 .contextResult();
 
             reviewerResult = runner.chatClient("react-reviewer")
                 .prompt()
+                .stream(true)
                 .user(buildReviewerPrompt(runtimeOs, workspace, fixerResult.getFinalOutput()))
-                .runConfiguration(RunConfiguration.defaults())
+                .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
                 .runHooks(ExampleSupport.noopHooks())
                 .call()
                 .contextResult();
@@ -152,16 +158,15 @@ public class Example24ReActAgentDebugFixTest
         def.setReactEnabled(true);
         def.setSystemPrompt("""
             You are the lead debugging coordinator.
-            Execute a multi-agent ReAct workflow:
-            1) handoff to react-investigator to inspect source and collect observations,
-            2) handoff to react-fixer to patch + compile iteratively,
-            3) handoff to react-reviewer for final verification.
-            Stop only when reviewer confirms the build is successful.
+            Produce only a short delegation plan for a multi-agent ReAct workflow:
+            1) investigator inspects source and collects observations,
+            2) fixer patches + compiles iteratively,
+            3) reviewer verifies compile success.
+            This coordinator run must not invoke tools or handoffs.
             Runtime OS: %s.
             Workspace: %s
             """.formatted(runtimeOs.displayName, workspace));
-        def.setReactInstructions("Keep thoughts concise. Decide one next action each cycle. Prefer delegating through handoffs.");
-        def.setHandoffAgentIds(List.of("react-investigator", "react-fixer", "react-reviewer"));
+        def.setReactInstructions("Keep thoughts concise and end after providing the numbered plan.");
         def.setModelReasoning(Map.of("effort", "medium"));
         return new Agent(def);
     }
@@ -237,6 +242,7 @@ public class Example24ReActAgentDebugFixTest
             - Investigator should inspect source and optionally compile first to confirm behavior.
             - Fixer must patch subtraction to addition and recompile.
             - Reviewer must verify code + compile success.
+            - You are only producing a concise plan in this step, no tool calls.
 
             Recommended compile command:
             %s
@@ -267,6 +273,8 @@ public class Example24ReActAgentDebugFixTest
             - Compile and confirm success.
             - Return final operations summary.
             - If previous attempt failed, force a direct update on BuggyCalculator.java.
+            - Use at most one patch command and one compile command in this run.
+            - Stop once you have compile evidence.
 
             Attempt: %d
             Investigator report:
