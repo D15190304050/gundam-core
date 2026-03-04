@@ -32,7 +32,7 @@ public class Example01SingleSimpleAgentTest
 
         String model = "Qwen/Qwen3-4B";
         String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
-        String prompt = "如何制作红烧牛肉面？我需要详细的说明。";
+        String prompt = "How do I cook braised beef noodles? Please provide detailed instructions.";
 
         if (apiKey == null || apiKey.isBlank())
         {

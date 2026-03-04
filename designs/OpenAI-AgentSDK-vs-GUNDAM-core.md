@@ -15,7 +15,7 @@ This document compares the current capabilities of **OpenAI Agents SDK** (refere
 | ReAct mode (reasoning + iterative action planning) | ✅ | ✅ | `AgentDefinition.reactEnabled` and `reactInstructions` augment system prompts for explicit ReAct loop behavior. |
 | Streaming token events | ✅ | ✅ | `runStreamed` and run-event publication available. |
 | Reasoning stream handling | ✅ | ✅ | Reasoning delta events exposed and consumed in examples. |
-| Tool calling (local tools) | ✅ | ✅ | Mature in both projects. |
+| Tool calling (local tools) | ✅ | ✅ | Mature in both projects, including agent-as-tool and workflow-as-tool patterns. |
 | MCP tool integration | ✅ | ✅ | Supports stdio, HTTP, and streamable-http MCP usage. |
 | Handoffs / multi-agent orchestration | ✅ | ✅ | `HandoffRouter` + handoff examples implemented. |
 | Guardrails | ✅ | ✅ | Input/output guardrail evaluation in runner flow. |
@@ -35,6 +35,7 @@ This document compares the current capabilities of **OpenAI Agents SDK** (refere
 | Multimodal generation (audio/image/video) | ✅ | 🟡 Partial | Interfaces exist (`IAudioGenerator`, `IImageGenerator`, `IVideoGenerator`), no providers. |
 | Agent tool state tracking | ✅ | ✅ | `AgentToolUseTracker` implemented with serialization/hydration support. |
 | Editor (file diff/patch) | ✅ | ✅ | `ApplyPatchTool`, `IApplyPatchEditor`, `DiffApplier` implemented for file operations. |
+| Workflow DAG orchestration tool | ✅ | ✅ | Configurable DAG workflow runtime with vertex processors, retries/failure strategy, and JSON loading (`WorkflowDefinitionLoader`). |
 | Realtime voice/webhook workflows | ✅ | ⚪ Partial | Interfaces exist (`IRealtimeClient`, `IRealtimeSession`), no full implementation. |
 | Codex/experimental features | ✅ | ⚪ Not implemented | OpenAI has experimental codex module. |
 | Error handling registry | ✅ | ✅ | `RunErrorHandlers`, `IRunErrorHandler`, `RunErrorKind` implemented. |
@@ -64,6 +65,10 @@ Legend: ✅ implemented, 🟡 partial/in progress, ⚪ not implemented.
 18. **Complex ReAct debugging scenario added**: Example25 introduces a harder runtime-logic repair flow on `InvoiceSummaryEngine.java`, requiring coordinated source inspection, multi-defect patching, runtime behavior verification, explicit working-directory tool context, and stricter patch-call prompt constraints; both Example24/25 now load buggy sources and verifier sources from `src/test/resources/inputs` on each test run.
 19. **apply_patch argument compatibility improved**: `ApplyPatchTool` now robustly parses OpenAI-compatible `raw` tool payload variants (including nested/quoted JSON argument strings and substring extraction fallback), reducing repeated `Missing 'operation' parameter` failures in ReAct repair loops.
 
+20. **Workflow DAG runtime support**: Added configurable workflow DAG model (`WorkflowDefinition`, `WorkflowVertexDefinition`), runtime execution (`WorkflowExecutor`), failure strategies/retries, JSON loading (`WorkflowDefinitionLoader`), and tool wrapper (`WorkflowTool`) so agents can invoke workflows as tools.
+21. **Agent-as-tool support example**: Added `AgentTool` plus Example26 to demonstrate orchestrator agent delegating to a specialist agent through standard tool-calling.
+22. **Workflow-as-tool examples**: Example27 demonstrates both hardcoded workflow construction and JSON-loaded workflow definitions, each executed by an agent through tool-calling with streaming output.
+
 ## New examples demonstrating capabilities
 
 The following examples have been added to demonstrate new features:
@@ -81,6 +86,8 @@ The following examples have been added to demonstrate new features:
 - **Example23ComputerToolTest**: Demonstrates `ComputerTool` for browser/desktop automation.
 - **Example24ReActAgentDebugFixTest**: Demonstrates a coordinator/investigator/fixer/reviewer multi-agent topology where each role follows ReAct loops to debug and patch a Java bug with cross-platform command guidance.
 - **Example25ComplexReActDebugFixTest**: Demonstrates a harder ReAct debugging pipeline that fixes multiple logical defects (iteration, tax rate, rounding) and validates correctness by compiling and executing the target Java program.
+- **Example26AgentAsToolTest**: Demonstrates an orchestrator agent invoking a specialist agent via `AgentTool`.
+- **Example27WorkflowAsToolTest**: Demonstrates workflow DAG as a tool, including one hardcoded workflow and one JSON-loaded workflow definition.
 
 ## What's next (recommended roadmap)
 

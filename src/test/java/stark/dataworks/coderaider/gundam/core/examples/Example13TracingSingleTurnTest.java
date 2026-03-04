@@ -48,7 +48,7 @@ public class Example13TracingSingleTurnTest
 
         String output = runner.chatClient("trace-single")
             .prompt()
-            .user("请用一句话解释分布式追踪。")
+            .user("Explain distributed tracing in one sentence.")
             .runConfiguration(RunConfiguration.defaults())
             .runHooks(ExampleSupport.noopHooks())
             .stream(false)

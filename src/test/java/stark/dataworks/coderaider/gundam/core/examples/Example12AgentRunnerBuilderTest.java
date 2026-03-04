@@ -31,7 +31,7 @@ public class Example12AgentRunnerBuilderTest
 
         String model = "Qwen/Qwen3-4B";
         String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
-        String prompt = "天空为什么是蓝色的？请逐步思考，回答必须包含瑞利散射。";
+        String prompt = "Why is the sky blue? Think step by step, and your answer must mention Rayleigh scattering.";
 
         if (apiKey == null || apiKey.isBlank())
         {

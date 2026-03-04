@@ -32,7 +32,7 @@ public class Example07ReasoningStreamingTest
 
         String model = "Qwen/Qwen3-4B";
         String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
-        String prompt = "请逐步思考并给出一个简短答案：为什么海水是咸的？";
+        String prompt = "Think step by step and give a brief answer: why is seawater salty?";
 
         if (apiKey == null || apiKey.isBlank())
         {

@@ -50,7 +50,7 @@ public class Example14TracingMultiRoundTest
         RunConfiguration cfg = new RunConfiguration(12, "trace-session", 0.2, 512, "auto", "text", Map.of());
         String first = runner.chatClient("trace-multi")
             .prompt()
-            .user("第一轮：请给我一句话解释什么是追踪ID。")
+            .user("Round 1: Explain what a trace ID is in one sentence.")
             .runConfiguration(cfg)
             .runHooks(ExampleSupport.noopHooks())
             .stream(false)
@@ -58,7 +58,7 @@ public class Example14TracingMultiRoundTest
             .content();
         String second = runner.chatClient("trace-multi")
             .prompt()
-            .user("第二轮：再用一句话解释跨度ID。")
+            .user("Round 2: Explain what a span ID is in one sentence.")
             .runConfiguration(cfg)
             .runHooks(ExampleSupport.noopHooks())
             .stream(false)

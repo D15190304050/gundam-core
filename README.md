@@ -12,6 +12,26 @@ It is the engine.
 
 ---
 
+
+# Supported Features
+
+GUNDAM-core currently supports the following runtime capabilities:
+
+- Constructing and running a single agent with provider-agnostic LLM backends
+- Local tool calling with typed tool schemas and runtime registration
+- Agent-to-agent delegation through tool calls (`AgentTool`)
+- Agent handoff orchestration across multiple agents
+- Workflow-as-tool execution with DAG validation, retries, and failure strategies (`WorkflowTool`)
+- Running an agent as a workflow step (`AgentWorkflowProcessor`)
+- Streaming model output events for interactive user experiences
+- Guardrails, retry policies, and run error handlers
+- Session persistence and pluggable memory backends
+- Structured output with JSON schema/class-based mapping
+- MCP tool integration (stdio / HTTP / streamable HTTP)
+- Tracing, tool usage tracking, and hook-based extensibility
+
+---
+
 # Vision
 
 GUNDAM-core is designed to be:

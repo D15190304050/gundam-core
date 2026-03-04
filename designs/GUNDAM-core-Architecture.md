@@ -86,3 +86,23 @@ graph TD
     G[HandoffRouter] --> H[IHandoffFilter]
     I[ToolOutputTrimmer] --> J[ToolOutput]
 ```
+
+## 6. Agent and Workflow Composition Patterns
+
+```mermaid
+graph TD
+    A[Orchestrator Agent] -->|tool call| B[WorkflowTool]
+    B --> C[WorkflowExecutor]
+    C --> D[Vertex: AgentWorkflowProcessor]
+    D -->|nested run| E[Specialist Agent]
+    C --> F[Vertex: JoinFieldsWorkflowProcessor]
+    F --> G[Workflow final String output]
+    G --> A
+```
+
+### Composition rules
+
+- **Agent as a tool**: `AgentTool` wraps an agent invocation so another agent can delegate to it using normal tool-calling.
+- **Workflow as a tool**: `WorkflowTool` exposes a workflow DAG as a callable tool for an agent.
+- **Agent as a workflow step**: `AgentWorkflowProcessor` executes a workflow vertex by delegating that step to an agent.
+- **Result contract**: workflow outputs are normalized to a final `String` so they can be consumed directly by the calling agent.

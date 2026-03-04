@@ -49,9 +49,9 @@ public class Example09DocxSkillAnalysisStreamingTest
 //        String model = "Qwen/Qwen3-4B";
         String model = "Qwen/Qwen3-32B";
         String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
-        String prompt = "Analyze src/main/resources/DocsForAnalysis/162235007倪英杰一种分布式存储系统中的元数据管理技术研究与实现.docx "
+        String prompt = "Analyze src/main/resources/DocsForAnalysis/162235007-NiYingjie-Research-and-Implementation-of-Metadata-Management-in-a-Distributed-Storage-System.docx "
             + "using the loaded docx skill. Write a summary markdown to "
-            + "src/main/resources/DocsForAnalysis/162235007倪英杰一种分布式存储系统中的元数据管理技术研究与实现.md.";
+            + "src/main/resources/DocsForAnalysis/162235007-NiYingjie-Research-and-Implementation-of-Metadata-Management-in-a-Distributed-Storage-System.md.";
         String localSkillName = "docx";
         Path workspaceRoot = Path.of("").toAbsolutePath().normalize();
         String skillMarkdown = loadSkillMarkdown(localSkillName);
