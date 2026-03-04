@@ -21,12 +21,12 @@ import java.util.stream.Collectors;
 public class WorkflowExecutor
 {
     /**
-     * Internal state for definition; used while coordinating runtime behavior.
+     * Immutable definition object that configures this runtime instance.
      */
     private final WorkflowDefinition definition;
 
     /**
-     * Internal state for processor registry; used while coordinating runtime behavior.
+     * Registry that resolves workflow processors by type.
      */
     private final WorkflowProcessorRegistry processorRegistry;
 

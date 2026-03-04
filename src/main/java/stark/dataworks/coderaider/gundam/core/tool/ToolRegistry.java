@@ -13,7 +13,7 @@ public class ToolRegistry implements IToolRegistry
 {
 
     /**
-     * Internal state for tools used while coordinating runtime behavior.
+ * Registered tools keyed by tool name.
      */
     private final Map<String, ITool> tools = new ConcurrentHashMap<>();
 

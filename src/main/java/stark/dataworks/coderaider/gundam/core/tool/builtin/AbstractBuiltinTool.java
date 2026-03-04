@@ -14,12 +14,12 @@ public abstract class AbstractBuiltinTool implements ITool
 {
 
     /**
-     * Internal state for definition; used while coordinating runtime behavior.
+     * Immutable definition object that configures this runtime instance.
      */
     private final ToolDefinition definition;
 
     /**
-     * Internal state for category; used while coordinating runtime behavior.
+     * Tool category used for routing and filtering.
      */
     private final ToolCategory category;
 

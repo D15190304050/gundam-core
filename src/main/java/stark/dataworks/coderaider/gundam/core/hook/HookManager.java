@@ -13,12 +13,12 @@ public class HookManager
 {
 
     /**
-     * Internal state for agent hooks used while coordinating runtime behavior.
+ * Registered agent lifecycle hooks.
      */
     private final List<IAgentHook> agentHooks = new ArrayList<>();
 
     /**
-     * Internal state for tool hooks used while coordinating runtime behavior.
+ * Registered tool lifecycle hooks.
      */
     private final List<IToolHook> toolHooks = new ArrayList<>();
 

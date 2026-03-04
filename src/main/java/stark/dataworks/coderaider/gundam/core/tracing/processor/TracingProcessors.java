@@ -12,7 +12,7 @@ public class TracingProcessors
 {
 
     /**
-     * Internal state for processors used while coordinating runtime behavior.
+ * Registered tracing processors invoked for each run event.
      */
     private final List<ITracingProcessor> processors = new CopyOnWriteArrayList<>();
 

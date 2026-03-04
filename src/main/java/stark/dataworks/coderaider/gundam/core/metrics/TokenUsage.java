@@ -10,12 +10,12 @@ public class TokenUsage
 {
 
     /**
-     * Internal state for input tokens; used while coordinating runtime behavior.
+     * Input token count reported by the model provider.
      */
     private final int inputTokens;
 
     /**
-     * Internal state for output tokens; used while coordinating runtime behavior.
+     * Output token count reported by the model provider.
      */
     private final int outputTokens;
 

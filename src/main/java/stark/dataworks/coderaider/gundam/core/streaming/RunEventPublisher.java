@@ -12,7 +12,7 @@ public class RunEventPublisher
 {
 
     /**
-     * Internal state for listeners used while coordinating runtime behavior.
+ * Run-event listeners that receive streamed events.
      */
     private final List<IRunEventListener> listeners = new ArrayList<>();
 

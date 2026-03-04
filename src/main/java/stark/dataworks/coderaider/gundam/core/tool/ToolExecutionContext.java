@@ -12,12 +12,12 @@ public class ToolExecutionContext
 {
 
     /**
-     * Internal state for agent id; used while coordinating runtime behavior.
+     * Identifier of the agent associated with this operation.
      */
     private final String agentId;
 
     /**
-     * Internal state for runtime metadata; used while coordinating runtime behavior.
+     * Arbitrary runtime metadata passed to tool execution.
      */
     private final Map<String, Object> runtimeMetadata;
 

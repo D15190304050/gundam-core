@@ -12,12 +12,12 @@ public class ToolApprovalDecision
 {
 
     /**
-     * Internal state for approved; used while coordinating runtime behavior.
+     * Whether the tool can be executed.
      */
     private final boolean approved;
 
     /**
-     * Internal state for reason; used while coordinating runtime behavior.
+     * Reason why execution is allowed or blocked.
      */
     private final String reason;
 

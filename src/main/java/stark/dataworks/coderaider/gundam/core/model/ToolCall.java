@@ -15,17 +15,17 @@ public class ToolCall
 {
 
     /**
-     * Internal state for tool name; used while coordinating runtime behavior.
+     * Name of the tool being requested or executed.
      */
     private final String toolName;
 
     /**
-     * Internal state for arguments; used while coordinating runtime behavior.
+     * Tool-call arguments provided by the model/caller.
      */
     private final Map<String, Object> arguments;
 
     /**
-     * Internal state for tool call ID; used to correlate tool results with their calls.
+     * Identifier used to correlate a tool message with the originating tool call.
      */
     private final String toolCallId;
 

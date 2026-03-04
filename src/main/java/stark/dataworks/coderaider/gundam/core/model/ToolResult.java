@@ -12,12 +12,12 @@ public class ToolResult
 {
 
     /**
-     * Internal state for tool name; used while coordinating runtime behavior.
+     * Name of the tool being requested or executed.
      */
     private final String toolName;
 
     /**
-     * Internal state for content; used while coordinating runtime behavior.
+     * Main assistant text content returned by the model.
      */
     private final String content;
 

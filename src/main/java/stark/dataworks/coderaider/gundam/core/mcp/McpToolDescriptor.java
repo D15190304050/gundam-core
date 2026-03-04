@@ -13,17 +13,17 @@ public class McpToolDescriptor
 {
 
     /**
-     * Internal state for name; used while coordinating runtime behavior.
+     * Human-readable name used in logs and UIs.
      */
     private final String name;
 
     /**
-     * Internal state for description; used while coordinating runtime behavior.
+     * Human-readable description shown to model and operators.
      */
     private final String description;
 
     /**
-     * Internal state for input schema; used while coordinating runtime behavior.
+     * Raw MCP input schema used to build local tool parameters.
      */
     private final Map<String, Object> inputSchema;
 

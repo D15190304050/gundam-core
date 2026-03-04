@@ -14,17 +14,17 @@ import java.util.Objects;
 public class AgentTool extends AbstractBuiltinTool
 {
     /**
-     * Internal state for runner; used while coordinating runtime behavior.
+     * Agent runner used to execute nested agent calls.
      */
     private final AgentRunner runner;
 
     /**
-     * Internal state for target agent id; used while coordinating runtime behavior.
+     * Target agent id.
      */
     private final String targetAgentId;
 
     /**
-     * Internal state for run configuration; used while coordinating runtime behavior.
+     * Run configuration applied to delegated agent execution.
      */
     private final RunConfiguration runConfiguration;
 

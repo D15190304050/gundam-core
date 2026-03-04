@@ -10,12 +10,12 @@ public class OutputValidationResult
 {
 
     /**
-     * Internal state for valid; used while coordinating runtime behavior.
+     * Whether output passed schema validation.
      */
     private final boolean valid;
 
     /**
-     * Internal state for reason; used while coordinating runtime behavior.
+     * Reason why execution is allowed or blocked.
      */
     private final String reason;
 

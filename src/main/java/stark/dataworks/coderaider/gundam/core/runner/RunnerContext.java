@@ -29,23 +29,23 @@ public class RunnerContext
     private final List<ContextItem> items = new ArrayList<>();
 
     /**
-     * Internal state for memory; used while coordinating runtime behavior.
+     * Conversation memory for storing and retrieving prior messages.
      */
     private final IAgentMemory memory;
 
     /**
-     * Internal state for usage tracker used while coordinating runtime behavior.
+ * Accumulator that tracks token usage across the run.
      */
     private final TokenUsageTracker usageTracker = new TokenUsageTracker();
 
     /**
-     * Internal state for current agent; used while coordinating runtime behavior.
+     * Agent currently responsible for handling the turn.
      */
     @Setter
     private IAgent currentAgent;
 
     /**
-     * Internal state for turns; used while coordinating runtime behavior.
+     * Number of turns already executed in the current run.
      */
     private int turns;
 

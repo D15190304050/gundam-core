@@ -16,37 +16,37 @@ import java.util.Map;
 public class WorkflowVertexDefinition
 {
     /**
-     * Internal state for id; used while coordinating runtime behavior.
+     * Unique identifier for this definition.
      */
     private String id;
 
     /**
-     * Internal state for name; used while coordinating runtime behavior.
+     * Human-readable name used in logs and UIs.
      */
     private String name;
 
     /**
-     * Internal state for processor type; used while coordinating runtime behavior.
+     * Processor key used to resolve vertex execution logic.
      */
     private String processorType;
 
     /**
-     * Internal state for config; used while coordinating runtime behavior.
+     * Processor configuration map for this workflow vertex.
      */
     private Map<String, Object> config = new HashMap<>();
 
     /**
-     * Internal state for next vertex ids; used while coordinating runtime behavior.
+     * Ordered list of next vertex ids.
      */
     private List<String> nextVertexIds = new ArrayList<>();
 
     /**
-     * Internal state for max retries; used while coordinating runtime behavior.
+     * Maximum retry attempts for this vertex after a failure.
      */
     private int maxRetries;
 
     /**
-     * Internal state for continue on failure; used while coordinating runtime behavior.
+     * Whether workflow execution continues when this vertex fails.
      */
     private boolean continueOnFailure;
 }

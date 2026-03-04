@@ -10,7 +10,7 @@ public class HandoffRouter
 {
 
     /**
-     * Internal state for filters used while coordinating runtime behavior.
+ * Filters that decide whether a handoff candidate is allowed.
      */
     private final List<IHandoffFilter> filters = new ArrayList<>();
 

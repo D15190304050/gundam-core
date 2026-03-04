@@ -23,17 +23,17 @@ public class McpManager
 {
 
     /**
-     * Internal state for servers used while coordinating runtime behavior.
+ * Registered MCP server configurations keyed by server id.
      */
     private final Map<String, McpServerConfiguration> servers = new ConcurrentHashMap<>();
 
     /**
-     * Internal state for client; used while coordinating runtime behavior.
+     * MCP/LLM client used for remote calls.
      */
     private final IMcpServerClient client;
 
     /**
-     * Internal state for approval policy; used while coordinating runtime behavior.
+     * Policy used to approve or block tool execution.
      */
     private final IMcpToolApprovalPolicy approvalPolicy;
 
@@ -135,22 +135,22 @@ public class McpManager
     {
 
         /**
-         * Internal state for config; used while coordinating runtime behavior.
+         * Processor configuration map for this workflow vertex.
          */
         private final McpServerConfiguration config;
 
         /**
-         * Internal state for descriptor; used while coordinating runtime behavior.
+         * MCP tool descriptor discovered from the remote server.
          */
         private final McpToolDescriptor descriptor;
 
         /**
-         * Internal state for client; used while coordinating runtime behavior.
+         * MCP/LLM client used for remote calls.
          */
         private final IMcpServerClient client;
 
         /**
-         * Internal state for approval policy; used while coordinating runtime behavior.
+         * Policy used to approve or block tool execution.
          */
         private final IMcpToolApprovalPolicy approvalPolicy;
 

@@ -12,17 +12,17 @@ public class RunErrorData
 {
 
     /**
-     * Internal state for kind; used while coordinating runtime behavior.
+     * Typed classification of the runtime error.
      */
     private final RunErrorKind kind;
 
     /**
-     * Internal state for message; used while coordinating runtime behavior.
+     * Human-readable error message.
      */
     private final String message;
 
     /**
-     * Internal state for cause; used while coordinating runtime behavior.
+     * Original exception that caused this error, when available.
      */
     private final Throwable cause;
 

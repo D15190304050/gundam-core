@@ -10,12 +10,12 @@ public class RetryPolicy
 {
 
     /**
-     * Internal state for max attempts; used while coordinating runtime behavior.
+     * Maximum retry attempts before giving up.
      */
     private final int maxAttempts;
 
     /**
-     * Internal state for backoff millis; used while coordinating runtime behavior.
+     * Backoff interval (millis.
      */
     private final long backoffMillis;
 

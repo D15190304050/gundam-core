@@ -12,22 +12,22 @@ public class InMemoryMcpServerClient implements IMcpServerClient
 {
 
     /**
-     * Internal state for tools by server used while coordinating runtime behavior.
+ * In-memory MCP tools grouped by server id.
      */
     private final Map<String, List<McpToolDescriptor>> toolsByServer = new ConcurrentHashMap<>();
 
     /**
-     * Internal state for handlers used while coordinating runtime behavior.
+ * Handlers registered for in-memory MCP tool execution.
      */
     private final Map<String, Function<Map<String, Object>, String>> handlers = new ConcurrentHashMap<>();
 
     /**
-     * Internal state for resources by server used while coordinating runtime behavior.
+ * In-memory MCP resources grouped by server id.
      */
     private final Map<String, List<McpResource>> resourcesByServer = new ConcurrentHashMap<>();
 
     /**
-     * Internal state for templates by server used while coordinating runtime behavior.
+ * In-memory MCP resource templates grouped by server id.
      */
     private final Map<String, List<McpResourceTemplate>> templatesByServer = new ConcurrentHashMap<>();
 

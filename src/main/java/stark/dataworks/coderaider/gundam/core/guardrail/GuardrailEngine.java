@@ -13,12 +13,12 @@ public class GuardrailEngine
 {
 
     /**
-     * Internal state for input guardrails used while coordinating runtime behavior.
+ * Input guardrails captured for this step.
      */
     private final List<IInputGuardrail> inputGuardrails = new ArrayList<>();
 
     /**
-     * Internal state for output guardrails used while coordinating runtime behavior.
+ * Output guardrails produced by this step.
      */
     private final List<IOutputGuardrail> outputGuardrails = new ArrayList<>();
 

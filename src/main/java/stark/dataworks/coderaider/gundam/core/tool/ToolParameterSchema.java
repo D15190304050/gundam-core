@@ -12,22 +12,22 @@ public class ToolParameterSchema
 {
 
     /**
-     * Internal state for name; used while coordinating runtime behavior.
+     * Human-readable name used in logs and UIs.
      */
     private final String name;
 
     /**
-     * Internal state for type; used while coordinating runtime behavior.
+     * Type discriminator for this item/event/span.
      */
     private final String type;
 
     /**
-     * Internal state for required; used while coordinating runtime behavior.
+     * Whether this tool parameter is mandatory.
      */
     private final boolean required;
 
     /**
-     * Internal state for description; used while coordinating runtime behavior.
+     * Human-readable description shown to model and operators.
      */
     private final String description;
 

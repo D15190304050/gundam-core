@@ -85,67 +85,67 @@ import stark.dataworks.coderaider.gundam.core.tracing.ITraceSpan;
 public class AgentRunner
 {
     /**
-     * Internal state for llm client; used while coordinating runtime behavior.
+     * Llm client registry.
      */
     private final LlmClientRegistry llmClientRegistry;
 
     /**
-     * Internal state for tool registry; used while coordinating runtime behavior.
+     * Registry used to resolve tool definitions and executors.
      */
     private final IToolRegistry toolRegistry;
 
     /**
-     * Internal state for agent registry; used while coordinating runtime behavior.
+     * Registry used to resolve agents by id.
      */
     private final IAgentRegistry agentRegistry;
 
     /**
-     * Internal state for context builder; used while coordinating runtime behavior.
+     * Builder that assembles runtime context and message history.
      */
     private final IContextBuilder contextBuilder;
 
     /**
-     * Internal state for hook manager; used while coordinating runtime behavior.
+     * Hook manager for run lifecycle callbacks.
      */
     private final HookManager hookManager;
 
     /**
-     * Internal state for guardrail engine; used while coordinating runtime behavior.
+     * Engine that evaluates configured guardrails.
      */
     private final GuardrailEngine guardrailEngine;
 
     /**
-     * Internal state for handoff router; used while coordinating runtime behavior.
+     * Router that selects and validates handoff targets.
      */
     private final HandoffRouter handoffRouter;
 
     /**
-     * Internal state for session store; used while coordinating runtime behavior.
+     * Store used to persist and reload sessions.
      */
     private final ISessionStore sessionStore;
 
     /**
-     * Internal state for trace provider; used while coordinating runtime behavior.
+     * Trace provider used to create spans for observability.
      */
     private final ITraceProvider traceProvider;
 
     /**
-     * Internal state for tool approval policy; used while coordinating runtime behavior.
+     * Policy that approves or rejects tool calls.
      */
     private final IToolApprovalPolicy toolApprovalPolicy;
 
     /**
-     * Internal state for output schema registry; used while coordinating runtime behavior.
+     * Output schema registry.
      */
     private final OutputSchemaRegistry outputSchemaRegistry;
 
     /**
-     * Internal state for output validator; used while coordinating runtime behavior.
+     * Validator used for structured-output schema checks.
      */
     private final OutputValidator outputValidator;
 
     /**
-     * Internal state for event publisher; used while coordinating runtime behavior.
+     * Publisher that emits streaming run events.
      */
     private final RunEventPublisher eventPublisher;
 

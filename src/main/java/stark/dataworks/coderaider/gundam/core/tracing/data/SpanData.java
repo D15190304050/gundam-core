@@ -12,12 +12,12 @@ public class SpanData
 {
 
     /**
-     * Internal state for type; used while coordinating runtime behavior.
+     * Type discriminator for this item/event/span.
      */
     private final String type;
 
     /**
-     * Internal state for attributes; used while coordinating runtime behavior.
+     * Additional key-value payload fields.
      */
     private final Map<String, String> attributes;
 

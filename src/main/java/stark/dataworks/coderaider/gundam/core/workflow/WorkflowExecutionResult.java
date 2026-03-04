@@ -15,17 +15,17 @@ import java.util.Objects;
 public class WorkflowExecutionResult
 {
     /**
-     * Internal state for final output; used while coordinating runtime behavior.
+     * Fallback or final output produced by error handling/execution.
      */
     private final String finalOutput;
 
     /**
-     * Internal state for final state; used while coordinating runtime behavior.
+     * Final workflow state snapshot at completion/failure.
      */
     private final Map<String, Object> finalState;
 
     /**
-     * Internal state for completed vertices; used while coordinating runtime behavior.
+     * Completed vertex ids.
      */
     private final List<String> completedVertexIds;
 

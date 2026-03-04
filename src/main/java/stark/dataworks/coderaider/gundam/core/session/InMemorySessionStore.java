@@ -11,7 +11,7 @@ public class InMemorySessionStore implements ISessionStore
 {
 
     /**
-     * Internal state for sessions used while coordinating runtime behavior.
+ * In-memory session storage keyed by session id.
      */
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 

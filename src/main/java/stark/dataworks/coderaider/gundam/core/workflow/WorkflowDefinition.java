@@ -19,37 +19,37 @@ import java.util.stream.Collectors;
 public class WorkflowDefinition
 {
     /**
-     * Internal state for id; used while coordinating runtime behavior.
+     * Unique identifier for this definition.
      */
     private String id;
 
     /**
-     * Internal state for name; used while coordinating runtime behavior.
+     * Human-readable name used in logs and UIs.
      */
     private String name;
 
     /**
-     * Internal state for start vertex id; used while coordinating runtime behavior.
+     * Entry vertex id where workflow execution begins.
      */
     private String startVertexId;
 
     /**
-     * Internal state for end vertex ids; used while coordinating runtime behavior.
+     * Ordered list of end vertex ids.
      */
     private List<String> endVertexIds = new ArrayList<>();
 
     /**
-     * Internal state for final output key; used while coordinating runtime behavior.
+     * Context key used as final workflow output.
      */
     private String finalOutputKey = "finalOutput";
 
     /**
-     * Internal state for failure strategy; used while coordinating runtime behavior.
+     * Strategy used when a workflow vertex fails.
      */
     private WorkflowFailureStrategy failureStrategy = WorkflowFailureStrategy.FAIL_FAST;
 
     /**
-     * Internal state for vertices; used while coordinating runtime behavior.
+     * Vertex definitions that make up the workflow DAG.
      */
     private List<WorkflowVertexDefinition> vertices = new ArrayList<>();
 

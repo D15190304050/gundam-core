@@ -19,43 +19,43 @@ import stark.dataworks.coderaider.gundam.core.multimodal.GeneratedAsset;
 public class LlmResponse
 {
     /**
-     * Internal state for content; used while coordinating runtime behavior.
+     * Main assistant text content returned by the model.
      */
     private final String content;
 
     /**
-     * Internal state for tool calls; used while coordinating runtime behavior.
+     * Tool calls emitted by the assistant response.
      */
     private final List<ToolCall> toolCalls;
 
     /**
-     * Internal state for handoff agent id; used while coordinating runtime behavior.
+     * Agent id selected by the model for handoff.
      */
     @Getter(AccessLevel.NONE)
     private final String handoffAgentId;
 
     /**
-     * Internal state for token usage; used while coordinating runtime behavior.
+     * Token accounting data used for cost and quota tracking.
      */
     private final TokenUsage tokenUsage;
 
     /**
-     * Internal state for finish reason; used while coordinating runtime behavior.
+     * Provider-reported reason why generation stopped.
      */
     private final String finishReason;
 
     /**
-     * Internal state for reasoning content; used while coordinating runtime behavior.
+     * Reasoning text/deltas returned by reasoning-capable providers.
      */
     private final String reasoningContent;
 
     /**
-     * Internal state for structured output; used while coordinating runtime behavior.
+     * Parsed structured output payload returned by the model.
      */
     private final Map<String, Object> structuredOutput;
 
     /**
-     * Internal state for generated assets; used while coordinating runtime behavior.
+     * Generated asset metadata (image/audio/video urls, etc.).
      */
     private final List<GeneratedAsset> generatedAssets;
 

@@ -13,17 +13,17 @@ public class HostedMcpTool implements ITool
 {
 
     /**
-     * Internal state for server id; used while coordinating runtime behavior.
+     * Unique MCP server identifier used for lookup/routing.
      */
     private final String serverId;
 
     /**
-     * Internal state for tool name; used while coordinating runtime behavior.
+     * Name of the tool being requested or executed.
      */
     private final String toolName;
 
     /**
-     * Internal state for manager; used while coordinating runtime behavior.
+     * Manager used to resolve and proxy hosted MCP tools.
      */
     private final McpManager manager;
 

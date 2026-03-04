@@ -9,7 +9,7 @@ public class Agent implements IAgent
 {
 
     /**
-     * Internal state for definition; used while coordinating runtime behavior.
+     * Immutable definition object that configures this runtime instance.
      */
     private final AgentDefinition definition;
 

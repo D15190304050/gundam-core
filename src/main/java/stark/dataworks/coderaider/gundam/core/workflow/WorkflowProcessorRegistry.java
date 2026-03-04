@@ -11,7 +11,7 @@ import java.util.Optional;
 public class WorkflowProcessorRegistry
 {
     /**
-     * Internal state for processors; used while coordinating runtime behavior.
+     * Registered tracing processors invoked for each run event.
      */
     private final Map<String, IWorkflowVertexProcessor> processors = new HashMap<>();
 

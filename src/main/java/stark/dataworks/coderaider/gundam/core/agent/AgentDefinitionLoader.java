@@ -10,7 +10,7 @@ public final class AgentDefinitionLoader
 {
 
     /**
-     * Internal state for mapper used while coordinating runtime behavior.
+ * ObjectMapper used for JSON serialization/deserialization.
      */
     private static final ObjectMapper MAPPER = new ObjectMapper();
 

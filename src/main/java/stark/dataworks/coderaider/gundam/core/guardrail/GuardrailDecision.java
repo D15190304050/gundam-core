@@ -14,12 +14,12 @@ public class GuardrailDecision
 {
 
     /**
-     * Internal state for allowed; used while coordinating runtime behavior.
+     * Whether processing is allowed to continue after a guardrail check.
      */
     private final boolean allowed;
 
     /**
-     * Internal state for reason; used while coordinating runtime behavior.
+     * Reason why execution is allowed or blocked.
      */
     private final String reason;
 

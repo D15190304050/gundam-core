@@ -18,27 +18,27 @@ public class LlmRequest
 {
 
     /**
-     * Internal state for model; used while coordinating runtime behavior.
+     * Model id passed to the provider for inference.
      */
     private final String model;
 
     /**
-     * Internal state for messages; used while coordinating runtime behavior.
+     * Conversation messages persisted in this session/request.
      */
     private final List<Message> messages;
 
     /**
-     * Internal state for tools; used while coordinating runtime behavior.
+     * Registered tools keyed by tool name.
      */
     private final List<ToolDefinition> tools;
 
     /**
-     * Internal state for options; used while coordinating runtime behavior.
+     * Provider/server options forwarded without transformation.
      */
     private final LlmOptions options;
 
     /**
-     * Internal state for attachments; used while coordinating runtime behavior.
+     * Attachments.
      */
     private final List<GeneratedAsset> attachments;
 

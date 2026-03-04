@@ -17,12 +17,12 @@ import java.util.Objects;
 public class AgentWorkflowProcessor implements IWorkflowVertexProcessor
 {
     /**
-     * Internal state for runner; used while coordinating runtime behavior.
+     * Agent runner used to execute nested agent calls.
      */
     private final AgentRunner runner;
 
     /**
-     * Internal state for run configuration; used while coordinating runtime behavior.
+     * Run configuration applied to delegated agent execution.
      */
     private final RunConfiguration runConfiguration;
 

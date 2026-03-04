@@ -11,7 +11,7 @@ public class OutputSchemaRegistry
 {
 
     /**
-     * Internal state for schemas used while coordinating runtime behavior.
+ * Structured-output schemas keyed by schema name.
      */
     private final Map<String, IOutputSchema> schemas = new ConcurrentHashMap<>();
 

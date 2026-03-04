@@ -13,7 +13,7 @@ public class ProcessorTraceProvider implements ITraceProvider
 {
 
     /**
-     * Internal state for processors; used while coordinating runtime behavior.
+     * Registered tracing processors invoked for each run event.
      */
     private final TracingProcessors processors;
 
@@ -38,7 +38,7 @@ public class ProcessorTraceProvider implements ITraceProvider
         {
 
             /**
-             * Internal state for attrs used while coordinating runtime behavior.
+ * Span attributes attached to trace events.
              */
             private final Map<String, String> attrs = new HashMap<>();
 

@@ -13,7 +13,7 @@ public class FunctionTool extends AbstractBuiltinTool
 {
 
     /**
-     * Internal state for function; used while coordinating runtime behavior.
+     * Function implementation invoked by this tool.
      */
     private final Function<Map<String, Object>, String> function;
 

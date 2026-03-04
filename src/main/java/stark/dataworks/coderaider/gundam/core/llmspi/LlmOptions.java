@@ -12,27 +12,27 @@ public class LlmOptions
 {
 
     /**
-     * Internal state for temperature; used while coordinating runtime behavior.
+     * Sampling temperature for this request.
      */
     private final double temperature;
 
     /**
-     * Internal state for max tokens; used while coordinating runtime behavior.
+     * Maximum completion tokens allowed for this invocation.
      */
     private final int maxTokens;
 
     /**
-     * Internal state for tool choice; used while coordinating runtime behavior.
+     * Tool choice policy used for this model invocation.
      */
     private final String toolChoice;
 
     /**
-     * Internal state for response format; used while coordinating runtime behavior.
+     * Response format requested from the model provider.
      */
     private final String responseFormat;
 
     /**
-     * Internal state for provider options; used while coordinating runtime behavior.
+     * Provider-specific options attached to this model call.
      */
     private final Map<String, Object> providerOptions;
 

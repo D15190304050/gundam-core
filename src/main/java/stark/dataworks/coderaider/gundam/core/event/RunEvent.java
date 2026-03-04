@@ -15,17 +15,17 @@ public class RunEvent
 {
 
     /**
-     * Internal state for type; used while coordinating runtime behavior.
+     * Type discriminator for this item/event/span.
      */
     private final RunEventType type;
 
     /**
-     * Internal state for timestamp; used while coordinating runtime behavior.
+     * Creation time in epoch milliseconds.
      */
     private final Instant timestamp;
 
     /**
-     * Internal state for attributes; used while coordinating runtime behavior.
+     * Additional key-value payload fields.
      */
     private final Map<String, Object> attributes;
 

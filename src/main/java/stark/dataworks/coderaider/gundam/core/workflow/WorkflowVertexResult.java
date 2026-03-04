@@ -14,12 +14,12 @@ import java.util.Objects;
 public class WorkflowVertexResult
 {
     /**
-     * Internal state for outputs; used while coordinating runtime behavior.
+     * Vertex output map produced by this workflow step.
      */
     private final Map<String, Object> outputs;
 
     /**
-     * Internal state for next vertex ids; used while coordinating runtime behavior.
+     * Ordered list of next vertex ids.
      */
     private final List<String> nextVertexIds;
 

@@ -11,7 +11,7 @@ public class RunErrorHandlers
 {
 
     /**
-     * Internal state for handlers used while coordinating runtime behavior.
+ * Handlers registered for in-memory MCP tool execution.
      */
     private final Map<RunErrorKind, IRunErrorHandler> handlers = new ConcurrentHashMap<>();
 

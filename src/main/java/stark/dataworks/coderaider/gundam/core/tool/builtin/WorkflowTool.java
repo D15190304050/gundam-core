@@ -14,7 +14,7 @@ import java.util.Map;
 public class WorkflowTool extends AbstractBuiltinTool
 {
     /**
-     * Internal state for workflow executor; used while coordinating runtime behavior.
+     * Executor used to run workflow DAGs as a tool.
      */
     private final WorkflowExecutor workflowExecutor;
 

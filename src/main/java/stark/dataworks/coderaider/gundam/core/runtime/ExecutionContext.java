@@ -17,23 +17,23 @@ public class ExecutionContext
 {
 
     /**
-     * Internal state for agent; used while coordinating runtime behavior.
+     * Current agent bound to this execution context.
      */
     @Setter
     private IAgent agent;
 
     /**
-     * Internal state for memory; used while coordinating runtime behavior.
+     * Conversation memory for storing and retrieving prior messages.
      */
     private final IAgentMemory memory;
 
     /**
-     * Internal state for token usage tracker; used while coordinating runtime behavior.
+     * Token accounting data used for cost and quota tracking.
      */
     private final TokenUsageTracker tokenUsageTracker;
 
     /**
-     * Internal state for current step; used while coordinating runtime behavior.
+     * Current step.
      */
     private int currentStep;
 
