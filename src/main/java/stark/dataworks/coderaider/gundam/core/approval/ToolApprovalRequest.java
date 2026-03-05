@@ -14,25 +14,26 @@ public class ToolApprovalRequest
 {
 
     /**
-     * Internal state for agent id; used while coordinating runtime behavior.
+     * Identifier of the agent associated with this operation.
      */
     private final String agentId;
 
     /**
-     * Internal state for tool name; used while coordinating runtime behavior.
+     * Name of the tool being requested or executed.
      */
     private final String toolName;
 
     /**
-     * Internal state for arguments; used while coordinating runtime behavior.
+     * Tool-call arguments provided by the model/caller.
      */
     private final Map<String, Object> arguments;
 
     /**
-     * Performs tool approval request as part of ToolApprovalRequest runtime responsibilities.
-     * @param agentId The agent id used by this operation.
-     * @param toolName The tool name used by this operation.
-     * @param arguments The arguments used by this operation.
+     * Initializes ToolApprovalRequest with required runtime dependencies and options.
+     * @param agentId agent identifier.
+     * @param toolName tool name.
+     * @param Map<String map<string.
+     * @param arguments arguments.
      */
     public ToolApprovalRequest(String agentId, String toolName, Map<String, Object> arguments)
     {

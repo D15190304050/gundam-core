@@ -9,8 +9,8 @@ public interface IRunHooks
 {
 
     /**
-     * Performs on event as part of RunHooks runtime responsibilities.
-     * @param event The event used by this operation.
+     * Handles a published run event.
+     * @param event run event.
      */
     default void onEvent(RunEvent event)
     {

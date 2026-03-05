@@ -11,13 +11,13 @@ public class OutputSchemaRegistry
 {
 
     /**
-     * Internal state for schemas used while coordinating runtime behavior.
+ * Structured-output schemas keyed by schema name.
      */
     private final Map<String, IOutputSchema> schemas = new ConcurrentHashMap<>();
 
     /**
-     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
-     * @param schema The schema used by this operation.
+     * Registers this value for later lookup and execution.
+     * @param schema schema definition.
      */
     public void register(IOutputSchema schema)
     {
@@ -25,9 +25,9 @@ public class OutputSchemaRegistry
     }
 
     /**
-     * Returns the value requested by the caller from this OutputSchemaRegistry.
-     * @param name The name used by this operation.
-     * @return The value produced by this operation.
+     * Returns the current value for this object.
+     * @param name human-readable name.
+     * @return Optional ioutput schema value.
      */
     public Optional<IOutputSchema> get(String name)
     {

@@ -9,21 +9,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public final class WorkflowDefinitionLoader
 {
     /**
-     * Internal state for mapper; used while coordinating runtime behavior.
+     * ObjectMapper used for JSON serialization/deserialization.
      */
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
-     * Performs workflow definition loader as part of WorkflowDefinitionLoader runtime responsibilities.
+     * Initializes WorkflowDefinitionLoader with required runtime dependencies and options.
      */
     private WorkflowDefinitionLoader()
     {
     }
 
     /**
-     * Performs from json as part of WorkflowDefinitionLoader runtime responsibilities.
-     * @param json The json used by this operation.
-     * @return The value produced by this operation.
+     * Serializes the value to JSON.
+     * @param json JSON document to parse.
+     * @return workflow definition result.
      */
     public static WorkflowDefinition fromJson(String json)
     {

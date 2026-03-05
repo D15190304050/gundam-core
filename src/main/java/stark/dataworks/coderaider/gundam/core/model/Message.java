@@ -18,34 +18,34 @@ public class Message
 {
 
     /**
-     * Internal state for role; used while coordinating runtime behavior.
+     * Message role (system, user, assistant, tool).
      */
     private final Role role;
 
     /**
-     * Internal state for content; used while coordinating runtime behavior.
+     * Main assistant text content returned by the model.
      */
     private final String content;
 
     /**
-     * Internal state for parts; used while coordinating runtime behavior.
+     * Multimodal message parts composing this message.
      */
     private final List<MessagePart> parts;
 
     /**
-     * Internal state for tool call ID; used for tool role messages to correlate with their calls.
+     * Identifier used to correlate a tool message with the originating tool call.
      */
     private final String toolCallId;
 
     /**
-     * Internal state for tool calls; used for assistant messages that contain tool calls.
+     * Tool call payload emitted by assistant messages when function execution is requested.
      */
     private final List<ToolCall> toolCalls;
 
     /**
-     * Performs message as part of Message runtime responsibilities.
-     * @param role The role used by this operation.
-     * @param content The content used by this operation.
+     * Initializes Message with required runtime dependencies and options.
+     * @param role role.
+     * @param content content.
      */
     public Message(Role role, String content)
     {
@@ -53,9 +53,9 @@ public class Message
     }
 
     /**
-     * Performs message as part of Message runtime responsibilities.
-     * @param role The role used by this operation.
-     * @param parts The parts used by this operation.
+     * Initializes Message with required runtime dependencies and options.
+     * @param role role.
+     * @param parts parts.
      */
     public Message(Role role, List<MessagePart> parts)
     {
@@ -63,10 +63,10 @@ public class Message
     }
 
     /**
-     * Performs message as part of Message runtime responsibilities.
-     * @param role The role used by this operation.
-     * @param content The content used by this operation.
-     * @param toolCallId The tool call ID used for tool role messages.
+     * Initializes Message with required runtime dependencies and options.
+     * @param role role.
+     * @param content content.
+     * @param toolCallId tool call identifier.
      */
     public Message(Role role, String content, String toolCallId)
     {
@@ -74,10 +74,10 @@ public class Message
     }
 
     /**
-     * Performs message as part of Message runtime responsibilities.
-     * @param role The role used by this operation.
-     * @param content The content used by this operation.
-     * @param toolCalls The tool calls used for assistant messages.
+     * Initializes Message with required runtime dependencies and options.
+     * @param role role.
+     * @param content content.
+     * @param toolCalls tool calls.
      */
     public Message(Role role, String content, List<ToolCall> toolCalls)
     {
@@ -85,11 +85,11 @@ public class Message
     }
 
     /**
-     * Performs message as part of Message runtime responsibilities.
-     * @param role The role used by this operation.
-     * @param parts The parts used by this operation.
-     * @param toolCallId The tool call ID used for tool role messages.
-     * @param toolCalls The tool calls used for assistant messages.
+     * Initializes Message with required runtime dependencies and options.
+     * @param role role.
+     * @param parts parts.
+     * @param toolCallId tool call identifier.
+     * @param toolCalls tool calls.
      */
     public Message(Role role, List<MessagePart> parts, String toolCallId, List<ToolCall> toolCalls)
     {

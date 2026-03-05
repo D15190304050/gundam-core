@@ -10,19 +10,19 @@ public class RetryPolicy
 {
 
     /**
-     * Internal state for max attempts; used while coordinating runtime behavior.
+     * Maximum retry attempts before giving up.
      */
     private final int maxAttempts;
 
     /**
-     * Internal state for backoff millis; used while coordinating runtime behavior.
+     * Backoff interval (millis.
      */
     private final long backoffMillis;
 
     /**
-     * Performs retry policy as part of RetryPolicy runtime responsibilities.
-     * @param maxAttempts The max attempts used by this operation.
-     * @param backoffMillis The backoff millis used by this operation.
+     * Initializes RetryPolicy with required runtime dependencies and options.
+     * @param maxAttempts max attempts.
+     * @param backoffMillis backoff millis.
      */
     public RetryPolicy(int maxAttempts, long backoffMillis)
     {
@@ -35,8 +35,8 @@ public class RetryPolicy
     }
 
     /**
-     * Performs none as part of RetryPolicy runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns a retry policy that disables retries.
+     * @return retry policy result.
      */
     public static RetryPolicy none()
     {

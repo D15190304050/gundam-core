@@ -12,25 +12,25 @@ public class Handoff
 {
 
     /**
-     * Internal state for from agent id; used while coordinating runtime behavior.
+     * From agent id.
      */
     private final String fromAgentId;
 
     /**
-     * Internal state for to agent id; used while coordinating runtime behavior.
+     * To agent id.
      */
     private final String toAgentId;
 
     /**
-     * Internal state for reason; used while coordinating runtime behavior.
+     * Reason why execution is allowed or blocked.
      */
     private final String reason;
 
     /**
-     * Performs handoff as part of Handoff runtime responsibilities.
-     * @param fromAgentId The from agent id used by this operation.
-     * @param toAgentId The to agent id used by this operation.
-     * @param reason The reason used by this operation.
+     * Initializes Handoff with required runtime dependencies and options.
+     * @param fromAgentId from agent id.
+     * @param toAgentId to agent id.
+     * @param reason human-readable reason.
      */
     public Handoff(String fromAgentId, String toAgentId, String reason)
     {

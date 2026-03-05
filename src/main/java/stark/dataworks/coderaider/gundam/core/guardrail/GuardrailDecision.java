@@ -14,18 +14,18 @@ public class GuardrailDecision
 {
 
     /**
-     * Internal state for allowed; used while coordinating runtime behavior.
+     * Whether processing is allowed to continue after a guardrail check.
      */
     private final boolean allowed;
 
     /**
-     * Internal state for reason; used while coordinating runtime behavior.
+     * Reason why execution is allowed or blocked.
      */
     private final String reason;
 
     /**
-     * Performs allow as part of GuardrailDecision runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns an allow decision.
+     * @return guardrail decision result.
      */
     public static GuardrailDecision allow()
     {
@@ -33,9 +33,9 @@ public class GuardrailDecision
     }
 
     /**
-     * Performs deny as part of GuardrailDecision runtime responsibilities.
-     * @param reason The reason used by this operation.
-     * @return The value produced by this operation.
+     * Returns a deny decision with a reason.
+     * @param reason human-readable reason.
+     * @return guardrail decision result.
      */
     public static GuardrailDecision deny(String reason)
     {

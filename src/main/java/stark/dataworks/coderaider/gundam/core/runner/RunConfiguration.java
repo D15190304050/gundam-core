@@ -74,14 +74,14 @@ public class RunConfiguration
     private final MemoryLifecyclePolicy memoryLifecyclePolicy;
 
     /**
-     * Performs run config as part of RunConfig runtime responsibilities.
-     * @param maxTurns The max turns used by this operation.
-     * @param sessionId The session id used by this operation.
-     * @param temperature The temperature used by this operation.
-     * @param maxOutputTokens The max output tokens used by this operation.
-     * @param toolChoice The tool choice used by this operation.
-     * @param responseFormat The response format used by this operation.
-     * @param providerOptions The provider options used by this operation.
+     * Builds a run configuration with the provided runtime limits and model options.
+     * @param maxTurns maximum number of turns before termination.
+     * @param sessionId session identifier used to resume conversation state.
+     * @param temperature sampling temperature.
+     * @param maxOutputTokens maximum output token limit.
+     * @param toolChoice tool-choice policy passed to the model provider.
+     * @param responseFormat response format requested from the model provider.
+     * @param providerOptions provider-specific model options.
      */
     public RunConfiguration(int maxTurns,
                             String sessionId,
@@ -118,7 +118,7 @@ public class RunConfiguration
     }
 
     /**
-     * Creates a new RunConfig instance.
+     * Initializes RunConfig with required runtime dependencies and options.
      */
     public RunConfiguration(int maxTurns,
                             String sessionId,
@@ -134,7 +134,7 @@ public class RunConfiguration
     }
 
     /**
-     * Creates a new RunConfig instance.
+     * Initializes RunConfig with required runtime dependencies and options.
      */
     public RunConfiguration(int maxTurns,
                             String sessionId,

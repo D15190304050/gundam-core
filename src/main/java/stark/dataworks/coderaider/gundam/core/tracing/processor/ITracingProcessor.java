@@ -9,8 +9,8 @@ public interface ITracingProcessor
 {
 
     /**
-     * Performs process as part of TracingProcessor runtime responsibilities.
-     * @param event The event used by this operation.
+     * Processes the supplied workflow/tracing input.
+     * @param event run event.
      */
     void process(TraceEvent event);
 }

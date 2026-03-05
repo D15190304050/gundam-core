@@ -10,19 +10,19 @@ public class RunErrorHandlerResult
 {
 
     /**
-     * Internal state for handled; used while coordinating runtime behavior.
+     * Whether the error handler consumed the error.
      */
     private final boolean handled;
 
     /**
-     * Internal state for final output; used while coordinating runtime behavior.
+     * Fallback or final output produced by error handling/execution.
      */
     private final String finalOutput;
 
     /**
-     * Performs run error handler result as part of RunErrorHandlerResult runtime responsibilities.
-     * @param handled The handled used by this operation.
-     * @param finalOutput The final output used by this operation.
+     * Initializes RunErrorHandlerResult with required runtime dependencies and options.
+     * @param handled handled.
+     * @param finalOutput final output.
      */
     private RunErrorHandlerResult(boolean handled, String finalOutput)
     {
@@ -31,8 +31,8 @@ public class RunErrorHandlerResult
     }
 
     /**
-     * Performs not handled as part of RunErrorHandlerResult runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns a result indicating the error was not handled.
+     * @return run error handler result.
      */
     public static RunErrorHandlerResult notHandled()
     {
@@ -40,9 +40,9 @@ public class RunErrorHandlerResult
     }
 
     /**
-     * Performs handled as part of RunErrorHandlerResult runtime responsibilities.
-     * @param finalOutput The final output used by this operation.
-     * @return The value produced by this operation.
+     * Handles a streamed text delta.
+     * @param finalOutput final output.
+     * @return run error handler result.
      */
     public static RunErrorHandlerResult handled(String finalOutput)
     {

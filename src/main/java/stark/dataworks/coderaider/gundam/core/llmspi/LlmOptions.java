@@ -12,34 +12,34 @@ public class LlmOptions
 {
 
     /**
-     * Internal state for temperature; used while coordinating runtime behavior.
+     * Sampling temperature for this request.
      */
     private final double temperature;
 
     /**
-     * Internal state for max tokens; used while coordinating runtime behavior.
+     * Maximum completion tokens allowed for this invocation.
      */
     private final int maxTokens;
 
     /**
-     * Internal state for tool choice; used while coordinating runtime behavior.
+     * Tool choice policy used for this model invocation.
      */
     private final String toolChoice;
 
     /**
-     * Internal state for response format; used while coordinating runtime behavior.
+     * Response format requested from the model provider.
      */
     private final String responseFormat;
 
     /**
-     * Internal state for provider options; used while coordinating runtime behavior.
+     * Provider-specific options attached to this model call.
      */
     private final Map<String, Object> providerOptions;
 
     /**
-     * Performs llm options as part of LlmOptions runtime responsibilities.
-     * @param temperature The temperature used by this operation.
-     * @param maxTokens The max tokens used by this operation.
+     * Initializes LlmOptions with required runtime dependencies and options.
+     * @param temperature sampling temperature.
+     * @param maxTokens maximum token limit.
      */
     public LlmOptions(double temperature, int maxTokens)
     {
@@ -47,12 +47,12 @@ public class LlmOptions
     }
 
     /**
-     * Performs llm options as part of LlmOptions runtime responsibilities.
-     * @param temperature The temperature used by this operation.
-     * @param maxTokens The max tokens used by this operation.
-     * @param toolChoice The tool choice used by this operation.
-     * @param responseFormat The response format used by this operation.
-     * @param providerOptions The provider options used by this operation.
+     * Creates LLM options.
+     * @param temperature sampling temperature.
+     * @param maxTokens maximum token limit.
+     * @param toolChoice tool-choice policy passed to the model provider.
+     * @param responseFormat response format requested from the model provider.
+     * @param providerOptions provider-specific model options.
      */
     public LlmOptions(double temperature,
                       int maxTokens,

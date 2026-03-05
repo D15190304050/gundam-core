@@ -7,8 +7,8 @@ public class AgentsException extends RuntimeException
 {
 
     /**
-     * Performs agents exception as part of AgentsException runtime responsibilities.
-     * @param message The message used by this operation.
+     * Initializes AgentsException with required runtime dependencies and options.
+     * @param message conversation message.
      */
     public AgentsException(String message)
     {
@@ -16,9 +16,9 @@ public class AgentsException extends RuntimeException
     }
 
     /**
-     * Performs agents exception as part of AgentsException runtime responsibilities.
-     * @param message The message used by this operation.
-     * @param cause The cause used by this operation.
+     * Initializes AgentsException with required runtime dependencies and options.
+     * @param message conversation message.
+     * @param cause root cause exception.
      */
     public AgentsException(String message, Throwable cause)
     {

@@ -11,16 +11,16 @@ public final class ToolSchemaJson
 {
 
     /**
-     * Performs tool schema json as part of ToolSchemaJson runtime responsibilities.
+     * Initializes ToolSchemaJson with required runtime dependencies and options.
      */
     private ToolSchemaJson()
     {
     }
 
     /**
-     * Performs to json schema as part of ToolSchemaJson runtime responsibilities.
-     * @param definition The definition used by this operation.
-     * @return The value produced by this operation.
+     * Converts a JSON schema definition into internal schema structures.
+     * @param definition definition object.
+     * @return Map containing operation results.
      */
     public static Map<String, Object> toJsonSchema(ToolDefinition definition)
     {

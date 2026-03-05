@@ -9,16 +9,16 @@ public interface IAgentHook
 {
 
     /**
-     * Performs before run as part of IAgentHook runtime responsibilities.
-     * @param context The context used by this operation.
+     * Invoked before an agent run starts.
+     * @param context execution context.
      */
     default void beforeRun(ExecutionContext context)
     {
     }
 
     /**
-     * Performs after run as part of IAgentHook runtime responsibilities.
-     * @param context The context used by this operation.
+     * Invoked after an agent run finishes.
+     * @param context execution context.
      */
 
     default void afterRun(ExecutionContext context)
@@ -26,8 +26,8 @@ public interface IAgentHook
     }
 
     /**
-     * Performs on step as part of IAgentHook runtime responsibilities.
-     * @param context The context used by this operation.
+     * Invoked after each agent step.
+     * @param context execution context.
      */
 
     default void onStep(ExecutionContext context)
@@ -35,9 +35,9 @@ public interface IAgentHook
     }
 
     /**
-     * Performs on model response delta as part of IAgentHook runtime responsibilities.
-     * @param context The context used by this operation.
-     * @param delta The delta used by this operation.
+     * Invoked for streamed model text deltas.
+     * @param context execution context.
+     * @param delta delta.
      */
     default void onModelResponseDelta(ExecutionContext context, String delta)
     {

@@ -12,12 +12,12 @@ import stark.dataworks.coderaider.gundam.core.model.Message;
 public class Session
 {
     /**
-     * Internal state for id; used while coordinating runtime behavior.
+     * Unique identifier for this definition.
      */
     private final String id;
 
     /**
-     * Internal state for messages; used while coordinating runtime behavior.
+     * Conversation messages persisted in this session/request.
      */
     private final List<Message> messages;
 

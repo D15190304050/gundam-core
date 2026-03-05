@@ -17,19 +17,19 @@ import java.util.Objects;
 public class AgentWorkflowProcessor implements IWorkflowVertexProcessor
 {
     /**
-     * Internal state for runner; used while coordinating runtime behavior.
+     * Agent runner used to execute nested agent calls.
      */
     private final AgentRunner runner;
 
     /**
-     * Internal state for run configuration; used while coordinating runtime behavior.
+     * Run configuration applied to delegated agent execution.
      */
     private final RunConfiguration runConfiguration;
 
     /**
-     * Performs agent workflow processor as part of AgentWorkflowProcessor runtime responsibilities.
-     * @param runner The runner used by this operation.
-     * @param runConfiguration The run configuration used by this operation.
+     * Initializes AgentWorkflowProcessor with required runtime dependencies and options.
+     * @param runner agent runner.
+     * @param runConfiguration run configuration.
      */
     public AgentWorkflowProcessor(AgentRunner runner, RunConfiguration runConfiguration)
     {
@@ -38,10 +38,11 @@ public class AgentWorkflowProcessor implements IWorkflowVertexProcessor
     }
 
     /**
-     * Runs the primary execution flow, coordinating model/tool work and runtime policies.
-     * @param vertex The vertex used by this operation.
-     * @param state The state used by this operation.
-     * @return The value produced by this operation.
+     * Processes the supplied workflow/tracing input.
+     * @param vertex vertex.
+     * @param Map<String map<string.
+     * @param state state.
+     * @return workflow vertex result.
      */
     @Override
     public WorkflowVertexResult process(WorkflowVertexDefinition vertex, Map<String, Object> state)

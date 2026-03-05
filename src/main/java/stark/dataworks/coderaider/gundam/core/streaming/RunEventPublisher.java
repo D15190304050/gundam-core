@@ -12,13 +12,13 @@ public class RunEventPublisher
 {
 
     /**
-     * Internal state for listeners used while coordinating runtime behavior.
+ * Run-event listeners that receive streamed events.
      */
     private final List<IRunEventListener> listeners = new ArrayList<>();
 
     /**
-     * Performs subscribe as part of RunEventPublisher runtime responsibilities.
-     * @param listener The listener used by this operation.
+     * Registers a run-event listener.
+     * @param listener event listener.
      */
     public void subscribe(IRunEventListener listener)
     {
@@ -26,8 +26,8 @@ public class RunEventPublisher
     }
 
     /**
-     * Publishes a runtime event so hooks/listeners can observe progress.
-     * @param event The event used by this operation.
+     * Publishes this value.
+     * @param event run event.
      */
     public void publish(RunEvent event)
     {

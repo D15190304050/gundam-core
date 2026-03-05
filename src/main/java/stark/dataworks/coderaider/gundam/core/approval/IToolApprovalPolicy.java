@@ -7,9 +7,9 @@ public interface IToolApprovalPolicy
 {
 
     /**
-     * Performs decide as part of ToolApprovalPolicy runtime responsibilities.
-     * @param request The request used by this operation.
-     * @return The value produced by this operation.
+     * Evaluates and returns an approval decision.
+     * @param request request payload.
+     * @return tool approval decision result.
      */
     ToolApprovalDecision decide(ToolApprovalRequest request);
 }

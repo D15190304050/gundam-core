@@ -19,88 +19,88 @@ public class AgentDefinition
 {
 
     /**
-     * Internal state for id; used while coordinating runtime behavior.
+     * Unique identifier for this definition.
      */
     private String id;
 
     /**
-     * Internal state for name; used while coordinating runtime behavior.
+     * Human-readable name used in logs and UIs.
      */
     private String name;
 
     /**
-     * Internal state for system prompt; used while coordinating runtime behavior.
+     * Base instruction prompt prepended to each model call.
      */
     private String systemPrompt;
 
     /**
-     * Internal state for model; used while coordinating runtime behavior.
+     * Model id passed to the provider for inference.
      */
     private String model;
 
     /**
-     * Internal state for model temperature used while coordinating runtime behavior.
+ * Sampling temperature used for model generation.
      */
     private double modelTemperature = 0.2;
 
     /**
-     * Internal state for max output tokens used while coordinating runtime behavior.
+ * Maximum output tokens allowed for this configuration.
      */
     private int modelMaxTokens = 512;
 
     /**
-     * Internal state for tool choice policy used while coordinating runtime behavior.
+ * Tool selection policy sent to the model.
      */
     private String modelToolChoice = "auto";
 
     /**
-     * Internal state for response format used while coordinating runtime behavior.
+ * Requested response format for model output.
      */
     private String modelResponseFormat = "text";
 
     /**
-     * Internal state for provider model options used while coordinating runtime behavior.
+ * Provider-specific options forwarded as-is with model requests.
      */
     private Map<String, Object> modelProviderOptions = Map.of();
 
 
     /**
-     * Internal state for model reasoning options used while coordinating runtime behavior.
+ * Reasoning options for providers that support explicit reasoning controls.
      */
     private Map<String, Object> modelReasoning = Map.of();
 
     /**
-     * Internal state for model skills used while coordinating runtime behavior.
+ * Skill descriptors exposed to the model runtime.
      */
     private List<Map<String, Object>> modelSkills = new ArrayList<>();
 
     /**
-     * Internal state for tool names used while coordinating runtime behavior.
+ * Tools this agent is allowed to call.
      */
     private List<String> toolNames = new ArrayList<>();
 
     /**
-     * Internal state for handoff agent ids used while coordinating runtime behavior.
+ * Ordered list of handoff agent ids used to resolve cross-component references.
      */
     private List<String> handoffAgentIds = new ArrayList<>();
 
     /**
-     * Internal state for max steps used while coordinating runtime behavior.
+ * Maximum steps allowed for this configuration.
      */
     private int maxSteps = 8;
 
     /**
-     * Internal state for reset input after tool call used while coordinating runtime behavior.
+ * Whether to reset input after tool call to avoid carrying stale context into the next turn.
      */
     private boolean resetInputAfterToolCall = true;
 
     /**
-     * Internal state for reset input after handoff used while coordinating runtime behavior.
+ * Whether to reset input after handoff to avoid carrying stale context into the next turn.
      */
     private boolean resetInputAfterHandoff = true;
 
     /**
-     * Internal state for require tool approval used while coordinating runtime behavior.
+ * Whether tool calls must be approved before execution.
      */
     private boolean requireToolApproval = false;
 
@@ -110,17 +110,17 @@ public class AgentDefinition
     private boolean reactEnabled = false;
 
     /**
-     * Internal state for custom ReAct instructions appended to the system prompt.
+     * Additional ReAct instructions appended to the system prompt before each run.
      */
     private String reactInstructions;
 
     /**
-     * Internal state for output schema name; used while coordinating runtime behavior.
+     * Output schema name.
      */
     private String outputSchemaName;
 
     /**
-     * Internal state for metadata used while coordinating runtime behavior.
+ * Arbitrary metadata attached for caller-specific routing or auditing.
      */
     private Map<String, Object> metadata = Map.of();
 

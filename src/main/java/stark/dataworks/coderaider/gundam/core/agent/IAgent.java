@@ -6,8 +6,8 @@ package stark.dataworks.coderaider.gundam.core.agent;
 public interface IAgent
 {
     /**
-     * Performs definition as part of IAgent runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns definition metadata for this component.
+     * @return Agent definition associated with this instance.
      */
     AgentDefinition definition();
 }

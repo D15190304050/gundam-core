@@ -7,9 +7,9 @@ public class HandoffDeniedException extends AgentsException
 {
 
     /**
-     * Performs handoff denied exception as part of HandoffDeniedException runtime responsibilities.
-     * @param from The from used by this operation.
-     * @param to The to used by this operation.
+     * Initializes HandoffDeniedException with required runtime dependencies and options.
+     * @param from from.
+     * @param to to.
      */
     public HandoffDeniedException(String from, String to)
     {

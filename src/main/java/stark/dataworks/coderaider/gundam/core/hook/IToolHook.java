@@ -9,18 +9,19 @@ public interface IToolHook
 {
 
     /**
-     * Performs before tool as part of IToolHook runtime responsibilities.
-     * @param toolName The tool name used by this operation.
-     * @param args The args used by this operation.
+     * Invoked before a tool call executes.
+     * @param toolName tool name.
+     * @param Map<String map<string.
+     * @param args tool arguments passed to the MCP server.
      */
     default void beforeTool(String toolName, Map<String, Object> args)
     {
     }
 
     /**
-     * Performs after tool as part of IToolHook runtime responsibilities.
-     * @param toolName The tool name used by this operation.
-     * @param result The result used by this operation.
+     * Invoked after a tool call completes.
+     * @param toolName tool name.
+     * @param result result.
      */
 
     default void afterTool(String toolName, String result)

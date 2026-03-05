@@ -12,13 +12,13 @@ public class TracingProcessors
 {
 
     /**
-     * Internal state for processors used while coordinating runtime behavior.
+ * Registered tracing processors invoked for each run event.
      */
     private final List<ITracingProcessor> processors = new CopyOnWriteArrayList<>();
 
     /**
-     * Adds data to internal state consumed by later runtime steps.
-     * @param processor The processor used by this operation.
+     * Adds this value.
+     * @param processor processor.
      */
     public void add(ITracingProcessor processor)
     {
@@ -26,8 +26,8 @@ public class TracingProcessors
     }
 
     /**
-     * Publishes a runtime event so hooks/listeners can observe progress.
-     * @param event The event used by this operation.
+     * Emits a trace event to registered processors.
+     * @param event run event.
      */
     public void emit(TraceEvent event)
     {

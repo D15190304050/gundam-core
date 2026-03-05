@@ -12,19 +12,19 @@ public class ToolApprovalDecision
 {
 
     /**
-     * Internal state for approved; used while coordinating runtime behavior.
+     * Whether the tool can be executed.
      */
     private final boolean approved;
 
     /**
-     * Internal state for reason; used while coordinating runtime behavior.
+     * Reason why execution is allowed or blocked.
      */
     private final String reason;
 
     /**
-     * Performs tool approval decision as part of ToolApprovalDecision runtime responsibilities.
-     * @param approved The approved used by this operation.
-     * @param reason The reason used by this operation.
+     * Initializes ToolApprovalDecision with required runtime dependencies and options.
+     * @param approved approved.
+     * @param reason human-readable reason.
      */
     private ToolApprovalDecision(boolean approved, String reason)
     {
@@ -33,8 +33,8 @@ public class ToolApprovalDecision
     }
 
     /**
-     * Performs approve as part of ToolApprovalDecision runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns an approval decision.
+     * @return tool approval decision result.
      */
     public static ToolApprovalDecision approve()
     {
@@ -42,9 +42,9 @@ public class ToolApprovalDecision
     }
 
     /**
-     * Performs deny as part of ToolApprovalDecision runtime responsibilities.
-     * @param reason The reason used by this operation.
-     * @return The value produced by this operation.
+     * Returns a deny decision with a reason.
+     * @param reason human-readable reason.
+     * @return tool approval decision result.
      */
     public static ToolApprovalDecision deny(String reason)
     {

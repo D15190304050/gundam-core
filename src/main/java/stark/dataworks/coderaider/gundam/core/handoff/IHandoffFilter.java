@@ -7,8 +7,8 @@ public interface IHandoffFilter
 {
 
     /**
-     * Performs allow as part of HandoffFilter runtime responsibilities.
-     * @param handoff The handoff used by this operation.
+     * Returns an allow decision.
+     * @param handoff handoff.
      * @return {@code true} when the condition is satisfied; otherwise {@code false}.
      */
     boolean allow(Handoff handoff);

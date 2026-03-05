@@ -7,9 +7,9 @@ public class AllowAllToolApprovalPolicy implements IToolApprovalPolicy
 {
 
     /**
-     * Performs decide as part of AllowAllToolApprovalPolicy runtime responsibilities.
-     * @param request The request used by this operation.
-     * @return The value produced by this operation.
+     * Evaluates and returns an approval decision.
+     * @param request model/tool request payload.
+     * @return tool approval decision result.
      */
     @Override
     public ToolApprovalDecision decide(ToolApprovalRequest request)

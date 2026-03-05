@@ -16,11 +16,11 @@ public class DefaultContextBuilder implements IContextBuilder
 {
 
     /**
-     * Performs build as part of DefaultContextBuilder runtime responsibilities.
-     * @param agent The agent used by this operation.
-     * @param memory The memory used by this operation.
-     * @param userInput The user input used by this operation.
-     * @return The value produced by this operation.
+     * Builds and returns the requested value.
+     * @param agent agent instance.
+     * @param memory conversation memory backend.
+     * @param userInput user input.
+     * @return List of message values.
      */
     @Override
     public List<Message> build(IAgent agent, IAgentMemory memory, String userInput)

@@ -7,9 +7,9 @@ public class AllowAllMcpToolApprovalPolicy implements IMcpToolApprovalPolicy
 {
 
     /**
-     * Performs decide as part of AllowAllMcpToolApprovalPolicy runtime responsibilities.
-     * @param request The request used by this operation.
-     * @return The value produced by this operation.
+     * Evaluates and returns an approval decision.
+     * @param request model/tool request payload.
+     * @return mcp tool approval result.
      */
     @Override
     public McpToolApprovalResult decide(McpToolApprovalRequest request)

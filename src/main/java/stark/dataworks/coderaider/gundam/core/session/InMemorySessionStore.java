@@ -11,13 +11,13 @@ public class InMemorySessionStore implements ISessionStore
 {
 
     /**
-     * Internal state for sessions used while coordinating runtime behavior.
+ * In-memory session storage keyed by session id.
      */
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
     /**
-     * Performs save as part of InMemorySessionStore runtime responsibilities.
-     * @param session The session used by this operation.
+     * Persists the supplied value to storage.
+     * @param session session.
      */
     @Override
     public void save(Session session)
@@ -26,9 +26,9 @@ public class InMemorySessionStore implements ISessionStore
     }
 
     /**
-     * Performs load as part of InMemorySessionStore runtime responsibilities.
-     * @param sessionId The session id used by this operation.
-     * @return The value produced by this operation.
+     * Loads and returns the requested value from storage.
+     * @param sessionId session identifier used to resume conversation state.
+     * @return Optional session value.
      */
     @Override
     public Optional<Session> load(String sessionId)

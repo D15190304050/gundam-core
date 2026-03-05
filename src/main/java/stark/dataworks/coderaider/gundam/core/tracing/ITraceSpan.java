@@ -7,14 +7,14 @@ public interface ITraceSpan
 {
 
     /**
-     * Performs annotate as part of TraceSpan runtime responsibilities.
-     * @param key The key used by this operation.
-     * @param value The value used by this operation.
+     * Adds an attribute to the current span.
+     * @param key key.
+     * @param value value.
      */
     void annotate(String key, String value);
 
     /**
-     * Performs close as part of TraceSpan runtime responsibilities.
+     * Closes this value.
      */
 
     void close();

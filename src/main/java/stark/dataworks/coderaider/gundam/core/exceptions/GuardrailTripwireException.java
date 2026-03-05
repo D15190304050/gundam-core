@@ -7,9 +7,9 @@ public class GuardrailTripwireException extends AgentsException
 {
 
     /**
-     * Performs guardrail tripwire exception as part of GuardrailTripwireException runtime responsibilities.
-     * @param phase The phase used by this operation.
-     * @param reason The reason used by this operation.
+     * Initializes GuardrailTripwireException with required runtime dependencies and options.
+     * @param phase phase.
+     * @param reason human-readable reason.
      */
     public GuardrailTripwireException(String phase, String reason)
     {

@@ -7,9 +7,9 @@ public interface ITraceProvider
 {
 
     /**
-     * Performs start span as part of TraceProvider runtime responsibilities.
-     * @param name The name used by this operation.
-     * @return The value produced by this operation.
+     * Starts span.
+     * @param name name.
+     * @return itrace span result.
      */
     ITraceSpan startSpan(String name);
 }

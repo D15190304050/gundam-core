@@ -9,15 +9,15 @@ public interface ISessionStore
 {
 
     /**
-     * Performs save as part of SessionStore runtime responsibilities.
-     * @param session The session used by this operation.
+     * Persists the supplied value to storage.
+     * @param session session.
      */
     void save(Session session);
 
     /**
-     * Performs load as part of SessionStore runtime responsibilities.
-     * @param sessionId The session id used by this operation.
-     * @return The value produced by this operation.
+     * Loads and returns the requested value from storage.
+     * @param sessionId session identifier used to resume conversation state.
+     * @return Optional session value.
      */
 
     Optional<Session> load(String sessionId);

@@ -9,17 +9,17 @@ public interface ILlmClient
 {
 
     /**
-     * Performs chat as part of ILlmClient runtime responsibilities.
-     * @param request The request used by this operation.
-     * @return The value produced by this operation.
+     * Runs a non-streaming model call.
+     * @param request request payload.
+     * @return llm response result.
      */
     LlmResponse chat(LlmRequest request);
 
     /**
-     * Performs chat stream as part of ILlmClient runtime responsibilities.
-     * @param request The request used by this operation.
-     * @param listener The listener used by this operation.
-     * @return The value produced by this operation.
+     * Streams model output for the supplied request.
+     * @param request model/tool request payload.
+     * @param listener event listener.
+     * @return llm response result.
      */
     default LlmResponse chatStream(LlmRequest request, ILlmStreamListener listener)
     {

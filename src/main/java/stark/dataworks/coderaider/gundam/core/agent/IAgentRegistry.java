@@ -9,15 +9,15 @@ public interface IAgentRegistry
 {
 
     /**
-     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
-     * @param agent The agent used by this operation.
+     * Registers this value so it can be resolved in subsequent runtime operations.
+     * @param agent agent instance.
      */
     void register(IAgent agent);
 
     /**
      * Returns the value requested by the caller from this IAgentRegistry.
-     * @param agentId The agent id used by this operation.
-     * @return The value produced by this operation.
+     * @param agentId agent identifier.
+     * @return Optional iagent value.
      */
 
     Optional<IAgent> get(String agentId);

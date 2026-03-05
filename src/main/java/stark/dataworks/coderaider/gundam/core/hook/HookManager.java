@@ -13,18 +13,18 @@ public class HookManager
 {
 
     /**
-     * Internal state for agent hooks used while coordinating runtime behavior.
+ * Registered agent lifecycle hooks.
      */
     private final List<IAgentHook> agentHooks = new ArrayList<>();
 
     /**
-     * Internal state for tool hooks used while coordinating runtime behavior.
+ * Registered tool lifecycle hooks.
      */
     private final List<IToolHook> toolHooks = new ArrayList<>();
 
     /**
-     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
-     * @param hook The hook used by this operation.
+     * Registers an agent lifecycle hook.
+     * @param hook hook.
      */
     public void registerAgentHook(IAgentHook hook)
     {
@@ -32,8 +32,8 @@ public class HookManager
     }
 
     /**
-     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
-     * @param hook The hook used by this operation.
+     * Registers a tool lifecycle hook.
+     * @param hook hook.
      */
     public void registerToolHook(IToolHook hook)
     {
@@ -41,8 +41,8 @@ public class HookManager
     }
 
     /**
-     * Performs before run as part of HookManager runtime responsibilities.
-     * @param context The context used by this operation.
+     * Invoked before an agent run starts.
+     * @param context execution context.
      */
     public void beforeRun(ExecutionContext context)
     {
@@ -50,8 +50,8 @@ public class HookManager
     }
 
     /**
-     * Performs on step as part of HookManager runtime responsibilities.
-     * @param context The context used by this operation.
+     * Invoked after each agent step.
+     * @param context execution context.
      */
     public void onStep(ExecutionContext context)
     {
@@ -59,9 +59,9 @@ public class HookManager
     }
 
     /**
-     * Performs on model response delta as part of HookManager runtime responsibilities.
-     * @param context The context used by this operation.
-     * @param delta The delta used by this operation.
+     * Invoked for streamed model text deltas.
+     * @param context execution context.
+     * @param delta delta.
      */
     public void onModelResponseDelta(ExecutionContext context, String delta)
     {
@@ -69,8 +69,8 @@ public class HookManager
     }
 
     /**
-     * Performs after run as part of HookManager runtime responsibilities.
-     * @param context The context used by this operation.
+     * Invoked after an agent run finishes.
+     * @param context execution context.
      */
     public void afterRun(ExecutionContext context)
     {
@@ -78,9 +78,10 @@ public class HookManager
     }
 
     /**
-     * Performs before tool as part of HookManager runtime responsibilities.
-     * @param toolName The tool name used by this operation.
-     * @param args The args used by this operation.
+     * Invoked before a tool call executes.
+     * @param toolName tool name.
+     * @param Map<String map<string.
+     * @param args tool arguments passed to the MCP server.
      */
     public void beforeTool(String toolName, Map<String, Object> args)
     {
@@ -88,9 +89,9 @@ public class HookManager
     }
 
     /**
-     * Performs after tool as part of HookManager runtime responsibilities.
-     * @param toolName The tool name used by this operation.
-     * @param result The result used by this operation.
+     * Invoked after a tool call completes.
+     * @param toolName tool name.
+     * @param result result.
      */
     public void afterTool(String toolName, String result)
     {

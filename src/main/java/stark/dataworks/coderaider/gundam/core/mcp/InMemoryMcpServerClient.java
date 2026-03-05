@@ -12,29 +12,29 @@ public class InMemoryMcpServerClient implements IMcpServerClient
 {
 
     /**
-     * Internal state for tools by server used while coordinating runtime behavior.
+ * In-memory MCP tools grouped by server id.
      */
     private final Map<String, List<McpToolDescriptor>> toolsByServer = new ConcurrentHashMap<>();
 
     /**
-     * Internal state for handlers used while coordinating runtime behavior.
+ * Handlers registered for in-memory MCP tool execution.
      */
     private final Map<String, Function<Map<String, Object>, String>> handlers = new ConcurrentHashMap<>();
 
     /**
-     * Internal state for resources by server used while coordinating runtime behavior.
+ * In-memory MCP resources grouped by server id.
      */
     private final Map<String, List<McpResource>> resourcesByServer = new ConcurrentHashMap<>();
 
     /**
-     * Internal state for templates by server used while coordinating runtime behavior.
+ * In-memory MCP resource templates grouped by server id.
      */
     private final Map<String, List<McpResourceTemplate>> templatesByServer = new ConcurrentHashMap<>();
 
     /**
-     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
-     * @param serverId The server id used by this operation.
-     * @param tools The tools used by this operation.
+     * Registers MCP tools for a specific server id.
+     * @param serverId MCP server identifier.
+     * @param tools tools.
      */
     public void registerTools(String serverId, List<McpToolDescriptor> tools)
     {
@@ -42,10 +42,12 @@ public class InMemoryMcpServerClient implements IMcpServerClient
     }
 
     /**
-     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
-     * @param serverId The server id used by this operation.
-     * @param toolName The tool name used by this operation.
-     * @param handler The handler used by this operation.
+     * Registers a handler that executes a named MCP tool.
+     * @param serverId MCP server identifier.
+     * @param toolName tool name.
+     * @param Function<Map<String function<map<string.
+     * @param Object> object>.
+     * @param handler handler.
      */
     public void registerHandler(String serverId, String toolName, Function<Map<String, Object>, String> handler)
     {
@@ -53,9 +55,9 @@ public class InMemoryMcpServerClient implements IMcpServerClient
     }
 
     /**
-     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
-     * @param serverId The server id used by this operation.
-     * @param resources The resources used by this operation.
+     * Registers MCP resources for a specific server id.
+     * @param serverId MCP server identifier.
+     * @param resources resources.
      */
     public void registerResources(String serverId, List<McpResource> resources)
     {
@@ -63,9 +65,9 @@ public class InMemoryMcpServerClient implements IMcpServerClient
     }
 
     /**
-     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
-     * @param serverId The server id used by this operation.
-     * @param templates The templates used by this operation.
+     * Registers MCP resource templates for a specific server id.
+     * @param serverId MCP server identifier.
+     * @param templates templates.
      */
     public void registerResourceTemplates(String serverId, List<McpResourceTemplate> templates)
     {
@@ -73,9 +75,9 @@ public class InMemoryMcpServerClient implements IMcpServerClient
     }
 
     /**
-     * Performs list tools as part of InMemoryMcpServerClient runtime responsibilities.
-     * @param config The config used by this operation.
-     * @return The value produced by this operation.
+     * Returns the tools exposed by the target registry or MCP server.
+     * @param config run configuration.
+     * @return List of mcp tool descriptor values.
      */
     @Override
     public List<McpToolDescriptor> listTools(McpServerConfiguration config)
@@ -84,11 +86,12 @@ public class InMemoryMcpServerClient implements IMcpServerClient
     }
 
     /**
-     * Performs call tool as part of InMemoryMcpServerClient runtime responsibilities.
-     * @param config The config used by this operation.
-     * @param toolName The tool name used by this operation.
-     * @param args The args used by this operation.
-     * @return The value produced by this operation.
+     * Invokes the named tool and returns its result.
+     * @param config run configuration.
+     * @param toolName tool name.
+     * @param Map<String map<string.
+     * @param args tool arguments passed to the MCP server.
+     * @return Tool execution output returned by the MCP server.
      */
     @Override
     public String callTool(McpServerConfiguration config, String toolName, Map<String, Object> args)
@@ -102,9 +105,9 @@ public class InMemoryMcpServerClient implements IMcpServerClient
     }
 
     /**
-     * Performs list resources as part of InMemoryMcpServerClient runtime responsibilities.
-     * @param config The config used by this operation.
-     * @return The value produced by this operation.
+     * Returns resources exposed by the target MCP server.
+     * @param config run configuration.
+     * @return List of mcp resource values.
      */
     @Override
     public List<McpResource> listResources(McpServerConfiguration config)
@@ -113,9 +116,9 @@ public class InMemoryMcpServerClient implements IMcpServerClient
     }
 
     /**
-     * Performs list resource templates as part of InMemoryMcpServerClient runtime responsibilities.
-     * @param config The config used by this operation.
-     * @return The value produced by this operation.
+     * Returns resource templates exposed by the target MCP server.
+     * @param config run configuration.
+     * @return List of mcp resource template values.
      */
     @Override
     public List<McpResourceTemplate> listResourceTemplates(McpServerConfiguration config)
@@ -124,10 +127,10 @@ public class InMemoryMcpServerClient implements IMcpServerClient
     }
 
     /**
-     * Performs read resource as part of InMemoryMcpServerClient runtime responsibilities.
-     * @param config The config used by this operation.
-     * @param uri The uri used by this operation.
-     * @return The value produced by this operation.
+     * Reads the specified resource content from the MCP server.
+     * @param config run configuration.
+     * @param uri resource URI.
+     * @return Resource payload returned by the MCP server.
      */
     @Override
     public McpResource readResource(McpServerConfiguration config, String uri)

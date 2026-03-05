@@ -15,24 +15,25 @@ public class ToolCall
 {
 
     /**
-     * Internal state for tool name; used while coordinating runtime behavior.
+     * Name of the tool being requested or executed.
      */
     private final String toolName;
 
     /**
-     * Internal state for arguments; used while coordinating runtime behavior.
+     * Tool-call arguments provided by the model/caller.
      */
     private final Map<String, Object> arguments;
 
     /**
-     * Internal state for tool call ID; used to correlate tool results with their calls.
+     * Identifier used to correlate a tool message with the originating tool call.
      */
     private final String toolCallId;
 
     /**
-     * Performs tool call as part of ToolCall runtime responsibilities.
-     * @param toolName The tool name used by this operation.
-     * @param arguments The arguments used by this operation.
+     * Initializes ToolCall with required runtime dependencies and options.
+     * @param toolName tool name.
+     * @param Map<String map<string.
+     * @param arguments arguments.
      */
     public ToolCall(String toolName, Map<String, Object> arguments)
     {
@@ -40,10 +41,11 @@ public class ToolCall
     }
 
     /**
-     * Performs tool call as part of ToolCall runtime responsibilities.
-     * @param toolName The tool name used by this operation.
-     * @param arguments The arguments used by this operation.
-     * @param toolCallId The tool call ID used by this operation.
+     * Initializes ToolCall with required runtime dependencies and options.
+     * @param toolName tool name.
+     * @param Map<String map<string.
+     * @param arguments arguments.
+     * @param toolCallId tool call identifier.
      */
     public ToolCall(String toolName, Map<String, Object> arguments, String toolCallId)
     {

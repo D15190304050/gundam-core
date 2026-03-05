@@ -12,19 +12,20 @@ public class ToolExecutionContext
 {
 
     /**
-     * Internal state for agent id; used while coordinating runtime behavior.
+     * Identifier of the agent associated with this operation.
      */
     private final String agentId;
 
     /**
-     * Internal state for runtime metadata; used while coordinating runtime behavior.
+     * Arbitrary runtime metadata passed to tool execution.
      */
     private final Map<String, Object> runtimeMetadata;
 
     /**
-     * Performs tool execution context as part of ToolExecutionContext runtime responsibilities.
-     * @param agentId The agent id used by this operation.
-     * @param runtimeMetadata The runtime metadata used by this operation.
+     * Initializes ToolExecutionContext with required runtime dependencies and options.
+     * @param agentId agent identifier.
+     * @param Map<String map<string.
+     * @param runtimeMetadata runtime metadata.
      */
     public ToolExecutionContext(String agentId, Map<String, Object> runtimeMetadata)
     {

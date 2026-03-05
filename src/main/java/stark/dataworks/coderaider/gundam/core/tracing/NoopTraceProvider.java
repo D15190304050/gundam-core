@@ -7,9 +7,9 @@ public class NoopTraceProvider implements ITraceProvider
 {
 
     /**
-     * Performs start span as part of NoopTraceProvider runtime responsibilities.
-     * @param name The name used by this operation.
-     * @return The value produced by this operation.
+     * Starts span.
+     * @param name human-readable name.
+     * @return itrace span result.
      */
     @Override
     public ITraceSpan startSpan(String name)
@@ -18,9 +18,9 @@ public class NoopTraceProvider implements ITraceProvider
         {
 
             /**
-             * Performs annotate as part of NoopTraceProvider runtime responsibilities.
-             * @param key The key used by this operation.
-             * @param value The value used by this operation.
+             * Adds an attribute to the current span.
+             * @param key key.
+             * @param value value.
              */
             @Override
             public void annotate(String key, String value)
@@ -28,7 +28,7 @@ public class NoopTraceProvider implements ITraceProvider
             }
 
             /**
-             * Performs close as part of NoopTraceProvider runtime responsibilities.
+             * Closes this value.
              */
             @Override
             public void close()

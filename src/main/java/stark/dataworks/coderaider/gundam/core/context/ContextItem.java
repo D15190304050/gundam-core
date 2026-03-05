@@ -14,25 +14,26 @@ public class ContextItem
 {
 
     /**
-     * Internal state for type; used while coordinating runtime behavior.
+     * Type discriminator for this item/event/span.
      */
     private final ContextItemType type;
 
     /**
-     * Internal state for content; used while coordinating runtime behavior.
+     * Main assistant text content returned by the model.
      */
     private final String content;
 
     /**
-     * Internal state for metadata; used while coordinating runtime behavior.
+     * Arbitrary metadata attached for caller-specific routing or auditing.
      */
     private final Map<String, Object> metadata;
 
     /**
-     * Performs run item as part of RunItem runtime responsibilities.
-     * @param type The type used by this operation.
-     * @param content The content used by this operation.
-     * @param metadata The metadata used by this operation.
+     * Initializes ContextItem with required runtime dependencies and options.
+     * @param type type discriminator.
+     * @param content content.
+     * @param Map<String map<string.
+     * @param metadata metadata map.
      */
     public ContextItem(ContextItemType type, String content, Map<String, Object> metadata)
     {

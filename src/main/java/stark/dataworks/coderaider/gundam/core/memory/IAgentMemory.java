@@ -11,14 +11,14 @@ public interface IAgentMemory
 {
 
     /**
-     * Performs messages as part of IAgentMemory runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns the message history for this memory backend.
+     * @return List of message values.
      */
     List<Message> messages();
 
     /**
      * Adds data to internal state consumed by later runtime steps.
-     * @param message The message used by this operation.
+     * @param message conversation message.
      */
 
     void append(Message message);

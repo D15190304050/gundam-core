@@ -12,8 +12,8 @@ public class FileSearchTool extends AbstractBuiltinTool
 {
 
     /**
-     * Performs file search tool as part of FileSearchTool runtime responsibilities.
-     * @param definition The definition used by this operation.
+     * Initializes FileSearchTool with required runtime dependencies and options.
+     * @param definition definition object.
      */
     public FileSearchTool(ToolDefinition definition)
     {
@@ -21,9 +21,10 @@ public class FileSearchTool extends AbstractBuiltinTool
     }
 
     /**
-     * Runs the primary execution flow, coordinating model/tool work and runtime policies.
-     * @param input The input used by this operation.
-     * @return The value produced by this operation.
+     * Executes this tool operation and returns the produced output.
+     * @param Map<String map<string.
+     * @param input input payload.
+     * @return Tool execution output returned by the MCP server.
      */
     @Override
     public String execute(Map<String, Object> input)

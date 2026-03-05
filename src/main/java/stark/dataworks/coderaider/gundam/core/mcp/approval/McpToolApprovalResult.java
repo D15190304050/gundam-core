@@ -7,8 +7,8 @@ public record McpToolApprovalResult(boolean approved, String reason)
 {
 
     /**
-     * Performs approve as part of McpToolApprovalResult runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns an approval decision.
+     * @return mcp tool approval result.
      */
     public static McpToolApprovalResult approve()
     {
@@ -16,9 +16,9 @@ public record McpToolApprovalResult(boolean approved, String reason)
     }
 
     /**
-     * Performs deny as part of McpToolApprovalResult runtime responsibilities.
-     * @param reason The reason used by this operation.
-     * @return The value produced by this operation.
+     * Returns a deny decision with a reason.
+     * @param reason human-readable reason.
+     * @return mcp tool approval result.
      */
     public static McpToolApprovalResult deny(String reason)
     {

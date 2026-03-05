@@ -13,25 +13,26 @@ public class McpToolDescriptor
 {
 
     /**
-     * Internal state for name; used while coordinating runtime behavior.
+     * Human-readable name used in logs and UIs.
      */
     private final String name;
 
     /**
-     * Internal state for description; used while coordinating runtime behavior.
+     * Human-readable description shown to model and operators.
      */
     private final String description;
 
     /**
-     * Internal state for input schema; used while coordinating runtime behavior.
+     * Raw MCP input schema used to build local tool parameters.
      */
     private final Map<String, Object> inputSchema;
 
     /**
-     * Performs mcp tool descriptor as part of McpToolDescriptor runtime responsibilities.
-     * @param name The name used by this operation.
-     * @param description The description used by this operation.
-     * @param inputSchema The input schema used by this operation.
+     * Initializes McpToolDescriptor with required runtime dependencies and options.
+     * @param name human-readable name.
+     * @param description description.
+     * @param Map<String map<string.
+     * @param inputSchema input schema.
      */
     public McpToolDescriptor(String name, String description, Map<String, Object> inputSchema)
     {

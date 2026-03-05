@@ -13,25 +13,25 @@ public class HostedMcpTool implements ITool
 {
 
     /**
-     * Internal state for server id; used while coordinating runtime behavior.
+     * Unique MCP server identifier used for lookup/routing.
      */
     private final String serverId;
 
     /**
-     * Internal state for tool name; used while coordinating runtime behavior.
+     * Name of the tool being requested or executed.
      */
     private final String toolName;
 
     /**
-     * Internal state for manager; used while coordinating runtime behavior.
+     * Manager used to resolve and proxy hosted MCP tools.
      */
     private final McpManager manager;
 
     /**
-     * Performs hosted mcp tool as part of HostedMcpTool runtime responsibilities.
-     * @param serverId The server id used by this operation.
-     * @param toolName The tool name used by this operation.
-     * @param manager The manager used by this operation.
+     * Initializes HostedMcpTool with required runtime dependencies and options.
+     * @param serverId MCP server identifier.
+     * @param toolName tool name.
+     * @param manager manager instance.
      */
     public HostedMcpTool(String serverId, String toolName, McpManager manager)
     {
@@ -41,8 +41,8 @@ public class HostedMcpTool implements ITool
     }
 
     /**
-     * Performs definition as part of HostedMcpTool runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns definition metadata for this component.
+     * @return tool definition result.
      */
     @Override
     public ToolDefinition definition()
@@ -55,9 +55,10 @@ public class HostedMcpTool implements ITool
     }
 
     /**
-     * Runs the primary execution flow, coordinating model/tool work and runtime policies.
-     * @param input The input used by this operation.
-     * @return The value produced by this operation.
+     * Executes this tool operation and returns the produced output.
+     * @param Map<String map<string.
+     * @param input input payload.
+     * @return Tool execution output returned by the MCP server.
      */
     @Override
     public String execute(Map<String, Object> input)

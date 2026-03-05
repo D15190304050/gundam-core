@@ -13,11 +13,11 @@ public interface IContextBuilder
 {
 
     /**
-     * Performs build as part of IContextBuilder runtime responsibilities.
-     * @param agent The agent used by this operation.
-     * @param memory The memory used by this operation.
-     * @param userInput The user input used by this operation.
-     * @return The value produced by this operation.
+     * Builds and returns the requested value.
+     * @param agent agent instance.
+     * @param memory conversation memory backend.
+     * @param userInput user input.
+     * @return List of message values.
      */
     List<Message> build(IAgent agent, IAgentMemory memory, String userInput);
 }

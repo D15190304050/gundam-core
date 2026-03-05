@@ -10,43 +10,43 @@ public interface IMcpServerClient
 {
 
     /**
-     * Performs list tools as part of McpServerClient runtime responsibilities.
-     * @param config The config used by this operation.
-     * @return The value produced by this operation.
+     * Returns the tools exposed by the target registry or MCP server.
+     * @param config MCP server configuration.
+     * @return List of mcp tool descriptor values.
      */
     List<McpToolDescriptor> listTools(McpServerConfiguration config);
 
     /**
-     * Performs call tool as part of McpServerClient runtime responsibilities.
-     * @param config The config used by this operation.
-     * @param toolName The tool name used by this operation.
-     * @param args The args used by this operation.
-     * @return The value produced by this operation.
+     * Calls the specified tool provided by the MCP server.
+     * @param config MCP server configuration.
+     * @param toolName tool name.
+     * @param args tool arguments passed to the MCP server.
+     * @return Tool execution output returned by the MCP server.
      */
 
     String callTool(McpServerConfiguration config, String toolName, Map<String, Object> args);
 
     /**
-     * Performs list resources as part of McpServerClient runtime responsibilities.
-     * @param config The config used by this operation.
-     * @return The value produced by this operation.
+     * Returns resources exposed by the target MCP server.
+     * @param config MCP server configuration.
+     * @return List of mcp resource values.
      */
 
     List<McpResource> listResources(McpServerConfiguration config);
 
     /**
-     * Performs list resource templates as part of McpServerClient runtime responsibilities.
-     * @param config The config used by this operation.
-     * @return The value produced by this operation.
+     * Returns resource templates exposed by the target MCP server.
+     * @param config MCP server configuration.
+     * @return List of mcp resource template values.
      */
 
     List<McpResourceTemplate> listResourceTemplates(McpServerConfiguration config);
 
     /**
-     * Performs read resource as part of McpServerClient runtime responsibilities.
-     * @param config The config used by this operation.
-     * @param uri The uri used by this operation.
-     * @return The value produced by this operation.
+     * Reads the specified resource content from the MCP server.
+     * @param config MCP server configuration.
+     * @param uri resource URI.
+     * @return Resource payload returned by the MCP server.
      */
 
     McpResource readResource(McpServerConfiguration config, String uri);

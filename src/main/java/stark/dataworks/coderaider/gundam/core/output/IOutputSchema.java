@@ -9,14 +9,14 @@ public interface IOutputSchema
 {
 
     /**
-     * Performs name as part of OutputSchema runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns the schema name.
+     * @return Tool execution output returned by the MCP server.
      */
     String name();
 
     /**
-     * Performs required fields as part of OutputSchema runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns required field names for this schema.
+     * @return Map containing operation results.
      */
 
     Map<String, String> requiredFields();

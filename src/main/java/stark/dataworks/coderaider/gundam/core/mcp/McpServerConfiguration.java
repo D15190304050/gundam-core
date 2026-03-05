@@ -13,25 +13,26 @@ public class McpServerConfiguration
 {
 
     /**
-     * Internal state for server id; used while coordinating runtime behavior.
+     * Unique MCP server identifier used for lookup/routing.
      */
     private final String serverId;
 
     /**
-     * Internal state for endpoint; used while coordinating runtime behavior.
+     * Connection endpoint for the MCP server.
      */
     private final String endpoint;
 
     /**
-     * Internal state for options; used while coordinating runtime behavior.
+     * Provider/server options forwarded without transformation.
      */
     private final Map<String, Object> options;
 
     /**
-     * Performs mcp server config as part of McpServerConfig runtime responsibilities.
-     * @param serverId The server id used by this operation.
-     * @param endpoint The endpoint used by this operation.
-     * @param options The options used by this operation.
+     * Initializes McpServerConfiguration with required runtime dependencies and options.
+     * @param serverId MCP server identifier.
+     * @param endpoint endpoint.
+     * @param Map<String map<string.
+     * @param options provider options.
      */
     public McpServerConfiguration(String serverId, String endpoint, Map<String, Object> options)
     {

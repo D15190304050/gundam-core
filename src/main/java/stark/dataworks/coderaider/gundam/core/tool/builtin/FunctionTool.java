@@ -13,14 +13,16 @@ public class FunctionTool extends AbstractBuiltinTool
 {
 
     /**
-     * Internal state for function; used while coordinating runtime behavior.
+     * Function implementation invoked by this tool.
      */
     private final Function<Map<String, Object>, String> function;
 
     /**
-     * Performs function tool as part of FunctionTool runtime responsibilities.
-     * @param definition The definition used by this operation.
-     * @param function The function used by this operation.
+     * Initializes FunctionTool with required runtime dependencies and options.
+     * @param definition definition object.
+     * @param Function<Map<String function<map<string.
+     * @param Object> object>.
+     * @param function function.
      */
     public FunctionTool(ToolDefinition definition, Function<Map<String, Object>, String> function)
     {
@@ -29,9 +31,10 @@ public class FunctionTool extends AbstractBuiltinTool
     }
 
     /**
-     * Runs the primary execution flow, coordinating model/tool work and runtime policies.
-     * @param input The input used by this operation.
-     * @return The value produced by this operation.
+     * Executes this tool operation and returns the produced output.
+     * @param Map<String map<string.
+     * @param input input payload.
+     * @return Tool execution output returned by the MCP server.
      */
     @Override
     public String execute(Map<String, Object> input)

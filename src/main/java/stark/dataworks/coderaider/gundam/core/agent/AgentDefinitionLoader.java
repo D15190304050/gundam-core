@@ -10,21 +10,21 @@ public final class AgentDefinitionLoader
 {
 
     /**
-     * Internal state for mapper used while coordinating runtime behavior.
+ * ObjectMapper used for JSON serialization/deserialization.
      */
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
-     * Performs agent definition loader as part of AgentDefinitionLoader runtime responsibilities.
+     * Initializes AgentDefinitionLoader with required runtime dependencies and options.
      */
     private AgentDefinitionLoader()
     {
     }
 
     /**
-     * Performs from json as part of AgentDefinitionLoader runtime responsibilities.
-     * @param json The json used by this operation.
-     * @return The value produced by this operation.
+     * Serializes the value to JSON.
+     * @param json JSON document to parse.
+     * @return Agent definition associated with this instance.
      */
     public static AgentDefinition fromJson(String json)
     {

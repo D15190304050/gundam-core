@@ -15,10 +15,11 @@ import java.util.stream.Collectors;
 public class JoinFieldsWorkflowProcessor implements IWorkflowVertexProcessor
 {
     /**
-     * Runs the primary execution flow, coordinating model/tool work and runtime policies.
-     * @param vertex The vertex used by this operation.
-     * @param state The state used by this operation.
-     * @return The value produced by this operation.
+     * Processes the supplied workflow/tracing input.
+     * @param vertex vertex.
+     * @param Map<String map<string.
+     * @param state state.
+     * @return workflow vertex result.
      */
     @Override
     public WorkflowVertexResult process(WorkflowVertexDefinition vertex, Map<String, Object> state)

@@ -17,31 +17,31 @@ public class ExecutionContext
 {
 
     /**
-     * Internal state for agent; used while coordinating runtime behavior.
+     * Current agent bound to this execution context.
      */
     @Setter
     private IAgent agent;
 
     /**
-     * Internal state for memory; used while coordinating runtime behavior.
+     * Conversation memory for storing and retrieving prior messages.
      */
     private final IAgentMemory memory;
 
     /**
-     * Internal state for token usage tracker; used while coordinating runtime behavior.
+     * Token accounting data used for cost and quota tracking.
      */
     private final TokenUsageTracker tokenUsageTracker;
 
     /**
-     * Internal state for current step; used while coordinating runtime behavior.
+     * Current step.
      */
     private int currentStep;
 
     /**
-     * Performs execution context as part of ExecutionContext runtime responsibilities.
-     * @param agent The agent used by this operation.
-     * @param memory The memory used by this operation.
-     * @param tokenUsageTracker The token usage tracker used by this operation.
+     * Initializes ExecutionContext with required runtime dependencies and options.
+     * @param agent agent instance.
+     * @param memory conversation memory backend.
+     * @param tokenUsageTracker token usage tracker.
      */
     public ExecutionContext(IAgent agent, IAgentMemory memory, TokenUsageTracker tokenUsageTracker)
     {
@@ -51,7 +51,7 @@ public class ExecutionContext
     }
 
     /**
-     * Performs increment step as part of ExecutionContext runtime responsibilities.
+     * Increments the current step counter.
      */
     public void incrementStep()
     {

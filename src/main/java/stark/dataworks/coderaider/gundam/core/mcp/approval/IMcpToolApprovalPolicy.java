@@ -7,9 +7,9 @@ public interface IMcpToolApprovalPolicy
 {
 
     /**
-     * Performs decide as part of McpToolApprovalPolicy runtime responsibilities.
-     * @param request The request used by this operation.
-     * @return The value produced by this operation.
+     * Evaluates and returns an approval decision.
+     * @param request request payload.
+     * @return mcp tool approval result.
      */
     McpToolApprovalResult decide(McpToolApprovalRequest request);
 }

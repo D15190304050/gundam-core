@@ -17,37 +17,37 @@ public class ContextResult
 {
 
     /**
-     * Internal state for final output; used while coordinating runtime behavior.
+     * Fallback or final output produced by error handling/execution.
      */
     private final String finalOutput;
 
     /**
-     * Internal state for final agent id; used while coordinating runtime behavior.
+     * Final agent id.
      */
     private final String finalAgentId;
 
     /**
-     * Internal state for usage; used while coordinating runtime behavior.
+     * Token usage reported for this response.
      */
     private final TokenUsage usage;
 
     /**
-     * Internal state for items; used while coordinating runtime behavior.
+     * Collected context items produced during execution.
      */
     private final List<ContextItem> items;
 
     /**
-     * Internal state for events; used while coordinating runtime behavior.
+     * Streamed run events captured for this result.
      */
     private final List<RunEvent> events;
 
     /**
-     * Performs run result as part of RunResult runtime responsibilities.
-     * @param finalOutput The final output used by this operation.
-     * @param finalAgentId The final agent id used by this operation.
-     * @param usage The usage used by this operation.
-     * @param items The items used by this operation.
-     * @param events The events used by this operation.
+     * Constructs the final run result returned to callers.
+     * @param finalOutput final output.
+     * @param finalAgentId final agent id.
+     * @param usage usage.
+     * @param items items.
+     * @param events run events.
      */
     public ContextResult(String finalOutput,
                          String finalAgentId,

@@ -14,14 +14,14 @@ import java.util.Map;
 public class WorkflowTool extends AbstractBuiltinTool
 {
     /**
-     * Internal state for workflow executor; used while coordinating runtime behavior.
+     * Executor used to run workflow DAGs as a tool.
      */
     private final WorkflowExecutor workflowExecutor;
 
     /**
-     * Performs workflow tool as part of WorkflowTool runtime responsibilities.
-     * @param definition The definition used by this operation.
-     * @param workflowExecutor The workflow executor used by this operation.
+     * Initializes WorkflowTool with required runtime dependencies and options.
+     * @param definition definition object.
+     * @param workflowExecutor workflow executor.
      */
     public WorkflowTool(ToolDefinition definition, WorkflowExecutor workflowExecutor)
     {
@@ -30,9 +30,10 @@ public class WorkflowTool extends AbstractBuiltinTool
     }
 
     /**
-     * Runs the primary execution flow, coordinating model/tool work and runtime policies.
-     * @param input The input used by this operation.
-     * @return The value produced by this operation.
+     * Executes this tool operation and returns the produced output.
+     * @param Map<String map<string.
+     * @param input input payload.
+     * @return Tool execution output returned by the MCP server.
      */
     @Override
     public String execute(Map<String, Object> input)

@@ -9,8 +9,8 @@ public interface IRunEventListener
 {
 
     /**
-     * Performs on event as part of RunEventListener runtime responsibilities.
-     * @param event The event used by this operation.
+     * Handles a published run event.
+     * @param event run event.
      */
     void onEvent(RunEvent event);
 }

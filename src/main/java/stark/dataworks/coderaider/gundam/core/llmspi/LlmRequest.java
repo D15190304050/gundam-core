@@ -18,36 +18,36 @@ public class LlmRequest
 {
 
     /**
-     * Internal state for model; used while coordinating runtime behavior.
+     * Model id passed to the provider for inference.
      */
     private final String model;
 
     /**
-     * Internal state for messages; used while coordinating runtime behavior.
+     * Conversation messages persisted in this session/request.
      */
     private final List<Message> messages;
 
     /**
-     * Internal state for tools; used while coordinating runtime behavior.
+     * Registered tools keyed by tool name.
      */
     private final List<ToolDefinition> tools;
 
     /**
-     * Internal state for options; used while coordinating runtime behavior.
+     * Provider/server options forwarded without transformation.
      */
     private final LlmOptions options;
 
     /**
-     * Internal state for attachments; used while coordinating runtime behavior.
+     * Attachments.
      */
     private final List<GeneratedAsset> attachments;
 
     /**
-     * Performs llm request as part of LlmRequest runtime responsibilities.
-     * @param model The model used by this operation.
-     * @param messages The messages used by this operation.
-     * @param tools The tools used by this operation.
-     * @param options The options used by this operation.
+     * Initializes LlmRequest with required runtime dependencies and options.
+     * @param model model identifier.
+     * @param messages conversation messages.
+     * @param tools tools.
+     * @param options provider options.
      */
     public LlmRequest(String model, List<Message> messages, List<ToolDefinition> tools, LlmOptions options)
     {
@@ -55,12 +55,12 @@ public class LlmRequest
     }
 
     /**
-     * Performs llm request as part of LlmRequest runtime responsibilities.
-     * @param model The model used by this operation.
-     * @param messages The messages used by this operation.
-     * @param tools The tools used by this operation.
-     * @param options The options used by this operation.
-     * @param attachments The attachments used by this operation.
+     * Creates an LLM request.
+     * @param model model identifier.
+     * @param messages conversation messages.
+     * @param tools tools.
+     * @param options options map.
+     * @param attachments attachments.
      */
     public LlmRequest(String model, List<Message> messages, List<ToolDefinition> tools, LlmOptions options,
                       List<GeneratedAsset> attachments)

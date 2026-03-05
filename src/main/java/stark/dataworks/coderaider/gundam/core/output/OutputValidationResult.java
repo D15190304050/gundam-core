@@ -10,19 +10,19 @@ public class OutputValidationResult
 {
 
     /**
-     * Internal state for valid; used while coordinating runtime behavior.
+     * Whether output passed schema validation.
      */
     private final boolean valid;
 
     /**
-     * Internal state for reason; used while coordinating runtime behavior.
+     * Reason why execution is allowed or blocked.
      */
     private final String reason;
 
     /**
-     * Performs output validation result as part of OutputValidationResult runtime responsibilities.
-     * @param valid The valid used by this operation.
-     * @param reason The reason used by this operation.
+     * Initializes OutputValidationResult with required runtime dependencies and options.
+     * @param valid valid.
+     * @param reason human-readable reason.
      */
     private OutputValidationResult(boolean valid, String reason)
     {
@@ -31,8 +31,8 @@ public class OutputValidationResult
     }
 
     /**
-     * Performs ok as part of OutputValidationResult runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns a successful validation/result object.
+     * @return output validation result.
      */
     public static OutputValidationResult ok()
     {
@@ -40,9 +40,9 @@ public class OutputValidationResult
     }
 
     /**
-     * Performs fail as part of OutputValidationResult runtime responsibilities.
-     * @param reason The reason used by this operation.
-     * @return The value produced by this operation.
+     * Returns a failed validation/result object.
+     * @param reason human-readable reason.
+     * @return output validation result.
      */
     public static OutputValidationResult fail(String reason)
     {

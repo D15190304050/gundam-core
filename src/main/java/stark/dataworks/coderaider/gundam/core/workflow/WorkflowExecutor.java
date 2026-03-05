@@ -21,19 +21,19 @@ import java.util.stream.Collectors;
 public class WorkflowExecutor
 {
     /**
-     * Internal state for definition; used while coordinating runtime behavior.
+     * Immutable definition object that configures this runtime instance.
      */
     private final WorkflowDefinition definition;
 
     /**
-     * Internal state for processor registry; used while coordinating runtime behavior.
+     * Registry that resolves workflow processors by type.
      */
     private final WorkflowProcessorRegistry processorRegistry;
 
     /**
-     * Performs workflow executor as part of WorkflowExecutor runtime responsibilities.
-     * @param definition The definition used by this operation.
-     * @param processorRegistry The processor registry used by this operation.
+     * Initializes WorkflowExecutor with required runtime dependencies and options.
+     * @param definition definition object.
+     * @param processorRegistry processor registry.
      */
     public WorkflowExecutor(WorkflowDefinition definition, WorkflowProcessorRegistry processorRegistry)
     {
@@ -43,9 +43,10 @@ public class WorkflowExecutor
     }
 
     /**
-     * Runs the primary execution flow, coordinating model/tool work and runtime policies.
-     * @param input The input used by this operation.
-     * @return The value produced by this operation.
+     * Executes this tool operation and returns the produced output.
+     * @param Map<String map<string.
+     * @param input input payload.
+     * @return workflow execution result.
      */
     public WorkflowExecutionResult execute(Map<String, Object> input)
     {

@@ -9,13 +9,13 @@ public class Agent implements IAgent
 {
 
     /**
-     * Internal state for definition; used while coordinating runtime behavior.
+     * Immutable definition object that configures this runtime instance.
      */
     private final AgentDefinition definition;
 
     /**
-     * Performs agent as part of Agent runtime responsibilities.
-     * @param definition The definition used by this operation.
+     * Initializes Agent with required runtime dependencies and options.
+     * @param definition definition object.
      */
     public Agent(AgentDefinition definition)
     {
@@ -24,8 +24,8 @@ public class Agent implements IAgent
     }
 
     /**
-     * Performs definition as part of Agent runtime responsibilities.
-     * @return The value produced by this operation.
+     * Returns definition metadata for this component.
+     * @return Agent definition associated with this instance.
      */
     @Override
     public AgentDefinition definition()

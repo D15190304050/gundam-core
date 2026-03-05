@@ -14,25 +14,25 @@ public class ToolDefinition
 {
 
     /**
-     * Internal state for name; used while coordinating runtime behavior.
+     * Human-readable name used in logs and UIs.
      */
     private final String name;
 
     /**
-     * Internal state for description; used while coordinating runtime behavior.
+     * Human-readable description shown to model and operators.
      */
     private final String description;
 
     /**
-     * Internal state for parameters; used while coordinating runtime behavior.
+     * JSON-schema-like parameter definitions for tool inputs.
      */
     private final List<ToolParameterSchema> parameters;
 
     /**
-     * Performs tool definition as part of ToolDefinition runtime responsibilities.
-     * @param name The name used by this operation.
-     * @param description The description used by this operation.
-     * @param parameters The parameters used by this operation.
+     * Initializes ToolDefinition with required runtime dependencies and options.
+     * @param name human-readable name.
+     * @param description description.
+     * @param parameters parameters.
      */
     public ToolDefinition(String name, String description, List<ToolParameterSchema> parameters)
     {

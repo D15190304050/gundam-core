@@ -12,19 +12,19 @@ public class ToolResult
 {
 
     /**
-     * Internal state for tool name; used while coordinating runtime behavior.
+     * Name of the tool being requested or executed.
      */
     private final String toolName;
 
     /**
-     * Internal state for content; used while coordinating runtime behavior.
+     * Main assistant text content returned by the model.
      */
     private final String content;
 
     /**
-     * Performs tool result as part of ToolResult runtime responsibilities.
-     * @param toolName The tool name used by this operation.
-     * @param content The content used by this operation.
+     * Initializes ToolResult with required runtime dependencies and options.
+     * @param toolName tool name.
+     * @param content content.
      */
     public ToolResult(String toolName, String content)
     {

@@ -85,67 +85,67 @@ import stark.dataworks.coderaider.gundam.core.tracing.ITraceSpan;
 public class AgentRunner
 {
     /**
-     * Internal state for llm client; used while coordinating runtime behavior.
+     * Llm client registry.
      */
     private final LlmClientRegistry llmClientRegistry;
 
     /**
-     * Internal state for tool registry; used while coordinating runtime behavior.
+     * Registry used to resolve tool definitions and executors.
      */
     private final IToolRegistry toolRegistry;
 
     /**
-     * Internal state for agent registry; used while coordinating runtime behavior.
+     * Registry used to resolve agents by id.
      */
     private final IAgentRegistry agentRegistry;
 
     /**
-     * Internal state for context builder; used while coordinating runtime behavior.
+     * Builder that assembles runtime context and message history.
      */
     private final IContextBuilder contextBuilder;
 
     /**
-     * Internal state for hook manager; used while coordinating runtime behavior.
+     * Hook manager for run lifecycle callbacks.
      */
     private final HookManager hookManager;
 
     /**
-     * Internal state for guardrail engine; used while coordinating runtime behavior.
+     * Engine that evaluates configured guardrails.
      */
     private final GuardrailEngine guardrailEngine;
 
     /**
-     * Internal state for handoff router; used while coordinating runtime behavior.
+     * Router that selects and validates handoff targets.
      */
     private final HandoffRouter handoffRouter;
 
     /**
-     * Internal state for session store; used while coordinating runtime behavior.
+     * Store used to persist and reload sessions.
      */
     private final ISessionStore sessionStore;
 
     /**
-     * Internal state for trace provider; used while coordinating runtime behavior.
+     * Trace provider used to create spans for observability.
      */
     private final ITraceProvider traceProvider;
 
     /**
-     * Internal state for tool approval policy; used while coordinating runtime behavior.
+     * Policy that approves or rejects tool calls.
      */
     private final IToolApprovalPolicy toolApprovalPolicy;
 
     /**
-     * Internal state for output schema registry; used while coordinating runtime behavior.
+     * Output schema registry.
      */
     private final OutputSchemaRegistry outputSchemaRegistry;
 
     /**
-     * Internal state for output validator; used while coordinating runtime behavior.
+     * Validator used for structured-output schema checks.
      */
     private final OutputValidator outputValidator;
 
     /**
-     * Internal state for event publisher; used while coordinating runtime behavior.
+     * Publisher that emits streaming run events.
      */
     private final RunEventPublisher eventPublisher;
 
@@ -558,11 +558,13 @@ public class AgentRunner
     }
 
     /**
-     * Performs handle error as part of AgentRunner runtime responsibilities.
-     * @param context The context used by this operation.
-     * @param config The config used by this operation.
-     * @param error The error used by this operation.
-     * @return The value produced by this operation.
+     * Normalizes and routes an execution error through configured handlers.
+     * @param context execution context.
+     * @param config run configuration.
+     * @param error captured error.
+     * @param legacyContext legacy context.
+     * @param memoryPolicy memory policy.
+     * @return context result.
      */
     private ContextResult handleError(RunnerContext context, RunConfiguration config, RuntimeException error, ExecutionContext legacyContext, MemoryLifecyclePolicy memoryPolicy)
     {
@@ -608,9 +610,9 @@ public class AgentRunner
     }
 
     /**
-     * Maps a runtime exception to a stable error category for handler selection.
-     * @param error The error used by this operation.
-     * @return The value produced by this operation.
+     * Classifies a throwable into a run error category.
+     * @param error captured error.
+     * @return run error kind result.
      */
     private RunErrorKind classify(RuntimeException error)
     {
@@ -626,12 +628,12 @@ public class AgentRunner
     }
 
     /**
-     * Invokes with retry while applying configured retry/backoff behavior.
-     * @param request The request used by this operation.
-     * @param config The config used by this operation.
-     * @param streamModelResponse The stream model response used by this operation.
-     * @param streamListener The stream listener used by this operation.
-     * @return The value produced by this operation.
+     * Executes approved tool calls concurrently.
+     * @param context execution context.
+     * @param runHooks run hooks.
+     * @param toolCalls tool calls.
+     * @param config run configuration.
+     * @param memoryPolicy memory policy.
      */
 
     private void executeToolCallsInParallel(RunnerContext context, IRunHooks runHooks, List<ToolCall> toolCalls, RunConfiguration config, MemoryLifecyclePolicy memoryPolicy)
@@ -887,9 +889,9 @@ public class AgentRunner
     }
 
     /**
-     * Resolves tools from configured registries before execution continues.
-     * @param toolNames The tool names used by this operation.
-     * @return The value produced by this operation.
+     * Resolves tools by name from the active registry.
+     * @param toolNames tool names.
+     * @return List of tool definition values.
      */
     private List<ToolDefinition> resolveTools(List<String> toolNames)
     {
@@ -904,11 +906,12 @@ public class AgentRunner
     }
 
     /**
-     * Publishes a runtime event so hooks/listeners can observe progress.
-     * @param context The context used by this operation.
-     * @param hooks The hooks used by this operation.
-     * @param type The type used by this operation.
-     * @param attributes The attributes used by this operation.
+     * Emits a trace event to registered processors.
+     * @param context execution context.
+     * @param hooks hook collection.
+     * @param type type discriminator.
+     * @param Map<String map<string.
+     * @param attributes attribute map.
      */
     private void emit(RunnerContext context, IRunHooks hooks, RunEventType type, Map<String, Object> attributes)
     {
@@ -919,11 +922,13 @@ public class AgentRunner
     }
 
     /**
-     * Performs finalize result as part of AgentRunner runtime responsibilities.
-     * @param context The context used by this operation.
-     * @param finalOutput The final output used by this operation.
-     * @param config The config used by this operation.
-     * @return The value produced by this operation.
+     * Builds the final run result object.
+     * @param context execution context.
+     * @param finalOutput final output.
+     * @param config run configuration.
+     * @param legacyContext legacy context.
+     * @param memoryPolicy memory policy.
+     * @return context result.
      */
     private ContextResult finalizeResult(RunnerContext context, String finalOutput, RunConfiguration config, ExecutionContext legacyContext, MemoryLifecyclePolicy memoryPolicy)
     {

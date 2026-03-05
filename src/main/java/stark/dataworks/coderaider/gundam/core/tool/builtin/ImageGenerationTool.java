@@ -20,8 +20,8 @@ public class ImageGenerationTool extends AbstractBuiltinTool
     private final IOssClient ossClient;
 
     /**
-     * Performs image generation tool as part of ImageGenerationTool runtime responsibilities.
-     * @param definition The definition used by this operation.
+     * Initializes ImageGenerationTool with required runtime dependencies and options.
+     * @param definition definition object.
      */
     public ImageGenerationTool(ToolDefinition definition)
     {
@@ -29,10 +29,10 @@ public class ImageGenerationTool extends AbstractBuiltinTool
     }
 
     /**
-     * Performs image generation tool as part of ImageGenerationTool runtime responsibilities.
-     * @param definition The definition used by this operation.
-     * @param imageGenerator The image generator used by this operation.
-     * @param ossClient The oss client used by this operation.
+     * Initializes ImageGenerationTool with required runtime dependencies and options.
+     * @param definition definition object.
+     * @param imageGenerator image generator.
+     * @param ossClient oss client.
      */
     public ImageGenerationTool(ToolDefinition definition, IImageGenerator imageGenerator, IOssClient ossClient)
     {
@@ -42,9 +42,10 @@ public class ImageGenerationTool extends AbstractBuiltinTool
     }
 
     /**
-     * Runs the primary execution flow, coordinating model/tool work and runtime policies.
-     * @param input The input used by this operation.
-     * @return The value produced by this operation.
+     * Executes this tool operation and returns the produced output.
+     * @param Map<String map<string.
+     * @param input input payload.
+     * @return Tool execution output returned by the MCP server.
      */
     @Override
     public String execute(Map<String, Object> input)

@@ -11,14 +11,14 @@ public class RunErrorHandlers
 {
 
     /**
-     * Internal state for handlers used while coordinating runtime behavior.
+ * Handlers registered for in-memory MCP tool execution.
      */
     private final Map<RunErrorKind, IRunErrorHandler> handlers = new ConcurrentHashMap<>();
 
     /**
-     * Registers the supplied value so it can be discovered by subsequent runtime lookups.
-     * @param kind The kind used by this operation.
-     * @param handler The handler used by this operation.
+     * Registers this value for later lookup and execution.
+     * @param kind kind.
+     * @param handler handler.
      */
     public void register(RunErrorKind kind, IRunErrorHandler handler)
     {
@@ -26,9 +26,9 @@ public class RunErrorHandlers
     }
 
     /**
-     * Returns the value requested by the caller from this RunErrorHandlers.
-     * @param kind The kind used by this operation.
-     * @return The value produced by this operation.
+     * Returns the current value for this object.
+     * @param kind kind.
+     * @return Optional irun error handler value.
      */
     public Optional<IRunErrorHandler> get(RunErrorKind kind)
     {

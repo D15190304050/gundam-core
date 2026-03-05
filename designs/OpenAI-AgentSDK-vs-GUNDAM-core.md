@@ -69,6 +69,8 @@ Legend: ✅ implemented, 🟡 partial/in progress, ⚪ not implemented.
 21. **Agent-as-tool support example**: Added `AgentTool` plus Example26 to demonstrate orchestrator agent delegating to a specialist agent through standard tool-calling.
 22. **Workflow-as-tool examples**: Example27 demonstrates both hardcoded workflow construction and JSON-loaded workflow definitions, each executed by an agent through tool-calling with streaming output.
 
+23. **Documentation comment clarity refresh**: Replaced low-signal field comments across `src/main/java` (for example, repeated `Internal state ... used while coordinating runtime behavior`) with explicit descriptions that capture limits, identifiers, flags, and orchestration intent.
+
 ## New examples demonstrating capabilities
 
 The following examples have been added to demonstrate new features:

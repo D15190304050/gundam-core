@@ -9,9 +9,9 @@ public interface IWorkflowVertexProcessor
 {
     /**
      * Runs the primary execution flow, coordinating model/tool work and runtime policies.
-     * @param vertex The vertex used by this operation.
-     * @param state The state used by this operation.
-     * @return The value produced by this operation.
+     * @param vertex vertex.
+     * @param state state.
+     * @return workflow vertex result.
      */
     WorkflowVertexResult process(WorkflowVertexDefinition vertex, Map<String, Object> state);
 }

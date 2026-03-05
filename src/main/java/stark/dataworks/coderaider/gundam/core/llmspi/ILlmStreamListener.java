@@ -11,46 +11,46 @@ public interface ILlmStreamListener
 {
 
     /**
-     * Performs on delta as part of LlmStreamListener runtime responsibilities.
-     * @param delta The delta used by this operation.
+     * Invoked for streamed response text deltas.
+     * @param delta delta.
      */
     void onDelta(String delta);
 
     /**
-     * Performs on tool call as part of LlmStreamListener runtime responsibilities.
-     * @param toolCall The tool call used by this operation.
+     * Invoked when a streamed tool call is produced.
+     * @param toolCall tool call payload.
      */
     default void onToolCall(ToolCall toolCall)
     {
     }
 
     /**
-     * Performs on reasoning delta as part of LlmStreamListener runtime responsibilities.
-     * @param reasoningDelta The reasoning delta used by this operation.
+     * Invoked for streamed reasoning content.
+     * @param reasoningDelta reasoning delta.
      */
     default void onReasoningDelta(String reasoningDelta)
     {
     }
 
     /**
-     * Performs on token usage as part of LlmStreamListener runtime responsibilities.
-     * @param tokenUsage The token usage used by this operation.
+     * Invoked when token usage is reported.
+     * @param tokenUsage token usage.
      */
     default void onTokenUsage(TokenUsage tokenUsage)
     {
     }
 
     /**
-     * Performs on handoff as part of LlmStreamListener runtime responsibilities.
-     * @param handoffAgentId The handoff agent id used by this operation.
+     * Invoked when the model requests agent handoff.
+     * @param handoffAgentId handoff agent id.
      */
     default void onHandoff(String handoffAgentId)
     {
     }
 
     /**
-     * Performs on completed as part of LlmStreamListener runtime responsibilities.
-     * @param response The response used by this operation.
+     * Invoked when streaming completes.
+     * @param response model/tool response payload.
      */
     default void onCompleted(LlmResponse response)
     {
