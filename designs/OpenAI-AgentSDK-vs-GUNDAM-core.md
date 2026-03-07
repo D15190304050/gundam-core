@@ -95,6 +95,12 @@ The following examples have been added to demonstrate new features:
 
 ## What's next (recommended roadmap)
 
+### 0) Context service architecture alignment (high priority)
+
+- Adopt `designs/ContextEngineering/ContextManagerV8.md` as the baseline contract for the planned `GUNDAM-context` repository.
+- Standardize context API around `getContext(String chatThreadId)` returning ordered `List<ContextItem>`.
+- Implement deterministic layered assembly (stable prefix + summary + recent window + retrieval) to improve memory retention and prefix-cache friendliness.
+
 ### 1) Realtime workflow implementation (medium priority)
 
 - Complete `IRealtimeClient` and `IRealtimeSession` implementations.
