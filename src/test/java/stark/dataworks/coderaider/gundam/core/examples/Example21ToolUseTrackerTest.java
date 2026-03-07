@@ -93,7 +93,7 @@ public class Example21ToolUseTrackerTest
         System.out.println("\nExample completed successfully!");
     }
 
-    private static ITool createGetTimeTool(AgentToolUseTracker tracker, Agent agent)
+    private static ITool createGetTimeTool(AgentToolUseTracker tracker, IAgent agent)
     {
         return new ITool()
         {
@@ -116,7 +116,7 @@ public class Example21ToolUseTrackerTest
         };
     }
 
-    private static ITool createGetWeatherTool(AgentToolUseTracker tracker, Agent agent)
+    private static ITool createGetWeatherTool(AgentToolUseTracker tracker, IAgent agent)
     {
         return new ITool()
         {

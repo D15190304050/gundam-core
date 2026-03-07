@@ -156,7 +156,7 @@ public class Example24ReActAgentDebugFixTest
         return registry;
     }
 
-    private static Agent createCoordinatorAgent(RuntimeOs runtimeOs, Path workspace)
+    private static AgentDefinition createCoordinatorAgent(RuntimeOs runtimeOs, Path workspace)
     {
         AgentDefinition def = new AgentDefinition();
         def.setId("react-coordinator");
@@ -173,7 +173,7 @@ public class Example24ReActAgentDebugFixTest
         return def;
     }
 
-    private static Agent createInvestigatorAgent(RuntimeOs runtimeOs, Path workspace)
+    private static AgentDefinition createInvestigatorAgent(RuntimeOs runtimeOs, Path workspace)
     {
         AgentDefinition def = new AgentDefinition();
         def.setId("react-investigator");
@@ -192,7 +192,7 @@ public class Example24ReActAgentDebugFixTest
         return def;
     }
 
-    private static Agent createFixerAgent(RuntimeOs runtimeOs, Path workspace)
+    private static AgentDefinition createFixerAgent(RuntimeOs runtimeOs, Path workspace)
     {
         AgentDefinition def = new AgentDefinition();
         def.setId("react-fixer");
@@ -222,7 +222,7 @@ public class Example24ReActAgentDebugFixTest
         return def;
     }
 
-    private static Agent createReviewerAgent(RuntimeOs runtimeOs, Path workspace)
+    private static AgentDefinition createReviewerAgent(RuntimeOs runtimeOs, Path workspace)
     {
         AgentDefinition def = new AgentDefinition();
         def.setId("react-reviewer");

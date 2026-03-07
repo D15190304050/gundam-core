@@ -127,7 +127,7 @@ public class Example25ComplexReActDebugFixTest
         return targetFile;
     }
 
-    private static Agent createDebuggerAgent(RuntimeOs runtimeOs, Path workspace)
+    private static AgentDefinition createDebuggerAgent(RuntimeOs runtimeOs, Path workspace)
     {
         AgentDefinition def = new AgentDefinition();
         def.setId("react25-debugger");
