@@ -17,6 +17,7 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 import stark.dataworks.coderaider.gundam.core.tool.builtin.ApplyPatchTool;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -52,10 +53,7 @@ public class Example25ComplexReActDebugFixTest
 
         RuntimeOs runtimeOs = detectRuntimeOs();
         Path workspace = Path.of("src", "test", "resources", "outputs", "react-agent", "example25");
-        Files.createDirectories(workspace);
-        Path targetFile = workspace.resolve("InvoiceSummaryEngine.java");
-        Files.writeString(targetFile, Files.readString(INPUT_FILE));
-        stageVerifierSource(workspace.resolve("InvoiceSummaryEngineVerifier.java"));
+        Path targetFile = resetWorkspace(workspace);
 
         ToolRegistry toolRegistry = new ToolRegistry();
         toolRegistry.register(new ApplyPatchTool(new FileSystemEditor(workspace), false));
@@ -67,7 +65,7 @@ public class Example25ComplexReActDebugFixTest
             .llmClient(new ModelScopeLlmClient(apiKey, MODEL))
             .toolRegistry(toolRegistry)
             .agentRegistry(agentRegistry)
-            .eventPublisher(ExampleStreamingPublishers.textWithToolLifecycle("ReAct "))
+            .eventPublisher(ExampleStreamingPublishers.reactThoughtActionObservation())
             .build();
 
         String behaviorOutput = runBehaviorVerification(runtimeOs, workspace);
@@ -99,6 +97,31 @@ public class Example25ComplexReActDebugFixTest
             "Expected debugger summary output");
         Assertions.assertTrue(behaviorOutput.contains("BEHAVIOR_OK"), "Expected runtime verification output: " + behaviorOutput);
         System.out.println("FINAL_VERIFICATION: " + behaviorOutput.trim());
+    }
+
+    private static Path resetWorkspace(Path workspace) throws IOException
+    {
+        if (Files.exists(workspace))
+        {
+            Files.walk(workspace)
+                .sorted((a, b) -> b.getNameCount() - a.getNameCount())
+                .forEach(path ->
+                {
+                    try
+                    {
+                        Files.delete(path);
+                    }
+                    catch (IOException ex)
+                    {
+                        throw new RuntimeException(ex);
+                    }
+                });
+        }
+        Files.createDirectories(workspace);
+        Path targetFile = workspace.resolve("InvoiceSummaryEngine.java");
+        Files.writeString(targetFile, Files.readString(INPUT_FILE));
+        stageVerifierSource(workspace.resolve("InvoiceSummaryEngineVerifier.java"));
+        return targetFile;
     }
 
     private static Agent createDebuggerAgent(RuntimeOs runtimeOs, Path workspace)
@@ -144,10 +167,10 @@ public class Example25ComplexReActDebugFixTest
             Runtime OS: %s
             Workspace: %s
             """.formatted(runtimeOs.displayName, workspace));
-        def.setReactInstructions("Keep output concise: root causes + patch summary.");
+        def.setReactInstructions("Think briefly, then patch. Keep output concise: root causes + patch summary.");
         def.setToolNames(List.of("apply_patch"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        def.setModelReasoning(Map.of("effort", "low"));
+        def.setModelReasoning(Map.of("effort", "medium"));
         return new Agent(def);
     }
 
@@ -188,7 +211,7 @@ public class Example25ComplexReActDebugFixTest
         try
         {
             Process process = builder.start();
-            String output = new String(process.getInputStream().readAllBytes());
+            String output = new String(process.getInputStream().readAllBytes(), runtimeConsoleCharset());
             int exitCode = process.waitFor();
             if (exitCode != 0)
             {
@@ -205,6 +228,22 @@ public class Example25ComplexReActDebugFixTest
         {
             return "Behavior verification failed: " + ex.getMessage();
         }
+    }
+
+    private static Charset runtimeConsoleCharset()
+    {
+        String nativeEncoding = System.getProperty("native.encoding");
+        if (nativeEncoding != null && !nativeEncoding.isBlank())
+        {
+            try
+            {
+                return Charset.forName(nativeEncoding);
+            }
+            catch (Exception ignored)
+            {
+            }
+        }
+        return Charset.defaultCharset();
     }
 
     private static ProcessBuilder createBehaviorVerificationProcessBuilder(RuntimeOs runtimeOs, Path workspace)
@@ -289,6 +328,10 @@ public class Example25ComplexReActDebugFixTest
                 {
                     return ApplyPatchResult.failed("Unsupported diff format. Use simple diff only with context/'-'/'+' lines.");
                 }
+                if (!hasExplicitChangeLines(diff))
+                {
+                    return ApplyPatchResult.failed("Invalid diff: must include '-' and '+' change lines.");
+                }
                 String original = Files.readString(path);
                 String updated = applySmartDiff(original, diff);
                 Files.writeString(path, updated);
@@ -343,6 +386,29 @@ public class Example25ComplexReActDebugFixTest
                 }
             }
             throw new IllegalArgumentException("Path escapes workspace: " + relativePath);
+        }
+
+        private static boolean hasExplicitChangeLines(String diff)
+        {
+            if (diff == null || diff.isBlank())
+            {
+                return false;
+            }
+            boolean hasMinus = false;
+            boolean hasPlus = false;
+            String[] lines = diff.split("\\R", -1);
+            for (String line : lines)
+            {
+                if (line.startsWith("-"))
+                {
+                    hasMinus = true;
+                }
+                else if (line.startsWith("+"))
+                {
+                    hasPlus = true;
+                }
+            }
+            return hasMinus && hasPlus;
         }
 
         private static boolean containsUnsupportedDiffMarkers(String diff)
