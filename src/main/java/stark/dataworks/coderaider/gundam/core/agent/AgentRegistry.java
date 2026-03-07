@@ -1,6 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.agent;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,6 +27,9 @@ public class AgentRegistry implements IAgentRegistry
     @Override
     public void register(IAgent agent)
     {
+        Objects.requireNonNull(agent, "agent");
+        Objects.requireNonNull(agent.definition(), "agent.definition");
+        agent.definition().validate();
         agents.put(agent.definition().getId(), agent);
     }
 

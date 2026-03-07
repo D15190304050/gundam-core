@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
@@ -58,7 +57,7 @@ public class Example02AgentWithToolsTest
         agentDef.setToolNames(List.of("weather_lookup", "unit_convert"));
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(new Agent(agentDef));
+        agentRegistry.register(agentDef);
 
         ToolRegistry toolRegistry = new ToolRegistry();
         toolRegistry.register(createWeatherLookupTool());

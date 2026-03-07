@@ -3,7 +3,6 @@ package stark.dataworks.coderaider.gundam.core.examples;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
@@ -171,7 +170,7 @@ public class Example24ReActAgentDebugFixTest
             """.formatted(runtimeOs.displayName, workspace));
         def.setReactInstructions("Output plan in numbered list. No tool calls.");
         def.setModelReasoning(Map.of("effort", "low"));
-        return new Agent(def);
+        return def;
     }
 
     private static Agent createInvestigatorAgent(RuntimeOs runtimeOs, Path workspace)
@@ -190,7 +189,7 @@ public class Example24ReActAgentDebugFixTest
         def.setToolNames(List.of("local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
         def.setModelReasoning(Map.of("effort", "low"));
-        return new Agent(def);
+        return def;
     }
 
     private static Agent createFixerAgent(RuntimeOs runtimeOs, Path workspace)
@@ -220,7 +219,7 @@ public class Example24ReActAgentDebugFixTest
         def.setToolNames(List.of("apply_patch", "local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
         def.setModelReasoning(Map.of("effort", "low"));
-        return new Agent(def);
+        return def;
     }
 
     private static Agent createReviewerAgent(RuntimeOs runtimeOs, Path workspace)
@@ -238,7 +237,7 @@ public class Example24ReActAgentDebugFixTest
         def.setToolNames(List.of("local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
         def.setModelReasoning(Map.of("effort", "low"));
-        return new Agent(def);
+        return def;
     }
 
     private static String buildCoordinatorUserPrompt(RuntimeOs runtimeOs, Path workspace)

@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
@@ -70,7 +69,7 @@ public class Example09DocxSkillAnalysisStreamingTest
         def.setSystemPrompt(buildSystemPrompt(workspaceRoot, skillMarkdown));
 
         AgentRegistry registry = new AgentRegistry();
-        registry.register(new Agent(def));
+        registry.register(def);
 
         ToolRegistry tools = new ToolRegistry();
         tools.register(createListFilesTool(workspaceRoot));

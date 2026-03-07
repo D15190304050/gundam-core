@@ -2,7 +2,6 @@ package stark.dataworks.coderaider.gundam.core.examples;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
@@ -48,7 +47,7 @@ public class Example01SingleSimpleAgentTest
         agentDef.setSystemPrompt("You are a concise assistant.");
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(new Agent(agentDef));
+        agentRegistry.register(agentDef);
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(new ModelScopeLlmClient(apiKey, model))

@@ -348,6 +348,10 @@ public class AgentRunner
      */
     private ContextResult runInternal(IAgent startingAgent, String userInput, RunConfiguration runConfiguration, IRunHooks runHooks, boolean streamModelResponse, Class<?> outputType)
     {
+        Objects.requireNonNull(startingAgent, "startingAgent");
+        Objects.requireNonNull(startingAgent.definition(), "startingAgent.definition");
+        startingAgent.definition().validate();
+
         ITraceSpan runSpan = traceProvider.startSpan("agent.run");
         runSpan.annotate("agent", startingAgent.definition().getId());
         IAgentMemory memory = runConfiguration.getAgentMemory() == null

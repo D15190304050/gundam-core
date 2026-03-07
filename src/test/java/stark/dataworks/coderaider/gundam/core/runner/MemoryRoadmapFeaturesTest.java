@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
@@ -37,7 +36,7 @@ class MemoryRoadmapFeaturesTest
     private static AgentRegistry registry(AgentDefinition def)
     {
         AgentRegistry registry = new AgentRegistry();
-        registry.register(new Agent(def));
+        registry.register(def);
         return registry;
     }
 
@@ -70,7 +69,7 @@ class MemoryRoadmapFeaturesTest
         RunConfiguration config = new RunConfiguration(8, "session-a", 0.2, 128, "auto", "text", Map.of(), null, null, memory,
             CompositeMemoryLifecyclePolicy.of(new SummarizingMemoryPolicy(4), new SlidingWindowMemoryPolicy(4)));
 
-        ContextResult result = runner.run(new Agent(def), "hello", config, new IRunHooks() {});
+        ContextResult result = runner.run(def, "hello", config, new IRunHooks() {});
 
         assertEquals("ok", result.getFinalOutput());
         assertTrue(result.getEvents().stream().anyMatch(e -> e.getType() == RunEventType.MEMORY_READ));

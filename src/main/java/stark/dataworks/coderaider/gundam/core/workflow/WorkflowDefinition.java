@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.workflow;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +20,11 @@ import java.util.stream.Collectors;
 @Setter
 public class WorkflowDefinition
 {
+    /**
+     * ObjectMapper used for JSON serialization/deserialization.
+     */
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     /**
      * Unique identifier for this definition.
      */
@@ -182,5 +189,25 @@ public class WorkflowDefinition
         }
         stack.remove(id);
         return false;
+    }
+
+    /**
+     * Parses and validates a workflow definition from JSON.
+     *
+     * @param json JSON document to parse.
+     * @return Parsed and validated workflow definition.
+     */
+    public static WorkflowDefinition fromJson(String json)
+    {
+        try
+        {
+            WorkflowDefinition definition = MAPPER.readValue(json, WorkflowDefinition.class);
+            definition.validate();
+            return definition;
+        }
+        catch (JsonProcessingException e)
+        {
+            throw new IllegalArgumentException("Invalid workflow definition json", e);
+        }
     }
 }

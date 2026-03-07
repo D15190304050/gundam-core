@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
@@ -48,7 +47,7 @@ public class Example07ReasoningStreamingTest
         def.setModelReasoning(Map.of("effort", "low"));
 
         AgentRegistry registry = new AgentRegistry();
-        registry.register(new Agent(def));
+        registry.register(def);
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(new ModelScopeLlmClient(apiKey, model))

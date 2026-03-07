@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.computer.Environment;
@@ -53,7 +52,7 @@ public class Example23ComputerToolTest
         agentDefinition.setToolNames(List.of(computerTool.definition().getName()));
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(new Agent(agentDefinition));
+        agentRegistry.register(agentDefinition);
 
         ToolRegistry toolRegistry = new ToolRegistry();
         toolRegistry.register(computerTool);

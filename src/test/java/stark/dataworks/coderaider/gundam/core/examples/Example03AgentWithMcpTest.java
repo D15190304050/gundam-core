@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
@@ -84,7 +83,7 @@ public class Example03AgentWithMcpTest
         agentDef.setToolNames(List.of("kb_search"));
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(new Agent(agentDef));
+        agentRegistry.register(agentDef);
 
         ToolRegistry toolRegistry = new ToolRegistry();
         toolRegistry.register(new HostedMcpTool("kb-mcp", "kb_search", mcpManager));

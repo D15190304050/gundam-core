@@ -136,7 +136,7 @@ public class WorkflowExecutorTest
             }
             """;
 
-        WorkflowDefinition definition = WorkflowDefinitionLoader.fromJson(json);
+        WorkflowDefinition definition = WorkflowDefinition.fromJson(json);
         WorkflowProcessorRegistry registry = new WorkflowProcessorRegistry();
         registry.register("template", new TemplateRenderWorkflowProcessor());
         registry.register("join", new JoinFieldsWorkflowProcessor());

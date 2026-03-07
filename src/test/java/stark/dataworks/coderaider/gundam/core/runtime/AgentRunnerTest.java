@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.approval.AllowAllToolApprovalPolicy;
@@ -61,7 +60,7 @@ class AgentRunnerTest
 
         AgentDefinition def = baseDef("a1");
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         AgentRunner runner = new AgentRunner(
             req -> new LlmResponse("should not happen", List.of(), null, new TokenUsage(0, 0)),
@@ -78,7 +77,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        ContextResult result = runner.run(new Agent(def), "hello", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(def, "hello", RunConfiguration.defaults(), new IRunHooks()
         {
         });
         assertTrue(result.getFinalOutput().contains("Blocked by input guardrail"));
@@ -93,7 +92,7 @@ class AgentRunnerTest
         def.setMaxSteps(4);
 
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         ToolRegistry tools = new ToolRegistry();
         tools.register(new ITool()
@@ -134,7 +133,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        ContextResult result = runner.run(new Agent(def), "start", new RunConfiguration(8, "s1", 0.1, 128, "auto", "text", Map.of()), new IRunHooks()
+        ContextResult result = runner.run(def, "start", new RunConfiguration(8, "s1", 0.1, 128, "auto", "text", Map.of()), new IRunHooks()
         {
         });
         assertEquals("done", result.getFinalOutput());
@@ -147,7 +146,7 @@ class AgentRunnerTest
     {
         AgentDefinition def = baseDef("memory-agent");
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         InMemorySessionStore sessions = new InMemorySessionStore();
         sessions.save(new stark.dataworks.coderaider.gundam.core.session.Session("memory-session", List.of(new Message(Role.USER, "session-history"))));
@@ -175,7 +174,7 @@ class AgentRunnerTest
             new RunEventPublisher());
 
         RunConfiguration configuration = new RunConfiguration(8, "memory-session", 0.1, 128, "auto", "text", Map.of(), null, null, customMemory);
-        ContextResult result = runner.run(new Agent(def), "start", configuration, new IRunHooks()
+        ContextResult result = runner.run(def, "start", configuration, new IRunHooks()
         {
         });
 
@@ -190,7 +189,7 @@ class AgentRunnerTest
         def.setOutputSchemaName("summary");
 
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         OutputSchemaRegistry registry = new OutputSchemaRegistry();
         registry.register(new IOutputSchema()
@@ -223,7 +222,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        ContextResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(def, "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
         assertEquals("ok", result.getFinalOutput());
@@ -235,7 +234,7 @@ class AgentRunnerTest
         AgentDefinition def = baseDef("streaming");
 
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         AgentRunner runner = new AgentRunner(
             new ILlmClient()
@@ -267,7 +266,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        ContextResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.runStreamed(def, "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -288,7 +287,7 @@ class AgentRunnerTest
         def.setToolNames(List.of("echo"));
 
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         ToolRegistry tools = new ToolRegistry();
         tools.register(new ITool()
@@ -346,7 +345,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        ContextResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.runStreamed(def, "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -361,7 +360,7 @@ class AgentRunnerTest
         AgentDefinition def = baseDef("fallback");
 
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         AgentRunner runner = new AgentRunner(
             request -> new LlmResponse("sync-only", List.of(), null, new TokenUsage(1, 1)),
@@ -378,7 +377,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        ContextResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.runStreamed(def, "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -397,7 +396,7 @@ class AgentRunnerTest
         AgentDefinition def = baseDef("reasoning");
 
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         AgentRunner runner = new AgentRunner(
             new ILlmClient()
@@ -429,7 +428,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        ContextResult result = runner.runStreamed(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.runStreamed(def, "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -448,7 +447,7 @@ class AgentRunnerTest
         def.setModelSkills(List.of(Map.of("type", "skill_reference", "skill_id", "skill-123")));
 
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         AgentRunner runner = new AgentRunner(
             request ->
@@ -470,7 +469,7 @@ class AgentRunnerTest
             new OutputValidator(),
             new RunEventPublisher());
 
-        ContextResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(def, "go", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -483,7 +482,7 @@ class AgentRunnerTest
         AgentDefinition def = baseDef("typed-schema");
 
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(request ->
@@ -496,7 +495,7 @@ class AgentRunnerTest
             .agentRegistry(agents)
             .build();
 
-        ContextResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(def, "go", RunConfiguration.defaults(), new IRunHooks()
         {
         }, ScoreSummary.class);
 
@@ -508,7 +507,7 @@ class AgentRunnerTest
     {
         AgentDefinition def = baseDef("builder");
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(request -> new LlmResponse("ok", List.of(), null, new TokenUsage(1, 1)))
@@ -516,7 +515,7 @@ class AgentRunnerTest
             .agentRegistry(agents)
             .build();
 
-        ContextResult result = runner.run(new Agent(def), "hello", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(def, "hello", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -531,7 +530,7 @@ class AgentRunnerTest
         def.setModel("Qwen/Qwen3-4B");
 
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         ILlmClient qwenClient = request -> new LlmResponse("qwen-ok", List.of(), null, new TokenUsage(1, 1));
         ILlmClient defaultClient = request -> new LlmResponse("default-ok", List.of(), null, new TokenUsage(1, 1));
@@ -542,7 +541,7 @@ class AgentRunnerTest
             .agentRegistry(agents)
             .build();
 
-        ContextResult result = runner.run(new Agent(def), "hello", RunConfiguration.defaults(), new IRunHooks()
+        ContextResult result = runner.run(def, "hello", RunConfiguration.defaults(), new IRunHooks()
         {
         });
 
@@ -558,7 +557,7 @@ class AgentRunnerTest
         def.setMaxSteps(4);
 
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         AtomicBoolean usedVirtualThread = new AtomicBoolean(true);
         CountDownLatch started = new CountDownLatch(2);
@@ -593,7 +592,7 @@ class AgentRunnerTest
 
         assertTimeoutPreemptively(Duration.ofMillis(350), () ->
         {
-            ContextResult result = runner.run(new Agent(def), "go", RunConfiguration.defaults(), new IRunHooks()
+            ContextResult result = runner.run(def, "go", RunConfiguration.defaults(), new IRunHooks()
             {
             });
             assertEquals("done", result.getFinalOutput());

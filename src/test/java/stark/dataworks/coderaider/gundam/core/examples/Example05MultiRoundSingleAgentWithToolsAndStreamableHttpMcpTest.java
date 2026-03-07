@@ -9,7 +9,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
@@ -84,7 +83,7 @@ public class Example05MultiRoundSingleAgentWithToolsAndStreamableHttpMcpTest
             agentDef.setToolNames(List.of("tax_calculator", "policy_lookup"));
 
             AgentRegistry agentRegistry = new AgentRegistry();
-            agentRegistry.register(new Agent(agentDef));
+            agentRegistry.register(agentDef);
 
             ToolRegistry toolRegistry = new ToolRegistry();
             toolRegistry.register(createTaxCalculatorTool());

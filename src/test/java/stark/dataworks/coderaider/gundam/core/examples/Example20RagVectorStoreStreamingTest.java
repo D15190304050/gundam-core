@@ -14,8 +14,8 @@ import java.util.Map;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
+import stark.dataworks.coderaider.gundam.core.agent.IAgent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
@@ -78,7 +78,7 @@ public class Example20RagVectorStoreStreamingTest
         agentDef.setSystemPrompt("You are a concise assistant. Read the retrieved context first and then answer strictly based on it.");
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        Agent agent = new Agent(agentDef);
+        IAgent agent = agentDef;
         agentRegistry.register(agent);
 
         AgentRunner runner = AgentRunner.builder()

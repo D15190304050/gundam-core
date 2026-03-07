@@ -35,7 +35,7 @@ This document compares the current capabilities of **OpenAI Agents SDK** (refere
 | Multimodal generation (audio/image/video) | ✅ | 🟡 Partial | Interfaces exist (`IAudioGenerator`, `IImageGenerator`, `IVideoGenerator`), no providers. |
 | Agent tool state tracking | ✅ | ✅ | `AgentToolUseTracker` implemented with serialization/hydration support. |
 | Editor (file diff/patch) | ✅ | ✅ | `ApplyPatchTool`, `IApplyPatchEditor`, `DiffApplier` implemented for file operations. |
-| Workflow DAG orchestration tool | ✅ | ✅ | Configurable DAG workflow runtime with vertex processors, retries/failure strategy, and JSON loading (`WorkflowDefinitionLoader`). |
+| Workflow DAG orchestration tool | ✅ | ✅ | Configurable DAG workflow runtime with vertex processors, retries/failure strategy, and JSON loading (`WorkflowDefinition.fromJson`). |
 | Realtime voice/webhook workflows | ✅ | ⚪ Partial | Interfaces exist (`IRealtimeClient`, `IRealtimeSession`), no full implementation. |
 | Codex/experimental features | ✅ | ⚪ Not implemented | OpenAI has experimental codex module. |
 | Error handling registry | ✅ | ✅ | `RunErrorHandlers`, `IRunErrorHandler`, `RunErrorKind` implemented. |
@@ -65,11 +65,13 @@ Legend: ✅ implemented, 🟡 partial/in progress, ⚪ not implemented.
 18. **Complex ReAct debugging scenario hardened**: Example25 now uses an agent-driven debug/patch/verify retry loop on `InvoiceSummaryEngine.java` without deterministic fallback patching, keeps concise streaming output, and verifies correctness via runtime tool execution so convergence depends on real behavior checks; both Example24/25 load buggy and verifier sources from `src/test/resources/inputs` on each test run.
 19. **apply_patch argument compatibility improved**: `ApplyPatchTool` now robustly parses OpenAI-compatible `raw` tool payload variants (including nested/quoted JSON argument strings and substring extraction fallback), reducing repeated `Missing 'operation' parameter` failures in ReAct repair loops.
 
-20. **Workflow DAG runtime support**: Added configurable workflow DAG model (`WorkflowDefinition`, `WorkflowVertexDefinition`), runtime execution (`WorkflowExecutor`), failure strategies/retries, JSON loading (`WorkflowDefinitionLoader`), and tool wrapper (`WorkflowTool`) so agents can invoke workflows as tools.
+20. **Workflow DAG runtime support**: Added configurable workflow DAG model (`WorkflowDefinition`, `WorkflowVertexDefinition`), runtime execution (`WorkflowExecutor`), failure strategies/retries, JSON loading (`WorkflowDefinition.fromJson`), and tool wrapper (`WorkflowTool`) so agents can invoke workflows as tools.
 21. **Agent-as-tool support example**: Added `AgentTool` plus Example26 to demonstrate orchestrator agent delegating to a specialist agent through standard tool-calling.
 22. **Workflow-as-tool examples**: Example27 demonstrates both hardcoded workflow construction and JSON-loaded workflow definitions, each executed by an agent through tool-calling with streaming output.
 
 23. **Documentation comment clarity refresh**: Replaced low-signal field comments across `src/main/java` (for example, repeated `Internal state ... used while coordinating runtime behavior`) with explicit descriptions that capture limits, identifiers, flags, and orchestration intent.
+
+24. **Agent/workflow definition API simplification**: Removed wrapper-only `Agent` and `AgentDefinitionLoader`/`WorkflowDefinitionLoader`; `AgentDefinition` now directly implements `IAgent` and both definitions expose `fromJson(...)` static constructors.
 
 ## New examples demonstrating capabilities
 

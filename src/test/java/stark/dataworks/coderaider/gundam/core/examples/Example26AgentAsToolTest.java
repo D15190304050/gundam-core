@@ -2,7 +2,6 @@ package stark.dataworks.coderaider.gundam.core.examples;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
@@ -48,8 +47,8 @@ public class Example26AgentAsToolTest
         specialist.setSystemPrompt("You are a specialist researcher. Return concise and factual findings in Chinese.");
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(new Agent(orchestrator));
-        agentRegistry.register(new Agent(specialist));
+        agentRegistry.register(orchestrator);
+        agentRegistry.register(specialist);
 
         ToolRegistry toolRegistry = new ToolRegistry();
 

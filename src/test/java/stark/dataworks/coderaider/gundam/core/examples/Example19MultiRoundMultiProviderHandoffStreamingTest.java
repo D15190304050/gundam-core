@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
@@ -52,8 +51,8 @@ public class Example19MultiRoundMultiProviderHandoffStreamingTest
         qwenAgent.setSystemPrompt("You are a specialist agent. Produce concise useful answers.");
 
         AgentRegistry registry = new AgentRegistry();
-        registry.register(new Agent(doubaoAgent));
-        registry.register(new Agent(qwenAgent));
+        registry.register(doubaoAgent);
+        registry.register(qwenAgent);
 
         AgentRunner runner = AgentRunner.builder()
             .llmClientRegistry(new LlmClientRegistry(
@@ -68,8 +67,8 @@ public class Example19MultiRoundMultiProviderHandoffStreamingTest
             .build();
 
         RunConfiguration sessionCfg = new RunConfiguration(8, "mix-provider-session", 0.2, 512, "auto", "text", Map.of());
-        ContextResult round1 = runner.runStreamed(new Agent(doubaoAgent), "Please draft a migration checklist.", sessionCfg, ExampleSupport.noopHooks());
-        ContextResult round2 = runner.runStreamed(new Agent(doubaoAgent), "Now summarize it in 3 bullets.", sessionCfg, ExampleSupport.noopHooks());
+        ContextResult round1 = runner.runStreamed(doubaoAgent, "Please draft a migration checklist.", sessionCfg, ExampleSupport.noopHooks());
+        ContextResult round2 = runner.runStreamed(doubaoAgent, "Now summarize it in 3 bullets.", sessionCfg, ExampleSupport.noopHooks());
 
         assertFalse(round1.getFinalOutput().isBlank());
         assertFalse(round2.getFinalOutput().isBlank());

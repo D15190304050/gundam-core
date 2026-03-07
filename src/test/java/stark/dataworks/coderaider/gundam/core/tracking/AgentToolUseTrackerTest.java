@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
+import stark.dataworks.coderaider.gundam.core.agent.IAgent;
 
 class AgentToolUseTrackerTest
 {
@@ -21,7 +21,7 @@ class AgentToolUseTrackerTest
         def.setName("TestAgent");
         def.setModel("test-model");
         def.setSystemPrompt("test");
-        Agent agent = new Agent(def);
+        IAgent agent = def;
 
         tracker.recordUsedTools(agent, List.of("tool1", "tool2"));
 
@@ -41,7 +41,7 @@ class AgentToolUseTrackerTest
         def.setName("TestAgent");
         def.setModel("test-model");
         def.setSystemPrompt("test");
-        Agent agent = new Agent(def);
+        IAgent agent = def;
 
         tracker.addToolUse(agent, List.of("tool1"));
         tracker.addToolUse(agent, List.of("tool2"));
@@ -61,7 +61,7 @@ class AgentToolUseTrackerTest
         def.setName("TestAgent");
         def.setModel("test-model");
         def.setSystemPrompt("test");
-        Agent agent = new Agent(def);
+        IAgent agent = def;
 
         assertFalse(tracker.hasUsedTools(agent));
     }
@@ -75,7 +75,7 @@ class AgentToolUseTrackerTest
         def.setName("TestAgent");
         def.setModel("test-model");
         def.setSystemPrompt("test");
-        Agent agent = new Agent(def);
+        IAgent agent = def;
 
         tracker.addToolUse(agent, List.of("toolB", "toolA"));
 
@@ -113,7 +113,7 @@ class AgentToolUseTrackerTest
         def.setName("TestAgent");
         def.setModel("test-model");
         def.setSystemPrompt("test");
-        Agent agent = new Agent(def);
+        IAgent agent = def;
 
         Map<String, List<String>> snapshot = Map.of(
             "TestAgent", List.of("tool1", "tool2")
@@ -138,7 +138,7 @@ class AgentToolUseTrackerTest
         def.setName("TestAgent");
         def.setModel("test-model");
         def.setSystemPrompt("test");
-        Agent agent = new Agent(def);
+        IAgent agent = def;
 
         tracker.addToolUse(agent, List.of("tool1"));
         assertTrue(tracker.hasUsedTools(agent));
@@ -157,14 +157,14 @@ class AgentToolUseTrackerTest
         def1.setName("Agent1");
         def1.setModel("test-model");
         def1.setSystemPrompt("test");
-        Agent agent1 = new Agent(def1);
+        IAgent agent1 = def1;
 
         AgentDefinition def2 = new AgentDefinition();
         def2.setId("agent2");
         def2.setName("Agent2");
         def2.setModel("test-model");
         def2.setSystemPrompt("test");
-        Agent agent2 = new Agent(def2);
+        IAgent agent2 = def2;
 
         tracker.addToolUse(agent1, List.of("tool1"));
         tracker.addToolUse(agent2, List.of("tool2", "tool3"));

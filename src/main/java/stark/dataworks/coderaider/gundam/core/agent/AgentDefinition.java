@@ -1,5 +1,7 @@
 package stark.dataworks.coderaider.gundam.core.agent;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +18,13 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AgentDefinition
+    implements IAgent
 {
+
+    /**
+     * ObjectMapper used for JSON serialization/deserialization.
+     */
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
      * Unique identifier for this definition.
@@ -185,5 +193,36 @@ public class AgentDefinition
         {
             throw new IllegalArgumentException("maxSteps must be >= 1");
         }
+    }
+
+    /**
+     * Parses and validates a JSON agent definition.
+     *
+     * @param json JSON document to parse.
+     * @return Parsed and validated agent definition.
+     */
+    public static AgentDefinition fromJson(String json)
+    {
+        try
+        {
+            AgentDefinition definition = MAPPER.readValue(json, AgentDefinition.class);
+            definition.validate();
+            return definition;
+        }
+        catch (JsonProcessingException e)
+        {
+            throw new IllegalArgumentException("Invalid agent definition json", e);
+        }
+    }
+
+    /**
+     * Returns this definition for IAgent compatibility.
+     *
+     * @return Current definition instance.
+     */
+    @Override
+    public AgentDefinition definition()
+    {
+        return this;
     }
 }

@@ -2,7 +2,6 @@ package stark.dataworks.coderaider.gundam.core.examples;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
@@ -55,8 +54,8 @@ public class Example28AgentInWorkflowThenCalledByAnotherAgentTest
         orchestratorAgent.setToolNames(List.of("workflow_plan_tool"));
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(new Agent(workflowStepAgent));
-        agentRegistry.register(new Agent(orchestratorAgent));
+        agentRegistry.register(workflowStepAgent);
+        agentRegistry.register(orchestratorAgent);
 
         ToolRegistry toolRegistry = new ToolRegistry();
 

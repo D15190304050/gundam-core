@@ -5,8 +5,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
+import stark.dataworks.coderaider.gundam.core.agent.IAgent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
@@ -47,7 +47,7 @@ public class Example21ToolUseTrackerTest
         agentDef.setSystemPrompt("You are a helpful assistant. Use tools when appropriate to answer questions.");
         agentDef.setToolNames(List.of("get_time", "get_weather"));
 
-        Agent agent = new Agent(agentDef);
+        IAgent agent = agentDef;
 
         AgentRegistry agentRegistry = new AgentRegistry();
         agentRegistry.register(agent);

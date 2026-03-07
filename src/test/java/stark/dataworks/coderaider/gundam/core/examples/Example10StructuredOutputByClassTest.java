@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
@@ -58,7 +57,7 @@ public class Example10StructuredOutputByClassTest
 //        definition.setModelReasoning(Map.of("effort", "low"));
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(new Agent(definition));
+        agentRegistry.register(definition);
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(llmClient)

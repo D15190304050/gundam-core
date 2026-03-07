@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
@@ -76,9 +75,9 @@ public class Example06AgentGroupWithHandoffsTest
             "Summarize any plans or information provided by previous agents.");
 
         AgentRegistry registry = new AgentRegistry();
-        registry.register(new Agent(triage));
-        registry.register(new Agent(planner));
-        registry.register(new Agent(support));
+        registry.register(triage);
+        registry.register(planner);
+        registry.register(support);
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(new ModelScopeLlmClient(apiKey, model))

@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
@@ -57,7 +56,7 @@ public class Example22ApplyPatchToolTest
         agentDef.setToolNames(List.of("apply_patch"));
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(new Agent(agentDef));
+        agentRegistry.register(agentDef);
 
         ToolRegistry toolRegistry = new ToolRegistry();
         toolRegistry.register(patchTool);

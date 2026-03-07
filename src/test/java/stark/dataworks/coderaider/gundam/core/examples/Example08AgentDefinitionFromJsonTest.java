@@ -2,9 +2,7 @@ package stark.dataworks.coderaider.gundam.core.examples;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
-import stark.dataworks.coderaider.gundam.core.agent.AgentDefinitionLoader;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
@@ -14,7 +12,7 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 /**
  * 08) Create agent definition from JSON then run it through Spring-AI style chat API.
  */
-public class Example08AgentDefinitionLoaderFromJsonTest
+public class Example08AgentDefinitionFromJsonTest
 {
     @Test
     public void run()
@@ -40,10 +38,10 @@ public class Example08AgentDefinitionLoaderFromJsonTest
             }
             """.formatted(model);
 
-        AgentDefinition agentDef = AgentDefinitionLoader.fromJson(definitionJson);
+        AgentDefinition agentDef = AgentDefinition.fromJson(definitionJson);
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(new Agent(agentDef));
+        agentRegistry.register(agentDef);
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(new ModelScopeLlmClient(apiKey, model))

@@ -2,7 +2,6 @@ package stark.dataworks.coderaider.gundam.core.examples;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
@@ -14,7 +13,6 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolParameterSchema;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 import stark.dataworks.coderaider.gundam.core.tool.builtin.WorkflowTool;
 import stark.dataworks.coderaider.gundam.core.workflow.WorkflowDefinition;
-import stark.dataworks.coderaider.gundam.core.workflow.WorkflowDefinitionLoader;
 import stark.dataworks.coderaider.gundam.core.workflow.WorkflowExecutor;
 import stark.dataworks.coderaider.gundam.core.workflow.WorkflowProcessorRegistry;
 import stark.dataworks.coderaider.gundam.core.workflow.WorkflowVertexDefinition;
@@ -78,7 +76,7 @@ public class Example27WorkflowAsToolTest
             }
             """;
 
-        runWithWorkflow(WorkflowDefinitionLoader.fromJson(json), "Please call the workflow tool to process this topic: build a multi-region disaster recovery drill plan. Then give me final recommendations.");
+        runWithWorkflow(WorkflowDefinition.fromJson(json), "Please call the workflow tool to process this topic: build a multi-region disaster recovery drill plan. Then give me final recommendations.");
     }
 
     private void runWithWorkflow(WorkflowDefinition workflowDefinition, String prompt)
@@ -104,7 +102,7 @@ public class Example27WorkflowAsToolTest
         agentDef.setToolNames(List.of("plan_with_workflow"));
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(new Agent(agentDef));
+        agentRegistry.register(agentDef);
 
         ToolRegistry toolRegistry = new ToolRegistry();
         toolRegistry.register(new WorkflowTool(

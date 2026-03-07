@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.approval.AllowAllToolApprovalPolicy;
@@ -68,7 +67,7 @@ class McpAndErrorHandlingTest
         def.setModel("m");
 
         AgentRegistry agents = new AgentRegistry();
-        agents.register(new Agent(def));
+        agents.register(def);
 
         RunErrorHandlers handlers = new RunErrorHandlers();
         handlers.register(RunErrorKind.MODEL_INVOCATION, data -> RunErrorHandlerResult.handled("fallback output"));
@@ -94,7 +93,7 @@ class McpAndErrorHandlingTest
         RunConfiguration cfg = new RunConfiguration(2, null, 0.2, 128, "auto", "text", Map.of(),
             new RetryPolicy(1, 0), handlers);
 
-        ContextResult result = runner.run(new Agent(def), "hello", cfg, new IRunHooks()
+        ContextResult result = runner.run(def, "hello", cfg, new IRunHooks()
         {
         });
         assertEquals("fallback output", result.getFinalOutput());

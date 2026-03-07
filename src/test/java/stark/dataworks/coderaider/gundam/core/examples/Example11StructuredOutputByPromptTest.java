@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.event.RunEvent;
@@ -57,7 +56,7 @@ public class Example11StructuredOutputByPromptTest
         definition.setSystemPrompt("Always obey user schema exactly.");
 
         AgentRegistry registry = new AgentRegistry();
-        registry.register(new Agent(definition));
+        registry.register(definition);
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(llmClient)

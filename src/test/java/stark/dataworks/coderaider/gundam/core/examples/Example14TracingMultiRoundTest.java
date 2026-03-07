@@ -3,7 +3,6 @@ package stark.dataworks.coderaider.gundam.core.examples;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import stark.dataworks.coderaider.gundam.core.agent.Agent;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
@@ -37,7 +36,7 @@ public class Example14TracingMultiRoundTest
         definition.setSystemPrompt("You are concise.");
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(new Agent(definition));
+        agentRegistry.register(definition);
 
         List<DistributedTraceEvent> spans = new ArrayList<>();
         AgentRunner runner = AgentRunner.builder()
