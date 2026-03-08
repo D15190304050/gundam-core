@@ -172,7 +172,7 @@ final class McpTestSupport
         {
             String pathExt = System.getenv("PATHEXT");
             String[] extensions = (pathExt == null || pathExt.isBlank())
-                ? new String[] {".EXE", ".BAT", ".CMD"}
+                ? new String[]{".EXE", ".BAT", ".CMD"}
                 : pathExt.split(";");
             for (String entry : entries)
             {

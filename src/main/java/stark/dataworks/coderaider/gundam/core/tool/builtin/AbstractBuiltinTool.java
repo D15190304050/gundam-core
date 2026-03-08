@@ -59,8 +59,7 @@ public abstract class AbstractBuiltinTool implements ITool
     /**
      * Executes this tool operation and returns the produced output.
      *
-     * @param Map<String map<string.
-     * @param input      input payload.
+     * @param input input payload.
      * @return abstract string result.
      */
     @Override

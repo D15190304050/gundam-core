@@ -26,7 +26,6 @@ public class WorkflowVertexResult
     /**
      * Initializes WorkflowVertexResult with required runtime dependencies and options.
      *
-     * @param Map<String    map<string.
      * @param outputs       outputs.
      * @param nextVertexIds next vertex ids.
      */
@@ -39,8 +38,7 @@ public class WorkflowVertexResult
     /**
      * Creates a workflow vertex result using the processor output map.
      *
-     * @param Map<String map<string.
-     * @param outputs    outputs.
+     * @param outputs outputs.
      * @return workflow vertex result.
      */
     public static WorkflowVertexResult ofOutputs(Map<String, Object> outputs)

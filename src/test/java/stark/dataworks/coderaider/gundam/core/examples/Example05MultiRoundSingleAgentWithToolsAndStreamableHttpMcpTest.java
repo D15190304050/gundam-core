@@ -1,7 +1,5 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 
@@ -11,8 +9,6 @@ import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
-import stark.dataworks.coderaider.gundam.core.event.RunEvent;
-import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.mcp.McpManager;
 import stark.dataworks.coderaider.gundam.core.mcp.McpServerConfiguration;
@@ -22,7 +18,6 @@ import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.gundam.core.session.InMemorySessionStore;
-import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
 import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ITool;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
@@ -32,12 +27,12 @@ import stark.dataworks.coderaider.gundam.core.tool.builtin.mcp.HostedMcpTool;
 
 /**
  * 5) How to create a multi-round single agent with tools and MCPs (Streamable HTTP transport), with streaming output.
- *
+ * <p>
  * Usage: java Example05MultiRoundSingleAgentWithToolsAndStreamableHttpMcp [model] [apiKey] [mcpServerUrl]
  * - model: ModelScope model name (default: Qwen/Qwen3-4B)
  * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
  * - mcpServerUrl: MCP server endpoint (default: "http://localhost:8766/mcp")
- *
+ * <p>
  * Prerequisites:
  * 1. Install mcp package: pip install mcp[cli]
  * 2. Start the Streamable HTTP MCP server first: python src/main/resources/mcp/simple_mcp_server_streamable_http.py

@@ -104,7 +104,8 @@ public class Example22ApplyPatchToolTest
         {
             Files.walk(dir)
                 .sorted((a, b) -> b.compareTo(a))
-                .forEach(p -> {
+                .forEach(p ->
+                {
                     try
                     {
                         Files.deleteIfExists(p);
@@ -198,7 +199,8 @@ public class Example22ApplyPatchToolTest
 
         public void printFiles()
         {
-            files.forEach((path, content) -> {
+            files.forEach((path, content) ->
+            {
                 System.out.println("\n--- " + path + " ---");
                 System.out.println(content);
             });

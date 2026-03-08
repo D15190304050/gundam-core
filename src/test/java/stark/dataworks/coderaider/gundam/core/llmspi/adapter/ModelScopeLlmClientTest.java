@@ -23,21 +23,21 @@ public class ModelScopeLlmClientTest
         String apiKey = "test-key";
         String model = "Qwen/Qwen3-4B";
         ModelScopeLlmClient client = new ModelScopeLlmClient(apiKey, model);
-        
+
         LlmRequest request = new LlmRequest(
             model,
             List.of(new Message(Role.USER, "Hello")),
             List.of(),
             new LlmOptions(0.7, 1000)
         );
-        
+
         // Act - We can't directly test the enhanceRequest method since it's private,
         // but we can verify the constructor sets enableThinking to true by default
-        
+
         // Assert - Just verify the client was created successfully
         assertNotNull(client);
     }
-    
+
     @Test
     public void testEnableThinkingCanBeDisabled()
     {
@@ -45,18 +45,18 @@ public class ModelScopeLlmClientTest
         String apiKey = "test-key";
         String model = "Qwen/Qwen3-4B";
         ModelScopeLlmClient client = new ModelScopeLlmClient(apiKey, model, false);
-        
+
         // Assert - Just verify the client was created successfully
         assertNotNull(client);
     }
-    
+
     @Test
     public void testProviderOptionsWithEnableThinking()
     {
         // Arrange
         Map<String, Object> providerOptions = Map.of("enable_thinking", true);
         LlmOptions options = new LlmOptions(0.7, 1000, "auto", "text", providerOptions);
-        
+
         // Assert
         assertTrue(options.getProviderOptions().containsKey("enable_thinking"));
         assertEquals(true, options.getProviderOptions().get("enable_thinking"));

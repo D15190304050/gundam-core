@@ -1,4 +1,4 @@
-package stark.dataworks.coderaider.gundam.core.hook;
+package stark.dataworks.coderaider.gundam.core.hooks;
 
 import stark.dataworks.coderaider.gundam.core.runtime.ExecutionContext;
 

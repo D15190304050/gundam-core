@@ -19,7 +19,7 @@ public class GeneratedImageSaveHook
     private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build();
 
     public Path onGenerated(String stage, GeneratedAsset generatedAsset, String fileName)
-            throws IOException, InterruptedException
+        throws IOException, InterruptedException
     {
         Path outputPath = Path.of("src/test/resources/outputs/images/" + fileName);
         Files.createDirectories(outputPath.getParent());

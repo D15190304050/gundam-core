@@ -12,10 +12,10 @@ A .docx file is a ZIP archive containing XML files.
 
 ## Quick Reference
 
-| Task | Approach |
-|------|----------|
-| Read/analyze content | `pandoc` or unpack for raw XML |
-| Create new document | Use `docx-js` - see Creating New Documents below |
+| Task                   | Approach                                                          |
+|------------------------|-------------------------------------------------------------------|
+| Read/analyze content   | `pandoc` or unpack for raw XML                                    |
+| Create new document    | Use `docx-js` - see Creating New Documents below                  |
 | Edit existing document | Unpack → edit XML → repack - see Editing Existing Documents below |
 
 ### Converting .doc to .docx
@@ -58,13 +58,17 @@ python scripts/accept_changes.py input.docx output.docx
 When asked to analyze a .docx file and produce a markdown analysis output, follow this comprehensive workflow:
 
 ### Step 1: Extract Content
+
 Use `pandoc` to extract text and tracked changes from the .docx file:
+
 ```bash
 pandoc --track-changes=all document.docx -o output.md
 ```
 
 ### Step 2: Read and Analyze Extracted Content
+
 Read the extracted markdown file using the `read_file` tool to understand:
+
 - Document structure (headings, sections)
 - Main topics and themes
 - Key findings, conclusions, or arguments
@@ -72,7 +76,9 @@ Read the extracted markdown file using the `read_file` tool to understand:
 - References or citations
 
 ### Step 3: Identify Document Type and Purpose
+
 Determine what type of document this is:
+
 - Academic thesis/dissertation
 - Research paper
 - Technical report
@@ -80,46 +86,50 @@ Determine what type of document this is:
 - Other
 
 ### Step 4: Create Comprehensive Analysis
+
 Write a detailed markdown analysis that includes:
 
 1. **Document Overview**
-   - Title and author
-   - Document type and purpose
-   - Key subject matter
+    - Title and author
+    - Document type and purpose
+    - Key subject matter
 
 2. **Structure Analysis**
-   - Table of contents
-   - Section organization
-   - Chapter/section breakdown
+    - Table of contents
+    - Section organization
+    - Chapter/section breakdown
 
 3. **Content Summary**
-   - Main topics covered
-   - Key arguments or findings
-   - Methodology (if applicable)
-   - Results and conclusions
+    - Main topics covered
+    - Key arguments or findings
+    - Methodology (if applicable)
+    - Results and conclusions
 
 4. **Technical Details**
-   - Technical concepts or terminology
-   - Systems, frameworks, or technologies mentioned
-   - Data or statistics presented
+    - Technical concepts or terminology
+    - Systems, frameworks, or technologies mentioned
+    - Data or statistics presented
 
 5. **Key Insights**
-   - Most important findings
-   - Novel contributions
-   - Practical applications
+    - Most important findings
+    - Novel contributions
+    - Practical applications
 
 6. **References and Citations**
-   - List of references (if present)
-   - Key sources cited
+    - List of references (if present)
+    - Key sources cited
 
 ### Step 5: Write Analysis Output
+
 Use the `write_file` tool to write the complete analysis to the specified markdown file. Ensure the analysis is:
+
 - Well-structured with clear headings
 - Comprehensive and detailed
 - Written in a professional tone
 - Accurate based on the extracted content
 
-**Important:** Always complete ALL steps of this workflow. Do not stop after just extracting content with pandoc. The analysis must be comprehensive and detailed, covering all aspects of the document.
+**Important:** Always complete ALL steps of this workflow. Do not stop after just extracting content with pandoc. The
+analysis must be comprehensive and detailed, covering all aspects of the document.
 
 ---
 
@@ -128,6 +138,7 @@ Use the `write_file` tool to write the complete analysis to the specified markdo
 Generate .docx files with JavaScript, then validate. Install: `npm install -g docx`
 
 ### Setup
+
 ```javascript
 const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, ImageRun,
         Header, Footer, AlignmentType, PageOrientation, LevelFormat, ExternalHyperlink,
@@ -139,7 +150,9 @@ Packer.toBuffer(doc).then(buffer => fs.writeFileSync("doc.docx", buffer));
 ```
 
 ### Validation
+
 After creating the file, validate it. If validation fails, unpack, fix the XML, and repack.
+
 ```bash
 python scripts/office/validate.py doc.docx
 ```
@@ -165,12 +178,14 @@ sections: [{
 
 **Common page sizes (DXA units, 1440 DXA = 1 inch):**
 
-| Paper | Width | Height | Content Width (1" margins) |
-|-------|-------|--------|---------------------------|
-| US Letter | 12,240 | 15,840 | 9,360 |
-| A4 (default) | 11,906 | 16,838 | 9,026 |
+| Paper        | Width  | Height | Content Width (1" margins) |
+|--------------|--------|--------|----------------------------|
+| US Letter    | 12,240 | 15,840 | 9,360                      |
+| A4 (default) | 11,906 | 16,838 | 9,026                      |
 
-**Landscape orientation:** docx-js swaps width/height internally, so pass portrait dimensions and let it handle the swap:
+**Landscape orientation:** docx-js swaps width/height internally, so pass portrait dimensions and let it handle the
+swap:
+
 ```javascript
 size: {
   width: 12240,   // Pass SHORT edge as width
@@ -242,7 +257,8 @@ const doc = new Document({
 
 ### Tables
 
-**CRITICAL: Tables need dual widths** - set both `columnWidths` on the table AND `width` on each cell. Without both, tables render incorrectly on some platforms.
+**CRITICAL: Tables need dual widths** - set both `columnWidths` on the table AND `width` on each cell. Without both,
+tables render incorrectly on some platforms.
 
 ```javascript
 // CRITICAL: Always set table width for consistent rendering
@@ -281,6 +297,7 @@ columnWidths: [7000, 2360]  // Must sum to table width
 ```
 
 **Width rules:**
+
 - **Always use `WidthType.DXA`** — never `WidthType.PERCENTAGE` (incompatible with Google Docs)
 - Table width must equal the sum of `columnWidths`
 - Cell `width` must match corresponding `columnWidth`
@@ -340,7 +357,8 @@ sections: [{
 ### Critical Rules for docx-js
 
 - **Set page size explicitly** - docx-js defaults to A4; use US Letter (12240 x 15840 DXA) for US documents
-- **Landscape: pass portrait dimensions** - docx-js swaps width/height internally; pass short edge as `width`, long edge as `height`, and set `orientation: PageOrientation.LANDSCAPE`
+- **Landscape: pass portrait dimensions** - docx-js swaps width/height internally; pass short edge as `width`, long edge
+  as `height`, and set `orientation: PageOrientation.LANDSCAPE`
 - **Never use `\n`** - use separate Paragraph elements
 - **Never use unicode bullets** - use `LevelFormat.BULLET` with numbering config
 - **PageBreak must be in Paragraph** - standalone creates invalid XML
@@ -361,56 +379,72 @@ sections: [{
 **Follow all 3 steps in order.**
 
 ### Step 1: Unpack
+
 ```bash
 python scripts/office/unpack.py document.docx unpacked/
 ```
-Extracts XML, pretty-prints, merges adjacent runs, and converts smart quotes to XML entities (`&#x201C;` etc.) so they survive editing. Use `--merge-runs false` to skip run merging.
+
+Extracts XML, pretty-prints, merges adjacent runs, and converts smart quotes to XML entities (`&#x201C;` etc.) so they
+survive editing. Use `--merge-runs false` to skip run merging.
 
 ### Step 2: Edit XML
 
 Edit files in `unpacked/word/`. See XML Reference below for patterns.
 
-**Use "Claude" as the author** for tracked changes and comments, unless the user explicitly requests use of a different name.
+**Use "Claude" as the author** for tracked changes and comments, unless the user explicitly requests use of a different
+name.
 
-**Use the Edit tool directly for string replacement. Do not write Python scripts.** Scripts introduce unnecessary complexity. The Edit tool shows exactly what is being replaced.
+**Use the Edit tool directly for string replacement. Do not write Python scripts.** Scripts introduce unnecessary
+complexity. The Edit tool shows exactly what is being replaced.
 
-**CRITICAL: Use smart quotes for new content.** When adding text with apostrophes or quotes, use XML entities to produce smart quotes:
+**CRITICAL: Use smart quotes for new content.** When adding text with apostrophes or quotes, use XML entities to produce
+smart quotes:
+
 ```xml
 <!-- Use these entities for professional typography -->
 <w:t>Here&#x2019;s a quote: &#x201C;Hello&#x201D;</w:t>
 ```
-| Entity | Character |
-|--------|-----------|
-| `&#x2018;` | ‘ (left single) |
+
+| Entity     | Character                     |
+|------------|-------------------------------|
+| `&#x2018;` | ‘ (left single)               |
 | `&#x2019;` | ’ (right single / apostrophe) |
-| `&#x201C;` | “ (left double) |
-| `&#x201D;` | ” (right double) |
+| `&#x201C;` | “ (left double)               |
+| `&#x201D;` | ” (right double)              |
 
 **Adding comments:** Use `comment.py` to handle boilerplate across multiple XML files (text must be pre-escaped XML):
+
 ```bash
 python scripts/comment.py unpacked/ 0 "Comment text with &amp; and &#x2019;"
 python scripts/comment.py unpacked/ 1 "Reply text" --parent 0  # reply to comment 0
 python scripts/comment.py unpacked/ 0 "Text" --author "Custom Author"  # custom author name
 ```
+
 Then add markers to document.xml (see Comments in XML Reference).
 
 ### Step 3: Pack
+
 ```bash
 python scripts/office/pack.py unpacked/ output.docx --original document.docx
 ```
+
 Validates with auto-repair, condenses XML, and creates DOCX. Use `--validate false` to skip.
 
 **Auto-repair will fix:**
+
 - `durableId` >= 0x7FFFFFFF (regenerates valid ID)
 - Missing `xml:space="preserve"` on `<w:t>` with whitespace
 
 **Auto-repair won't fix:**
+
 - Malformed XML, invalid element nesting, missing relationships, schema violations
 
 ### Common Pitfalls
 
-- **Replace entire `<w:r>` elements**: When adding tracked changes, replace the whole `<w:r>...</w:r>` block with `<w:del>...<w:ins>...` as siblings. Don't inject tracked change tags inside a run.
-- **Preserve `<w:rPr>` formatting**: Copy the original run's `<w:rPr>` block into your tracked change runs to maintain bold, font size, etc.
+- **Replace entire `<w:r>` elements**: When adding tracked changes, replace the whole `<w:r>...</w:r>` block with
+  `<w:del>...<w:ins>...` as siblings. Don't inject tracked change tags inside a run.
+- **Preserve `<w:rPr>` formatting**: Copy the original run's `<w:rPr>` block into your tracked change runs to maintain
+  bold, font size, etc.
 
 ---
 
@@ -425,6 +459,7 @@ Validates with auto-repair, condenses XML, and creates DOCX. Use `--validate fal
 ### Tracked Changes
 
 **Insertion:**
+
 ```xml
 <w:ins w:id="1" w:author="Claude" w:date="2025-01-01T00:00:00Z">
   <w:r><w:t>inserted text</w:t></w:r>
@@ -432,6 +467,7 @@ Validates with auto-repair, condenses XML, and creates DOCX. Use `--validate fal
 ```
 
 **Deletion:**
+
 ```xml
 <w:del w:id="2" w:author="Claude" w:date="2025-01-01T00:00:00Z">
   <w:r><w:delText>deleted text</w:delText></w:r>
@@ -441,6 +477,7 @@ Validates with auto-repair, condenses XML, and creates DOCX. Use `--validate fal
 **Inside `<w:del>`**: Use `<w:delText>` instead of `<w:t>`, and `<w:delInstrText>` instead of `<w:instrText>`.
 
 **Minimal edits** - only mark what changes:
+
 ```xml
 <!-- Change "30 days" to "60 days" -->
 <w:r><w:t>The term is </w:t></w:r>
@@ -453,7 +490,9 @@ Validates with auto-repair, condenses XML, and creates DOCX. Use `--validate fal
 <w:r><w:t> days.</w:t></w:r>
 ```
 
-**Deleting entire paragraphs/list items** - when removing ALL content from a paragraph, also mark the paragraph mark as deleted so it merges with the next paragraph. Add `<w:del/>` inside `<w:pPr><w:rPr>`:
+**Deleting entire paragraphs/list items** - when removing ALL content from a paragraph, also mark the paragraph mark as
+deleted so it merges with the next paragraph. Add `<w:del/>` inside `<w:pPr><w:rPr>`:
+
 ```xml
 <w:p>
   <w:pPr>
@@ -467,9 +506,11 @@ Validates with auto-repair, condenses XML, and creates DOCX. Use `--validate fal
   </w:del>
 </w:p>
 ```
+
 Without the `<w:del/>` in `<w:pPr><w:rPr>`, accepting changes leaves an empty paragraph/list item.
 
 **Rejecting another author's insertion** - nest deletion inside their insertion:
+
 ```xml
 <w:ins w:author="Jane" w:id="5">
   <w:del w:author="Claude" w:id="10">
@@ -479,6 +520,7 @@ Without the `<w:del/>` in `<w:pPr><w:rPr>`, accepting changes leaves an empty pa
 ```
 
 **Restoring another author's deletion** - add insertion after (don't modify their deletion):
+
 ```xml
 <w:del w:author="Jane" w:id="5">
   <w:r><w:delText>deleted text</w:delText></w:r>
@@ -490,7 +532,8 @@ Without the `<w:del/>` in `<w:pPr><w:rPr>`, accepting changes leaves an empty pa
 
 ### Comments
 
-After running `comment.py` (see Step 2), add markers to document.xml. For replies, use `--parent` flag and nest markers inside the parent's.
+After running `comment.py` (see Step 2), add markers to document.xml. For replies, use `--parent` flag and nest markers
+inside the parent's.
 
 **CRITICAL: `<w:commentRangeStart>` and `<w:commentRangeEnd>` are siblings of `<w:r>`, never inside `<w:r>`.**
 
@@ -518,14 +561,19 @@ After running `comment.py` (see Step 2), add markers to document.xml. For replie
 
 1. Add image file to `word/media/`
 2. Add relationship to `word/_rels/document.xml.rels`:
+
 ```xml
 <Relationship Id="rId5" Type=".../image" Target="media/image1.png"/>
 ```
+
 3. Add content type to `[Content_Types].xml`:
+
 ```xml
 <Default Extension="png" ContentType="image/png"/>
 ```
+
 4. Reference in document.xml:
+
 ```xml
 <w:drawing>
   <wp:inline>

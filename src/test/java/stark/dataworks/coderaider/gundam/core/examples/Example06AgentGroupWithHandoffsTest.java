@@ -7,24 +7,21 @@ import java.util.List;
 
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
-import stark.dataworks.coderaider.gundam.core.event.RunEvent;
-import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
-import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
 import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 
 /**
  * 6) How to create a group of agents with handoffs, with at least 3 agents, with streaming output.
- * 
+ * <p>
  * Usage: java Example06AgentGroupWithHandoffs [model] [apiKey] [query]
  * - model: ModelScope model name (default: Qwen/Qwen3-4B)
  * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
  * - query: User query (default: "Need a migration plan for next week.")
- * 
+ * <p>
  * Note: Agent handoffs require the LLM to return specific handoff markers.
  * The agents are configured with handoff relationships:
  * - triage -> planner, support

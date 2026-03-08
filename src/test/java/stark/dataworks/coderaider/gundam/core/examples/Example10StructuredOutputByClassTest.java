@@ -7,21 +7,18 @@ import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
-import stark.dataworks.coderaider.gundam.core.event.RunEvent;
-import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.ILlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.SeedLlmClient;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
-import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
 import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 
 /**
  * 10) Structured output by declaring Java type from developer side.
- * 
+ * <p>
  * Usage: java Example10StructuredOutputByClass [provider] [model] [apiKey] [prompt]
  * - provider: Provider type - "modelscope" (default) or "volcengine" (Seed/Doubao)
  * - model: Model name (default: Qwen/Qwen3-4B for modelscope, doubao-seed-1-6-251015 for volcengine)

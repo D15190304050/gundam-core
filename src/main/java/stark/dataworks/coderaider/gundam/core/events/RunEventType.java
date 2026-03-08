@@ -1,4 +1,4 @@
-package stark.dataworks.coderaider.gundam.core.event;
+package stark.dataworks.coderaider.gundam.core.events;
 
 /**
  * RunEventType implements run event payloads.

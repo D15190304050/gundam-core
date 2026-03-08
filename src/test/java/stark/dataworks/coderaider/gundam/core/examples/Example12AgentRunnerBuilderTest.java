@@ -7,14 +7,11 @@ import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
-import stark.dataworks.coderaider.gundam.core.event.RunEvent;
-import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmClientRegistry;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
-import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
 import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 
@@ -63,7 +60,7 @@ public class Example12AgentRunnerBuilderTest
             .runHooks(ExampleSupport.noopHooks())
             .call()
             .contextResult();
-        
+
         System.out.println("\n\n=== Final Output ===");
         System.out.println(result.getFinalOutput());
     }

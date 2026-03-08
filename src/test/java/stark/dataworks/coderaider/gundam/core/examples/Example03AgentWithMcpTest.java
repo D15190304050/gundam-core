@@ -1,7 +1,5 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 
@@ -10,8 +8,6 @@ import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
-import stark.dataworks.coderaider.gundam.core.event.RunEvent;
-import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.mcp.McpManager;
 import stark.dataworks.coderaider.gundam.core.mcp.McpServerConfiguration;
@@ -20,20 +16,19 @@ import stark.dataworks.coderaider.gundam.core.mcp.StdioMcpServerClient;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
-import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
 import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 import stark.dataworks.coderaider.gundam.core.tool.builtin.mcp.HostedMcpTool;
 
 /**
  * 3) How to create an agent with a set of MCPs, and then run it with streaming output.
- * 
+ * <p>
  * Usage: java Example03AgentWithMcp [model] [apiKey] [query] [mcpServerCommand]
  * - model: ModelScope model name (default: Qwen/Qwen3-4B)
  * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
  * - query: Search query (default: "Find onboarding policy")
  * - mcpServerCommand: MCP server command (default: "python src/main/resources/mcp/simple_mcp_server_stdio.py")
- * 
+ * <p>
  * Prerequisites:
  * 1. Install mcp package: pip install mcp[cli]
  * 2. Run this example - the MCP server will be started and terminated automatically.
@@ -58,8 +53,9 @@ public class Example03AgentWithMcpTest
         }
 
         StdioMcpServerClient mcpClient = new StdioMcpServerClient();
-        
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() ->
+        {
             System.out.println("\n[MCP] Shutting down MCP server...");
             mcpClient.disconnect(new McpServerConfiguration("kb-mcp", mcpServerCommand, Map.of()));
         }));
@@ -99,7 +95,7 @@ public class Example03AgentWithMcpTest
         ContextResult result = runner.chatClient("mcp-agent").prompt().user(query).runConfiguration(RunConfiguration.defaults()).runHooks(ExampleSupport.noopHooks()).call().contextResult();
         System.out.println();
         System.out.println("Final output: " + result.getFinalOutput());
-        
+
         mcpClient.disconnect(mcpServer);
     }
 

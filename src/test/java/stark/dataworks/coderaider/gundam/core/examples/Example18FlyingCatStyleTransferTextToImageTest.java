@@ -22,7 +22,7 @@ public class Example18FlyingCatStyleTransferTextToImageTest
 
     @Test
     public void run()
-            throws IOException, InterruptedException
+        throws IOException, InterruptedException
     {
         Dotenv env = Dotenv.configure().filename(".env.local").ignoreIfMalformed().ignoreIfMissing().load();
         String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));

@@ -1,4 +1,4 @@
-package stark.dataworks.coderaider.gundam.core.event;
+package stark.dataworks.coderaider.gundam.core.events;
 
 import lombok.Getter;
 
@@ -33,7 +33,6 @@ public class RunEvent
      * Initializes RunEvent with required runtime dependencies and options.
      *
      * @param type       type discriminator.
-     * @param Map<String map<string.
      * @param attributes attribute map.
      */
     public RunEvent(RunEventType type, Map<String, Object> attributes)

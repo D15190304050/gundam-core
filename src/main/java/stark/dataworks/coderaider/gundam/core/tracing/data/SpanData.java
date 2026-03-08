@@ -25,7 +25,6 @@ public class SpanData
      * Initializes SpanData with required runtime dependencies and options.
      *
      * @param type       type discriminator.
-     * @param Map<String map<string.
      * @param attributes attribute map.
      */
     public SpanData(String type, Map<String, String> attributes)

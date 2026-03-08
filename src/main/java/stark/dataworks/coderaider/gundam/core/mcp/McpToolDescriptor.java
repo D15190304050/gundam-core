@@ -32,7 +32,6 @@ public class McpToolDescriptor
      *
      * @param name        human-readable name.
      * @param description description.
-     * @param Map<String  map<string.
      * @param inputSchema input schema.
      */
     public McpToolDescriptor(String name, String description, Map<String, Object> inputSchema)

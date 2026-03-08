@@ -14,7 +14,7 @@ import stark.dataworks.coderaider.gundam.core.context.DefaultContextBuilder;
 import stark.dataworks.coderaider.gundam.core.guardrail.GuardrailEngine;
 import stark.dataworks.coderaider.gundam.core.handoff.HandoffRouter;
 import stark.dataworks.coderaider.gundam.core.policy.RetryPolicy;
-import stark.dataworks.coderaider.gundam.core.hook.HookManager;
+import stark.dataworks.coderaider.gundam.core.hooks.HookManager;
 import stark.dataworks.coderaider.gundam.core.mcp.InMemoryMcpServerClient;
 import stark.dataworks.coderaider.gundam.core.mcp.McpManager;
 import stark.dataworks.coderaider.gundam.core.mcp.McpServerConfiguration;

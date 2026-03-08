@@ -11,10 +11,10 @@ import org.junit.jupiter.api.Test;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
-import stark.dataworks.coderaider.gundam.core.event.RunEventType;
+import stark.dataworks.coderaider.gundam.core.events.RunEventType;
 import stark.dataworks.coderaider.gundam.core.guardrail.GuardrailEngine;
 import stark.dataworks.coderaider.gundam.core.handoff.HandoffRouter;
-import stark.dataworks.coderaider.gundam.core.hook.HookManager;
+import stark.dataworks.coderaider.gundam.core.hooks.HookManager;
 import stark.dataworks.coderaider.gundam.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.gundam.core.memory.context.ContextServiceAgentMemory;
 import stark.dataworks.coderaider.gundam.core.memory.context.InMemoryContextServiceMemoryStore;
@@ -69,7 +69,9 @@ class MemoryRoadmapFeaturesTest
         RunConfiguration config = new RunConfiguration(8, "session-a", 0.2, 128, "auto", "text", Map.of(), null, null, memory,
             CompositeMemoryLifecyclePolicy.of(new SummarizingMemoryPolicy(4), new SlidingWindowMemoryPolicy(4)));
 
-        ContextResult result = runner.run(def, "hello", config, new IRunHooks() {});
+        ContextResult result = runner.run(def, "hello", config, new IRunHooks()
+        {
+        });
 
         assertEquals("ok", result.getFinalOutput());
         assertTrue(result.getEvents().stream().anyMatch(e -> e.getType() == RunEventType.MEMORY_READ));

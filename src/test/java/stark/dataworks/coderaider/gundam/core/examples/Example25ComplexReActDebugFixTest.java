@@ -136,18 +136,18 @@ public class Example25ComplexReActDebugFixTest
         def.setReactEnabled(true);
         def.setSystemPrompt("""
             You are a Java bug fixer. Think 1 line per step.
-
+            
             WORKFLOW:
             1. Read: %s
             2. Apply ONE patch fixing ALL 3 bugs
             3. Verify: %s
             4. Output FINAL SUMMARY when BEHAVIOR_OK
-
+            
             THREE BUGS TO FIX IN ONE PATCH:
             Bug 1: for (int i = 1 -> for (int i = 0
             Bug 2: return 0.18; -> return 0.08;
             Bug 3: * 10.0 / 10.0 -> * 100.0 / 100.0
-
+            
             EXACT DIFF (copy these lines exactly, use spaces not tabs):
             -        for (int i = 1; i < items.length; i++) {
             +        for (int i = 0; i < items.length; i++) {
@@ -155,7 +155,7 @@ public class Example25ComplexReActDebugFixTest
             +            return 0.08;
             -        return Math.round(value * 10.0) / 10.0;
             +        return Math.round(value * 100.0) / 100.0;
-
+            
             SUMMARY FORMAT (output after BEHAVIOR_OK):
             ## Summary
             **Problem**: Brief description of the bugs found
@@ -163,7 +163,7 @@ public class Example25ComplexReActDebugFixTest
             **Fix Applied**: What changes were made
             **Verification**: Test results confirming the fix
             """.formatted(runtimeOs.printFileCommand(workspace, "InvoiceSummaryEngine.java"),
-                          runtimeOs.verifyCommand(workspace)));
+            runtimeOs.verifyCommand(workspace)));
         def.setReactInstructions("""
             1. Read file to confirm content
             2. Apply ONE patch with the EXACT diff above (all 3 fixes)
@@ -181,7 +181,7 @@ public class Example25ComplexReActDebugFixTest
     {
         return """
             Attempt %d. Status: %s
-
+            
             Apply patch to fix all 3 bugs in ONE diff, then verify: %s
             """.formatted(attempt, behaviorOutput.trim(), runtimeOs.verifyCommand(workspace));
     }
@@ -279,8 +279,10 @@ public class Example25ComplexReActDebugFixTest
         {
             return switch (this)
             {
-                case WINDOWS -> "cmd /c \"cd /d \"" + workspace + "\" && javac InvoiceSummaryEngine.java InvoiceSummaryEngineVerifier.java && java InvoiceSummaryEngineVerifier\"";
-                case MACOS, LINUX -> "cd '" + workspace + "' && javac InvoiceSummaryEngine.java InvoiceSummaryEngineVerifier.java && java InvoiceSummaryEngineVerifier";
+                case WINDOWS ->
+                    "cmd /c \"cd /d \"" + workspace + "\" && javac InvoiceSummaryEngine.java InvoiceSummaryEngineVerifier.java && java InvoiceSummaryEngineVerifier\"";
+                case MACOS, LINUX ->
+                    "cd '" + workspace + "' && javac InvoiceSummaryEngine.java InvoiceSummaryEngineVerifier.java && java InvoiceSummaryEngineVerifier";
             };
         }
 

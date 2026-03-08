@@ -11,7 +11,6 @@ public class OutputValidator
     /**
      * Validates this value.
      *
-     * @param Map<String       map<string.
      * @param structuredOutput structured output.
      * @param schema           schema definition.
      * @return output validation result.

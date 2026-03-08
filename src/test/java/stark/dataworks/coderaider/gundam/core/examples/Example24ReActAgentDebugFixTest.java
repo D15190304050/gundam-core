@@ -324,10 +324,10 @@ public class Example24ReActAgentDebugFixTest
             
             Runtime OS: %s
             Workspace: %s
-
+            
             Run verification command:
             %s
-
+            
             Report PASS only if output contains BEHAVIOR_OK, otherwise FAIL with details.
             """.formatted(fixerOutput, runtimeOs.displayName, workspace, runtimeOs.verifyCommand(workspace));
     }
@@ -453,8 +453,10 @@ public class Example24ReActAgentDebugFixTest
         {
             return switch (this)
             {
-                case WINDOWS -> "cmd /c \"cd /d \"\"" + workspace + "\"\" && javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier\"";
-                case MACOS, LINUX -> "cd '" + workspace + "' && javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier";
+                case WINDOWS ->
+                    "cmd /c \"cd /d \"\"" + workspace + "\"\" && javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier\"";
+                case MACOS, LINUX ->
+                    "cd '" + workspace + "' && javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier";
             };
         }
 

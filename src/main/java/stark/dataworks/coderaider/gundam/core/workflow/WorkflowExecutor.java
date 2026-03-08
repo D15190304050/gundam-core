@@ -46,8 +46,7 @@ public class WorkflowExecutor
     /**
      * Executes this tool operation and returns the produced output.
      *
-     * @param Map<String map<string.
-     * @param input      input payload.
+     * @param input input payload.
      * @return workflow execution result.
      */
     public WorkflowExecutionResult execute(Map<String, Object> input)

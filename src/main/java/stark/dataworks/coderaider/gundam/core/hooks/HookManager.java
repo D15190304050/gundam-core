@@ -1,4 +1,4 @@
-package stark.dataworks.coderaider.gundam.core.hook;
+package stark.dataworks.coderaider.gundam.core.hooks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,9 +86,8 @@ public class HookManager
     /**
      * Invoked before a tool call executes.
      *
-     * @param toolName   tool name.
-     * @param Map<String map<string.
-     * @param args       tool arguments passed to the MCP server.
+     * @param toolName tool name.
+     * @param args     tool arguments passed to the MCP server.
      */
     public void beforeTool(String toolName, Map<String, Object> args)
     {

@@ -1,6 +1,6 @@
 package stark.dataworks.coderaider.gundam.core.streaming;
 
-import stark.dataworks.coderaider.gundam.core.event.RunEvent;
+import stark.dataworks.coderaider.gundam.core.events.RunEvent;
 
 /**
  * RunEventListener implements core runtime responsibilities.

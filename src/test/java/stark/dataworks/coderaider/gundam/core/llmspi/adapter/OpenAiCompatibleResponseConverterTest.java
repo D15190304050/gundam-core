@@ -47,7 +47,7 @@ class OpenAiCompatibleResponseConverterTest
 
     @Test
     void shouldExtractReasoningContentFromResponse()
-            throws Exception
+        throws Exception
     {
         String json = """
             {

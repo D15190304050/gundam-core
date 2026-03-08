@@ -93,10 +93,9 @@ public class InMemoryMcpServerClient implements IMcpServerClient
     /**
      * Invokes the named tool and returns its result.
      *
-     * @param config     run configuration.
-     * @param toolName   tool name.
-     * @param Map<String map<string.
-     * @param args       tool arguments passed to the MCP server.
+     * @param config   run configuration.
+     * @param toolName tool name.
+     * @param args     tool arguments passed to the MCP server.
      * @return Tool execution output returned by the MCP server.
      */
     @Override

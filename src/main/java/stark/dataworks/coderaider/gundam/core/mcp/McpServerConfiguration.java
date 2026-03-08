@@ -30,10 +30,9 @@ public class McpServerConfiguration
     /**
      * Initializes McpServerConfiguration with required runtime dependencies and options.
      *
-     * @param serverId   MCP server identifier.
-     * @param endpoint   endpoint.
-     * @param Map<String map<string.
-     * @param options    provider options.
+     * @param serverId MCP server identifier.
+     * @param endpoint endpoint.
+     * @param options  provider options.
      */
     public McpServerConfiguration(String serverId, String endpoint, Map<String, Object> options)
     {

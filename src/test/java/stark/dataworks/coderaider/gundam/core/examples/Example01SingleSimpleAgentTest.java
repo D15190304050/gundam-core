@@ -4,12 +4,9 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
-import stark.dataworks.coderaider.gundam.core.event.RunEvent;
-import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
-import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
 import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 
@@ -23,7 +20,7 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
  */
 public class Example01SingleSimpleAgentTest
 {
-//    public static void main(String[] args)
+    //    public static void main(String[] args)
     @Test
     public void run()
     {

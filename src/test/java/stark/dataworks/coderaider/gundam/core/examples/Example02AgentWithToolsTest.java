@@ -1,7 +1,5 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 
@@ -10,13 +8,10 @@ import java.util.Map;
 
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
-import stark.dataworks.coderaider.gundam.core.event.RunEvent;
-import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
-import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
 import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ITool;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
@@ -25,7 +20,7 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 
 /**
  * 2) How to create an agent with a set of tools, and then run it with streaming output.
- * 
+ * <p>
  * Usage: java Example02AgentWithTools [model] [apiKey] [city]
  * - model: ModelScope model name (default: Qwen/Qwen3-4B)
  * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)

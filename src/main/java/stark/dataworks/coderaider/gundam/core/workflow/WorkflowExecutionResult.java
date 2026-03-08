@@ -33,7 +33,6 @@ public class WorkflowExecutionResult
      * Initializes WorkflowExecutionResult with required runtime dependencies and options.
      *
      * @param finalOutput        final output.
-     * @param Map<String         map<string.
      * @param finalState         final state.
      * @param completedVertexIds completed vertex ids.
      */

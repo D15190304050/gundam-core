@@ -1,7 +1,5 @@
 package stark.dataworks.coderaider.gundam.core.examples;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 
@@ -16,14 +14,11 @@ import java.util.stream.Stream;
 
 import stark.dataworks.coderaider.gundam.core.agent.AgentDefinition;
 import stark.dataworks.coderaider.gundam.core.agent.AgentRegistry;
-import stark.dataworks.coderaider.gundam.core.event.RunEvent;
-import stark.dataworks.coderaider.gundam.core.event.RunEventType;
 import stark.dataworks.coderaider.gundam.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.gundam.core.policy.RetryPolicy;
 import stark.dataworks.coderaider.gundam.core.context.ContextResult;
 import stark.dataworks.coderaider.gundam.core.runner.AgentRunner;
 import stark.dataworks.coderaider.gundam.core.runner.RunConfiguration;
-import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
 import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 import stark.dataworks.coderaider.gundam.core.tool.ITool;
 import stark.dataworks.coderaider.gundam.core.tool.ToolDefinition;
@@ -32,7 +27,7 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
 
 /**
  * 9) Use local docx skill to analyze a Word file and write a markdown analysis output.
- *
+ * <p>
  * Usage:
  * java Example09DocxSkillAnalysisStreaming [model] [apiKey] [prompt] [localSkillName]
  */
@@ -255,7 +250,7 @@ public class Example09DocxSkillAnalysisStreamingTest
                     ProcessBuilder processBuilder = new ProcessBuilder()
                         .directory(workspaceRoot.toFile())
                         .redirectErrorStream(true);
-                    
+
                     boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
                     if (isWindows)
                     {
@@ -265,7 +260,7 @@ public class Example09DocxSkillAnalysisStreamingTest
                     {
                         processBuilder.command("bash", "-lc", command);
                     }
-                    
+
                     Process process = processBuilder.start();
                     String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
                     int exitCode = process.waitFor();

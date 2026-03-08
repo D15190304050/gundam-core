@@ -21,7 +21,7 @@ public class Example16KiteImageDescriptionTest
 {
     @Test
     public void run()
-            throws IOException
+        throws IOException
     {
         Dotenv env = Dotenv.configure().filename(".env.local").ignoreIfMalformed().ignoreIfMissing().load();
 
@@ -55,7 +55,7 @@ public class Example16KiteImageDescriptionTest
     }
 
     private static String asDataUrl(Path imagePath, String mimeType)
-            throws IOException
+        throws IOException
     {
         byte[] bytes = Files.readAllBytes(imagePath);
         return "data:" + mimeType + ";base64," + Base64.getEncoder().encodeToString(bytes);

@@ -2,8 +2,8 @@ package stark.dataworks.coderaider.gundam.core.examples;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import stark.dataworks.coderaider.gundam.core.event.RunEvent;
-import stark.dataworks.coderaider.gundam.core.event.RunEventType;
+import stark.dataworks.coderaider.gundam.core.events.RunEvent;
+import stark.dataworks.coderaider.gundam.core.events.RunEventType;
 import stark.dataworks.coderaider.gundam.core.streaming.IRunEventListener;
 import stark.dataworks.coderaider.gundam.core.streaming.RunEventPublisher;
 
