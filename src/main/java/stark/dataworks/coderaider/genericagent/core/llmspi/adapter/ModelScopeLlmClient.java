@@ -241,7 +241,9 @@ public class ModelScopeLlmClient extends OpenAiCompatibleLlmClient implements IM
     private LlmRequest enhanceRequestForStream(LlmRequest request)
     {
         Map<String, Object> providerOptions = new HashMap<>(request.getOptions().getProviderOptions());
-        // enable_thinking is only supported in stream mode
+        // enable_thinking is only supported in stream mode.
+        // TODO: This might be the constraint of Qwen, instead of ModelScope.
+        // Further investigation is needed.
         providerOptions.put("enable_thinking", enableThinking);
 
         LlmOptions enhancedOptions = new LlmOptions(
