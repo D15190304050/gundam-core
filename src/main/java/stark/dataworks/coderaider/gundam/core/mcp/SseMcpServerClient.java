@@ -169,7 +169,7 @@ public class SseMcpServerClient implements IMcpServerClient
             ObjectNode initRequest = createRequest("initialize");
             ObjectNode params = initRequest.putObject("params");
             ObjectNode clientInfo = params.putObject("clientInfo");
-            clientInfo.put("name", "gundam-core");
+            clientInfo.put("name", "generic-agent-core");
             clientInfo.put("version", "1.0.0");
             params.put("protocolVersion", "2024-11-05");
             params.putObject("capabilities").putObject("tools");

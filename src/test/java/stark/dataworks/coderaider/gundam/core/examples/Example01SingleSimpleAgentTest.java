@@ -16,7 +16,7 @@ import stark.dataworks.coderaider.gundam.core.tool.ToolRegistry;
  * Usage: java Example01SingleSimpleAgent [model] [apiKey] [prompt]
  * - model: ModelScope model name (default: Qwen/Qwen3-4B)
  * - apiKey: Your ModelScope API key (required, or set MODEL_SCOPE_API_KEY env var)
- * - prompt: User prompt (default: "Introduce GUNDAM-core in one sentence.")
+ * - prompt: User prompt (default: "Introduce generic-agent-core in one sentence.")
  */
 public class Example01SingleSimpleAgentTest
 {

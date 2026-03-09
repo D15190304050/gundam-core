@@ -21,7 +21,7 @@ public class Example08AgentDefinitionFromJsonTest
 
         String model = "Qwen/Qwen3-4B";
         String apiKey = env.get("MODEL_SCOPE_API_KEY", System.getenv("MODEL_SCOPE_API_KEY"));
-        String prompt = "Please briefly introduce GUNDAM-core.";
+        String prompt = "Please briefly introduce generic-agent-core.";
 
         if (apiKey == null || apiKey.isBlank())
         {

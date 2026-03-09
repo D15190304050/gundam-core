@@ -1,15 +1,15 @@
-# OpenAI Agents SDK vs GUNDAM-core: feature comparison, current progress, and next steps
+# OpenAI Agents SDK vs generic-agent-core: feature comparison, current progress, and next steps
 
-This document compares the current capabilities of **OpenAI Agents SDK** (reference implementation in `references/openai-agents-python-main`) and **GUNDAM-core`.
+This document compares the current capabilities of **OpenAI Agents SDK** (reference implementation in `references/openai-agents-python-main`) and **generic-agent-core`.
 
 ## Scope
 
 - OpenAI side: Python SDK in `references/openai-agents-python-main`.
-- GUNDAM-core side: Java implementation in `src/main/java` and executable examples in `src/test/java/.../examples`.
+- generic-agent-core side: Java implementation in `src/main/java` and executable examples in `src/test/java/.../examples`.
 
 ## Feature comparison matrix
 
-| Capability | OpenAI Agents SDK | GUNDAM-core status | Notes |
+| Capability | OpenAI Agents SDK | generic-agent-core status | Notes |
 |---|---|---|---|
 | Core agent loop (model -> tools -> continue) | ✅ | ✅ | `AgentRunner` implements loop, retries, hooks, guardrails, handoff flow. |
 | ReAct mode (reasoning + iterative action planning) | ✅ | ✅ | `AgentDefinition.reactEnabled` and `reactInstructions` augment system prompts for explicit ReAct loop behavior. |
@@ -155,5 +155,5 @@ The following examples have been added to demonstrate new features:
 ## References used
 
 - `README.md`
-- `designs/GUNDAM-core-Architecture.md`
+- `designs/generic-agent-core-Architecture.md`
 - `references/openai-agents-python-main`
