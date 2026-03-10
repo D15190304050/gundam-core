@@ -1,6 +1,6 @@
 package stark.dataworks.coderaider.genericagent.core.guardrail;
 
-import stark.dataworks.coderaider.genericagent.core.runtime.ExecutionContext;
+import stark.dataworks.coderaider.genericagent.core.runner.AgentRunnerContext;
 
 /**
  * InputGuardrail implements input/output policy evaluation around model responses.
@@ -15,5 +15,5 @@ public interface IInputGuardrail
      * @param input   input payload.
      * @return guardrail decision result.
      */
-    GuardrailDecision evaluate(ExecutionContext context, String input);
+    GuardrailDecision evaluate(AgentRunnerContext context, String input);
 }

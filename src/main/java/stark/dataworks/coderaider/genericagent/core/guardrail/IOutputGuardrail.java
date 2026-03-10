@@ -1,7 +1,7 @@
 package stark.dataworks.coderaider.genericagent.core.guardrail;
 
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmResponse;
-import stark.dataworks.coderaider.genericagent.core.runtime.ExecutionContext;
+import stark.dataworks.coderaider.genericagent.core.runner.AgentRunnerContext;
 
 /**
  * OutputGuardrail implements input/output policy evaluation around model responses.
@@ -16,5 +16,5 @@ public interface IOutputGuardrail
      * @param response response payload.
      * @return guardrail decision result.
      */
-    GuardrailDecision evaluate(ExecutionContext context, LlmResponse response);
+    GuardrailDecision evaluate(AgentRunnerContext context, LlmResponse response);
 }

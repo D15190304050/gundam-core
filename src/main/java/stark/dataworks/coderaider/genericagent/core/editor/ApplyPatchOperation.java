@@ -2,7 +2,7 @@ package stark.dataworks.coderaider.genericagent.core.editor;
 
 import lombok.Getter;
 
-import stark.dataworks.coderaider.genericagent.core.runner.RunnerContext;
+import stark.dataworks.coderaider.genericagent.core.runner.AgentRunnerContext;
 
 /**
  * Represents a single apply_patch editor operation requested by the model.
@@ -20,14 +20,14 @@ public class ApplyPatchOperation
     private final OperationType type;
     private final String path;
     private final String diff;
-    private final RunnerContext runnerContext;
+    private final AgentRunnerContext runnerContext;
 
     public ApplyPatchOperation(OperationType type, String path, String diff)
     {
         this(type, path, diff, null);
     }
 
-    public ApplyPatchOperation(OperationType type, String path, String diff, RunnerContext runnerContext)
+    public ApplyPatchOperation(OperationType type, String path, String diff, AgentRunnerContext runnerContext)
     {
         this.type = type;
         this.path = path;

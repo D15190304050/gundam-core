@@ -37,7 +37,7 @@ This repository is intentionally kernel-focused:
 
 ### Runtime backbone
 
-- `runner`: `AgentRunner`, `RunConfiguration`, `RunnerContext`, `IRunHooks`
+- `runner`: `AgentRunner`, `RunConfiguration`, `AgentRunnerContext`, `IRunHooks`
 - `agent`: `IAgent`, `AgentDefinition`, `IAgentRegistry`, `AgentRegistry`, `AgentChatClient`
 - `tool`: `ITool`, `ToolDefinition`, `ToolRegistry`, built-ins (`AgentTool`, `WorkflowTool`, `FunctionTool`, `ComputerTool`, `ApplyPatchTool`, ...)
 - `llmspi`: `ILlmClient`, `LlmRequest`, `LlmResponse`, `LlmOptions`, adapters and stream listener

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmResponse;
-import stark.dataworks.coderaider.genericagent.core.runtime.ExecutionContext;
+import stark.dataworks.coderaider.genericagent.core.runner.AgentRunnerContext;
 
 /**
  * GuardrailEngine implements input/output policy evaluation around model responses.
@@ -49,7 +49,7 @@ public class GuardrailEngine
      * @param input   input payload.
      * @return guardrail decision result.
      */
-    public GuardrailDecision evaluateInput(ExecutionContext context, String input)
+    public GuardrailDecision evaluateInput(AgentRunnerContext context, String input)
     {
         for (IInputGuardrail guardrail : inputGuardrails)
         {
@@ -69,7 +69,7 @@ public class GuardrailEngine
      * @param response model/tool response payload.
      * @return guardrail decision result.
      */
-    public GuardrailDecision evaluateOutput(ExecutionContext context, LlmResponse response)
+    public GuardrailDecision evaluateOutput(AgentRunnerContext context, LlmResponse response)
     {
         for (IOutputGuardrail guardrail : outputGuardrails)
         {

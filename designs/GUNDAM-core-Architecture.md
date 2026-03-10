@@ -23,7 +23,7 @@ graph TD
     O --> Q[LlmResponse]
 
     A --> R[RunConfiguration]
-    A --> S[RunnerContext]
+    A --> S[AgentRunnerContext]
     S --> T[IAgentMemory]
     S --> U[TokenUsageTracker]
     S --> V[RunEvent timeline]
@@ -35,7 +35,7 @@ graph TD
 
 ### Execution contract
 
-`AgentRunner` is the orchestration center. Each run initializes a `RunnerContext`, loads optional session history into memory, and iterates turn-by-turn until termination. A turn may end in one of three paths:
+`AgentRunner` is the orchestration center. Each run initializes a `AgentRunnerContext`, loads optional session history into memory, and iterates turn-by-turn until termination. A turn may end in one of three paths:
 
 1. **Tool path**: model returns tool calls -> approval policy -> tool execution -> tool outputs are appended -> continue loop.
 2. **Handoff path**: model returns `handoffAgentId` -> `HandoffRouter` validates allow-list/filter -> current agent switches -> continue loop.
@@ -197,7 +197,7 @@ For a comprehensive understanding, read the code in the following order. This se
    - Main orchestration loop (`run`, `runStreamed`, tool loop, handoff loop, finalization).
 2. `src/main/java/stark/dataworks/coderaider/genericagent/core/runner/RunConfiguration.java`
    - Runtime knobs: turns, retries, memory/session, provider options, output settings.
-3. `src/main/java/stark/dataworks/coderaider/genericagent/core/runner/RunnerContext.java`
+3. `src/main/java/stark/dataworks/coderaider/genericagent/core/runner/AgentRunnerContext.java`
    - Mutable run state (events, timeline items, memory, usage, current agent).
 4. `src/main/java/stark/dataworks/coderaider/genericagent/core/runner/IRunHooks.java`
    - External callback surface for observing run events.

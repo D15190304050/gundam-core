@@ -57,7 +57,6 @@ import stark.dataworks.coderaider.genericagent.core.context.ContextResult;
 import stark.dataworks.coderaider.genericagent.core.runerror.RunErrorData;
 import stark.dataworks.coderaider.genericagent.core.runerror.RunErrorHandlerResult;
 import stark.dataworks.coderaider.genericagent.core.runerror.RunErrorKind;
-import stark.dataworks.coderaider.genericagent.core.runtime.ExecutionContext;
 import stark.dataworks.coderaider.genericagent.core.session.Session;
 import stark.dataworks.coderaider.genericagent.core.session.ISessionStore;
 import stark.dataworks.coderaider.genericagent.core.streaming.RunEventPublisher;
@@ -363,9 +362,8 @@ public class AgentRunner
                     message, runConfiguration.getSessionId(), memoryPolicy, false)));
         }
 
-        RunnerContext context = new RunnerContext(startingAgent, memory);
-        ExecutionContext legacyContext = new ExecutionContext(context.getCurrentAgent(), context.getMemory(), context.getUsageTracker());
-        hookManager.beforeRun(legacyContext);
+        AgentRunnerContext context = new AgentRunnerContext(startingAgent, memory);
+        hookManager.beforeRun(context);
         emit(context, runHooks, RunEventType.RUN_STARTED, Map.of("agent", startingAgent.definition().getId()));
 
         if (userInput != null && !userInput.isBlank())
@@ -380,9 +378,8 @@ public class AgentRunner
             {
                 context.incrementTurns();
                 emit(context, runHooks, RunEventType.STEP_STARTED, Map.of("turn", context.getTurns()));
-                legacyContext.setAgent(context.getCurrentAgent());
-                hookManager.onStep(legacyContext);
-                GuardrailDecision inputDecision = guardrailEngine.evaluateInput(legacyContext, userInput);
+                hookManager.onStep(context);
+                GuardrailDecision inputDecision = guardrailEngine.evaluateInput(context, userInput);
                 if (!inputDecision.isAllowed())
                 {
                     throw new GuardrailTripwireException("input", inputDecision.getReason());
@@ -422,7 +419,7 @@ public class AgentRunner
                 emit(context, runHooks, RunEventType.MODEL_RESPONDED, Map.of("finishReason", effectiveResponse.getFinishReason()));
                 context.getUsageTracker().add(effectiveResponse.getTokenUsage());
 
-                GuardrailDecision outputDecision = guardrailEngine.evaluateOutput(legacyContext, effectiveResponse);
+                GuardrailDecision outputDecision = guardrailEngine.evaluateOutput(context, effectiveResponse);
                 if (!outputDecision.isAllowed())
                 {
                     throw new GuardrailTripwireException("output", outputDecision.getReason());
@@ -488,7 +485,7 @@ public class AgentRunner
                     }
                 }
 
-                return finalizeResult(context, effectiveResponse.getContent(), runConfiguration, legacyContext, memoryPolicy);
+                return finalizeResult(context, effectiveResponse.getContent(), runConfiguration, memoryPolicy);
             }
 
             throw new MaxTurnsExceededException(runConfiguration.getMaxTurns());
@@ -496,7 +493,7 @@ public class AgentRunner
         catch (RuntimeException error)
         {
             runSpan.annotate("error", error.getMessage());
-            return handleError(context, runConfiguration, error, legacyContext, memoryPolicy);
+            return handleError(context, runConfiguration, error, memoryPolicy);
         }
         finally
         {
@@ -504,7 +501,7 @@ public class AgentRunner
         }
     }
 
-    private ILlmStreamListener streamListenerForRunner(RunnerContext context, IRunHooks runHooks, StreamCapture streamCapture)
+    private ILlmStreamListener streamListenerForRunner(AgentRunnerContext context, IRunHooks runHooks, StreamCapture streamCapture)
     {
         return new ILlmStreamListener()
         {
@@ -512,8 +509,7 @@ public class AgentRunner
             public void onDelta(String delta)
             {
                 streamCapture.content.append(delta);
-                ExecutionContext legacyContext = new ExecutionContext(context.getCurrentAgent(), context.getMemory(), context.getUsageTracker());
-                hookManager.onModelResponseDelta(legacyContext, delta);
+                hookManager.onModelResponseDelta(context, delta);
                 emit(context, runHooks, RunEventType.MODEL_RESPONSE_DELTA, Map.of("delta", delta));
             }
 
@@ -635,11 +631,10 @@ public class AgentRunner
      * @param context       execution context.
      * @param config        run configuration.
      * @param error         captured error.
-     * @param legacyContext legacy context.
      * @param memoryPolicy  memory policy.
      * @return context result.
      */
-    private ContextResult handleError(RunnerContext context, RunConfiguration config, RuntimeException error, ExecutionContext legacyContext, MemoryLifecyclePolicy memoryPolicy)
+    private ContextResult handleError(AgentRunnerContext context, RunConfiguration config, RuntimeException error, MemoryLifecyclePolicy memoryPolicy)
     {
         RunErrorKind kind = classify(error);
         RunErrorHandlerResult decision = config.getRunErrorHandlers().get(kind)
@@ -679,7 +674,7 @@ public class AgentRunner
         emit(context, new IRunHooks()
         {
         }, RunEventType.RUN_FAILED, Map.of("kind", kind.name(), "message", error.getMessage()));
-        return finalizeResult(context, finalOutput, config, legacyContext, memoryPolicy);
+        return finalizeResult(context, finalOutput, config, memoryPolicy);
     }
 
     /**
@@ -711,7 +706,7 @@ public class AgentRunner
      * @param memoryPolicy memory policy.
      */
 
-    private void executeToolCallsInParallel(RunnerContext context, IRunHooks runHooks, List<ToolCall> toolCalls, RunConfiguration config, MemoryLifecyclePolicy memoryPolicy)
+    private void executeToolCallsInParallel(AgentRunnerContext context, IRunHooks runHooks, List<ToolCall> toolCalls, RunConfiguration config, MemoryLifecyclePolicy memoryPolicy)
     {
         List<ToolCall> approvedCalls = new ArrayList<>();
         for (ToolCall call : toolCalls)
@@ -844,12 +839,12 @@ public class AgentRunner
     {
     }
 
-    private RunnerContext contextForBootstrap(IAgent agent, IAgentMemory memory)
+    private AgentRunnerContext contextForBootstrap(IAgent agent, IAgentMemory memory)
     {
-        return new RunnerContext(agent, memory);
+        return new AgentRunnerContext(agent, memory);
     }
 
-    private void appendToMemory(RunnerContext context, IRunHooks hooks, Message message, String sessionId, MemoryLifecyclePolicy memoryPolicy, boolean emitEvent)
+    private void appendToMemory(AgentRunnerContext context, IRunHooks hooks, Message message, String sessionId, MemoryLifecyclePolicy memoryPolicy, boolean emitEvent)
     {
         ITraceSpan span = traceProvider.startSpan("agent.memory.write");
         long started = System.nanoTime();
@@ -872,7 +867,7 @@ public class AgentRunner
         }
     }
 
-    private List<Message> readFromMemory(RunnerContext context, IRunHooks hooks, String sessionId, MemoryLifecyclePolicy memoryPolicy)
+    private List<Message> readFromMemory(AgentRunnerContext context, IRunHooks hooks, String sessionId, MemoryLifecyclePolicy memoryPolicy)
     {
         ITraceSpan span = traceProvider.startSpan("agent.memory.read");
         long started = System.nanoTime();
@@ -990,7 +985,7 @@ public class AgentRunner
      * @param type       type discriminator.
      * @param attributes attribute map.
      */
-    private void emit(RunnerContext context, IRunHooks hooks, RunEventType type, Map<String, Object> attributes)
+    private void emit(AgentRunnerContext context, IRunHooks hooks, RunEventType type, Map<String, Object> attributes)
     {
         RunEvent event = new RunEvent(type, attributes);
         context.getEvents().add(event);
@@ -1004,14 +999,12 @@ public class AgentRunner
      * @param context       execution context.
      * @param finalOutput   final output.
      * @param config        run configuration.
-     * @param legacyContext legacy context.
      * @param memoryPolicy  memory policy.
      * @return context result.
      */
-    private ContextResult finalizeResult(RunnerContext context, String finalOutput, RunConfiguration config, ExecutionContext legacyContext, MemoryLifecyclePolicy memoryPolicy)
+    private ContextResult finalizeResult(AgentRunnerContext context, String finalOutput, RunConfiguration config, MemoryLifecyclePolicy memoryPolicy)
     {
-        legacyContext.setAgent(context.getCurrentAgent());
-        hookManager.afterRun(legacyContext);
+        hookManager.afterRun(context);
         if (config.getSessionId() != null)
         {
             sessionStore.save(new Session(config.getSessionId(), readFromMemory(context, new IRunHooks()

@@ -5,18 +5,19 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import stark.dataworks.coderaider.genericagent.core.agent.IAgent;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.events.RunEvent;
 import stark.dataworks.coderaider.genericagent.core.memory.IAgentMemory;
 import stark.dataworks.coderaider.genericagent.core.metrics.TokenUsageTracker;
-import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 
 /**
- * RunnerContext implements end-to-end run orchestration including retries, guardrails, handoffs, and events.
+ * AgentRunnerContext implements end-to-end run orchestration including retries, guardrails, handoffs, and events.
  */
 @Getter
-public class RunnerContext
+public class AgentRunnerContext
 {
     /**
      * Accumulated run events emitted during execution.
@@ -45,20 +46,33 @@ public class RunnerContext
     private IAgent currentAgent;
 
     /**
+     * Current step.
+     */
+    private int currentStep;
+
+    /**
      * Number of turns already executed in the current run.
      */
     private int turns;
 
     /**
-     * Initializes RunnerContext with required runtime dependencies and options.
+     * Initializes AgentRunnerContext with required runtime dependencies and options.
      *
      * @param currentAgent current agent.
      * @param memory       conversation memory backend.
      */
-    public RunnerContext(IAgent currentAgent, IAgentMemory memory)
+    public AgentRunnerContext(IAgent currentAgent, IAgentMemory memory)
     {
-        this.currentAgent = currentAgent;
-        this.memory = memory;
+        this.currentAgent = Objects.requireNonNull(currentAgent, "currentAgent");
+        this.memory = Objects.requireNonNull(memory, "memory");
+    }
+
+    /**
+     * Increments the current step counter.
+     */
+    public void incrementStep()
+    {
+        currentStep++;
     }
 
     /**
