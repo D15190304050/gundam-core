@@ -44,6 +44,13 @@ Legend: ✅ implemented, 🟡 partial, ⚪ not implemented.
 
 ## Current GUNDAM-core profile
 
+### Context model clarification
+
+- GUNDAM-core now uses **one runtime context class**: `AgentRunnerContext`.
+- Lifecycle hooks and guardrails now take `AgentRunnerContext` directly.
+- `AgentRunnerContext` centralizes both execution state (`currentAgent`, `memory`, `usageTracker`, `currentStep`) and run orchestration state (`events`, `items`, `turns`).
+- This removes the previous dual-class split and avoids context bridging/allocation inside `AgentRunner`.
+
 ### Strongly implemented today
 
 1. Runtime orchestration kernel (`AgentRunner`) with streaming/non-streaming parity.

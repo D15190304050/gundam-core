@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import stark.dataworks.coderaider.genericagent.core.runtime.ExecutionContext;
+import stark.dataworks.coderaider.genericagent.core.runner.AgentRunnerContext;
 
 /**
  * HookManager implements runtime lifecycle extension points.
@@ -47,7 +47,7 @@ public class HookManager
      *
      * @param context execution context.
      */
-    public void beforeRun(ExecutionContext context)
+    public void beforeRun(AgentRunnerContext context)
     {
         agentHooks.forEach(h -> h.beforeRun(context));
     }
@@ -57,7 +57,7 @@ public class HookManager
      *
      * @param context execution context.
      */
-    public void onStep(ExecutionContext context)
+    public void onStep(AgentRunnerContext context)
     {
         agentHooks.forEach(h -> h.onStep(context));
     }
@@ -68,7 +68,7 @@ public class HookManager
      * @param context execution context.
      * @param delta   delta.
      */
-    public void onModelResponseDelta(ExecutionContext context, String delta)
+    public void onModelResponseDelta(AgentRunnerContext context, String delta)
     {
         agentHooks.forEach(h -> h.onModelResponseDelta(context, delta));
     }
@@ -78,7 +78,7 @@ public class HookManager
      *
      * @param context execution context.
      */
-    public void afterRun(ExecutionContext context)
+    public void afterRun(AgentRunnerContext context)
     {
         agentHooks.forEach(h -> h.afterRun(context));
     }

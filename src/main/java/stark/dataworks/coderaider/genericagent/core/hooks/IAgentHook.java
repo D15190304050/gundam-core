@@ -1,6 +1,6 @@
 package stark.dataworks.coderaider.genericagent.core.hooks;
 
-import stark.dataworks.coderaider.genericagent.core.runtime.ExecutionContext;
+import stark.dataworks.coderaider.genericagent.core.runner.AgentRunnerContext;
 
 /**
  * IAgentHook implements runtime lifecycle extension points.
@@ -13,7 +13,7 @@ public interface IAgentHook
      *
      * @param context execution context.
      */
-    default void beforeRun(ExecutionContext context)
+    default void beforeRun(AgentRunnerContext context)
     {
     }
 
@@ -23,7 +23,7 @@ public interface IAgentHook
      * @param context execution context.
      */
 
-    default void afterRun(ExecutionContext context)
+    default void afterRun(AgentRunnerContext context)
     {
     }
 
@@ -33,7 +33,7 @@ public interface IAgentHook
      * @param context execution context.
      */
 
-    default void onStep(ExecutionContext context)
+    default void onStep(AgentRunnerContext context)
     {
     }
 
@@ -43,7 +43,7 @@ public interface IAgentHook
      * @param context execution context.
      * @param delta   delta.
      */
-    default void onModelResponseDelta(ExecutionContext context, String delta)
+    default void onModelResponseDelta(AgentRunnerContext context, String delta)
     {
     }
 }
