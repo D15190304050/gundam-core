@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.multimodal.GeneratedAsset;
 import stark.dataworks.coderaider.genericagent.core.tool.ToolDefinition;
 
@@ -25,7 +25,7 @@ public class LlmRequest
     /**
      * Conversation messages persisted in this session/request.
      */
-    private final List<Message> messages;
+    private final List<ContextItem> messages;
 
     /**
      * Registered tools keyed by tool name.
@@ -50,7 +50,7 @@ public class LlmRequest
      * @param tools    tools.
      * @param options  provider options.
      */
-    public LlmRequest(String model, List<Message> messages, List<ToolDefinition> tools, LlmOptions options)
+    public LlmRequest(String model, List<ContextItem> messages, List<ToolDefinition> tools, LlmOptions options)
     {
         this(model, messages, tools, options, List.of());
     }
@@ -64,7 +64,7 @@ public class LlmRequest
      * @param options     options map.
      * @param attachments attachments.
      */
-    public LlmRequest(String model, List<Message> messages, List<ToolDefinition> tools, LlmOptions options,
+    public LlmRequest(String model, List<ContextItem> messages, List<ToolDefinition> tools, LlmOptions options,
                       List<GeneratedAsset> attachments)
     {
         this.model = Objects.requireNonNull(model, "model");

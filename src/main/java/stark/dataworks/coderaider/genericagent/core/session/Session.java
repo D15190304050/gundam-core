@@ -3,7 +3,7 @@ package stark.dataworks.coderaider.genericagent.core.session;
 import java.util.List;
 
 import lombok.Getter;
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 
 /**
  * Session implements session persistence and restoration.
@@ -19,9 +19,9 @@ public class Session
     /**
      * Conversation messages persisted in this session/request.
      */
-    private final List<Message> messages;
+    private final List<ContextItem> messages;
 
-    public Session(String id, List<Message> messages)
+    public Session(String id, List<ContextItem> messages)
     {
         this.id = id;
         this.messages = List.copyOf(messages);

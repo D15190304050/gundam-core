@@ -2,29 +2,29 @@ package stark.dataworks.coderaider.genericagent.core.memory.policy;
 
 import java.util.List;
 
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 
 /**
  * Applies optional lifecycle controls (compaction/retention/namespacing) to memory snapshots.
  */
 public interface MemoryLifecyclePolicy
 {
-    List<Message> onRead(String agentId, String sessionId, List<Message> messages);
+    List<ContextItem> onRead(String agentId, String sessionId, List<ContextItem> messages);
 
-    List<Message> onWrite(String agentId, String sessionId, List<Message> messages);
+    List<ContextItem> onWrite(String agentId, String sessionId, List<ContextItem> messages);
 
     static MemoryLifecyclePolicy noop()
     {
         return new MemoryLifecyclePolicy()
         {
             @Override
-            public List<Message> onRead(String agentId, String sessionId, List<Message> messages)
+            public List<ContextItem> onRead(String agentId, String sessionId, List<ContextItem> messages)
             {
                 return messages;
             }
 
             @Override
-            public List<Message> onWrite(String agentId, String sessionId, List<Message> messages)
+            public List<ContextItem> onWrite(String agentId, String sessionId, List<ContextItem> messages)
             {
                 return messages;
             }

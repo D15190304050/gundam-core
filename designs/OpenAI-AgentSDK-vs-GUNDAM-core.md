@@ -49,6 +49,8 @@ Legend: ✅ implemented, 🟡 partial, ⚪ not implemented.
 - GUNDAM-core now uses **one runtime context class**: `AgentRunnerContext`.
 - Lifecycle hooks and guardrails now take `AgentRunnerContext` directly.
 - `AgentRunnerContext` centralizes both execution state (`currentAgent`, `memory`, `usageTracker`, `currentStep`) and run orchestration state (`events`, `items`, `turns`).
+- Conversation payloads are now normalized on **`ContextItem` only** (the previous `model.Message` class has been removed).
+- `ContextItem` now carries message-role semantics (`role`, `parts`, `toolCalls`, `toolCallId`) and item semantics (`type`, `metadata`) so runtime memory, context builders, and provider adapters share one contract.
 - This removes the previous dual-class split and avoids context bridging/allocation inside `AgentRunner`.
 
 ### Strongly implemented today

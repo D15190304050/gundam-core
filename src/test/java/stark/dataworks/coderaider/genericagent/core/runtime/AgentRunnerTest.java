@@ -29,7 +29,7 @@ import stark.dataworks.coderaider.genericagent.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.genericagent.core.llmspi.ILlmStreamListener;
 import stark.dataworks.coderaider.genericagent.core.memory.InMemoryAgentMemory;
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.model.Role;
 import stark.dataworks.coderaider.genericagent.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.genericagent.core.model.ToolCall;
@@ -148,7 +148,7 @@ class AgentRunnerTest
         agents.register(def);
 
         InMemorySessionStore sessions = new InMemorySessionStore();
-        sessions.save(new stark.dataworks.coderaider.genericagent.core.session.Session("memory-session", List.of(new Message(Role.USER, "session-history"))));
+        sessions.save(new stark.dataworks.coderaider.genericagent.core.session.Session("memory-session", List.of(new ContextItem(Role.USER, "session-history"))));
 
         InMemoryAgentMemory customMemory = new InMemoryAgentMemory();
         AtomicBoolean sawSessionHistory = new AtomicBoolean(false);

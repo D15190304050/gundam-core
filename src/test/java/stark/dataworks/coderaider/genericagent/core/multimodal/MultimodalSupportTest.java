@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.genericagent.core.metrics.TokenUsage;
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.model.Role;
 import stark.dataworks.coderaider.genericagent.core.tool.ToolDefinition;
 import stark.dataworks.coderaider.genericagent.core.tool.builtin.ImageGenerationTool;
@@ -21,7 +21,7 @@ class MultimodalSupportTest
     @Test
     void supportsMessageWithMixedTextAndMediaParts()
     {
-        Message message = new Message(Role.USER, List.of(
+        ContextItem message = new ContextItem(Role.USER, List.of(
             MessagePart.text("Describe this photo: "),
             MessagePart.image("https://example.com/photo.png", "image/png")));
 

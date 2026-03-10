@@ -7,7 +7,7 @@ import stark.dataworks.coderaider.genericagent.core.llmspi.LlmOptions;
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.genericagent.core.llmspi.adapter.ModelScopeLlmClient;
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.model.Role;
 import stark.dataworks.coderaider.genericagent.core.multimodal.MessagePart;
 
@@ -36,7 +36,7 @@ public class Example15IntegralImageQuestionTest
         String imageDataUrl = asDataUrl(Path.of("src/main/resources/images/inputs/IntegralQuestion01.png"), "image/png");
         LlmRequest request = new LlmRequest(
             model,
-            List.of(new Message(Role.USER, List.of(
+            List.of(new ContextItem(Role.USER, List.of(
                 MessagePart.text("Please solve this integral problem from the image. Show key steps and the final answer."),
                 MessagePart.image(imageDataUrl, "image/png")))),
             List.of(),

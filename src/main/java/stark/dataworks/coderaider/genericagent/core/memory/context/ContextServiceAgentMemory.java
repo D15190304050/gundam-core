@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 import stark.dataworks.coderaider.genericagent.core.memory.IAgentMemory;
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 
 /**
  * Memory implementation backed by external context-service store.
@@ -15,7 +15,7 @@ public class ContextServiceAgentMemory implements IAgentMemory
     private final String namespace;
     private final String sessionId;
     private final IContextServiceMemoryStore store;
-    private final List<Message> writes = new ArrayList<>();
+    private final List<ContextItem> writes = new ArrayList<>();
 
     public ContextServiceAgentMemory(String namespace, String sessionId, IContextServiceMemoryStore store)
     {
@@ -25,27 +25,27 @@ public class ContextServiceAgentMemory implements IAgentMemory
     }
 
     @Override
-    public List<Message> messages()
+    public List<ContextItem> messages()
     {
-        List<Message> baseline = store.read(namespace, sessionId).messages();
+        List<ContextItem> baseline = store.read(namespace, sessionId).messages();
         if (writes.isEmpty())
         {
             return baseline;
         }
-        List<Message> merged = new ArrayList<>(baseline);
+        List<ContextItem> merged = new ArrayList<>(baseline);
         merged.addAll(writes);
         return merged;
     }
 
     @Override
-    public void append(Message message)
+    public void append(ContextItem message)
     {
         writes.add(message);
         store.write(namespace, sessionId, messages());
     }
 
     @Override
-    public void replaceAll(List<Message> messages)
+    public void replaceAll(List<ContextItem> messages)
     {
         writes.clear();
         store.write(namespace, sessionId, messages);

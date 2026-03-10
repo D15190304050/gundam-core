@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.model.Role;
 
 /**
@@ -24,18 +24,18 @@ public class SummarizingMemoryPolicy implements MemoryLifecyclePolicy
     }
 
     @Override
-    public List<Message> onRead(String agentId, String sessionId, List<Message> messages)
+    public List<ContextItem> onRead(String agentId, String sessionId, List<ContextItem> messages)
     {
         return compact(messages);
     }
 
     @Override
-    public List<Message> onWrite(String agentId, String sessionId, List<Message> messages)
+    public List<ContextItem> onWrite(String agentId, String sessionId, List<ContextItem> messages)
     {
         return compact(messages);
     }
 
-    private List<Message> compact(List<Message> messages)
+    private List<ContextItem> compact(List<ContextItem> messages)
     {
         if (messages.size() <= threshold)
         {
@@ -45,8 +45,8 @@ public class SummarizingMemoryPolicy implements MemoryLifecyclePolicy
         String summary = messages.subList(0, split).stream()
             .map(m -> m.getRole() + ": " + sanitize(m.getContent()))
             .collect(Collectors.joining(" | "));
-        List<Message> output = new ArrayList<>();
-        output.add(new Message(Role.SYSTEM, "Summary of prior context: " + summary));
+        List<ContextItem> output = new ArrayList<>();
+        output.add(new ContextItem(Role.SYSTEM, "Summary of prior context: " + summary));
         output.addAll(messages.subList(split, messages.size()));
         return output;
     }

@@ -7,7 +7,7 @@ import stark.dataworks.coderaider.genericagent.core.llmspi.LlmOptions;
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.genericagent.core.llmspi.adapter.ModelScopeLlmClient;
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.model.Role;
 import stark.dataworks.coderaider.genericagent.core.multimodal.MessagePart;
 
@@ -36,7 +36,7 @@ public class Example16KiteImageDescriptionTest
         String imageDataUrl = asDataUrl(Path.of("src/main/resources/images/inputs/kite.webp"), "image/webp");
         LlmRequest request = new LlmRequest(
             model,
-            List.of(new Message(Role.USER, List.of(
+            List.of(new ContextItem(Role.USER, List.of(
                 MessagePart.text("Describe this image in detail."),
                 MessagePart.image(imageDataUrl, "image/webp")))),
             List.of(),

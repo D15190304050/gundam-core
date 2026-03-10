@@ -43,7 +43,7 @@ import stark.dataworks.coderaider.genericagent.core.memory.IAgentMemory;
 import stark.dataworks.coderaider.genericagent.core.memory.policy.MemoryLifecyclePolicy;
 import stark.dataworks.coderaider.genericagent.core.metrics.TokenUsage;
 import stark.dataworks.coderaider.genericagent.core.memory.InMemoryAgentMemory;
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.model.Role;
 import stark.dataworks.coderaider.genericagent.core.model.ToolCall;
 import stark.dataworks.coderaider.genericagent.core.output.IOutputSchema;
@@ -51,7 +51,6 @@ import stark.dataworks.coderaider.genericagent.core.output.OutputSchemaMapper;
 import stark.dataworks.coderaider.genericagent.core.output.OutputSchemaRegistry;
 import stark.dataworks.coderaider.genericagent.core.output.OutputValidationResult;
 import stark.dataworks.coderaider.genericagent.core.output.OutputValidator;
-import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.context.ContextItemType;
 import stark.dataworks.coderaider.genericagent.core.context.ContextResult;
 import stark.dataworks.coderaider.genericagent.core.runerror.RunErrorData;
@@ -368,7 +367,7 @@ public class AgentRunner
 
         if (userInput != null && !userInput.isBlank())
         {
-            appendToMemory(context, runHooks, new Message(Role.USER, userInput), runConfiguration.getSessionId(), memoryPolicy, true);
+            appendToMemory(context, runHooks, new ContextItem(Role.USER, userInput), runConfiguration.getSessionId(), memoryPolicy, true);
             context.getItems().add(new ContextItem(ContextItemType.USER_MESSAGE, userInput, Map.of()));
         }
 
@@ -385,7 +384,7 @@ public class AgentRunner
                     throw new GuardrailTripwireException("input", inputDecision.getReason());
                 }
 
-                List<Message> messages = contextBuilder.build(context.getCurrentAgent(), new SnapshotAgentMemory(readFromMemory(context, runHooks, runConfiguration.getSessionId(), memoryPolicy)), null);
+                List<ContextItem> messages = contextBuilder.build(context.getCurrentAgent(), new SnapshotAgentMemory(readFromMemory(context, runHooks, runConfiguration.getSessionId(), memoryPolicy)), null);
                 List<ToolDefinition> toolDefinitions = resolveTools(context.getCurrentAgent().definition().getToolNames());
                 Map<String, Object> providerOptions = new HashMap<>(context.getCurrentAgent().definition().getModelProviderOptions());
                 providerOptions.putAll(runConfiguration.getProviderOptions());
@@ -427,7 +426,7 @@ public class AgentRunner
 
                 if (!effectiveResponse.getContent().isBlank())
                 {
-                    appendToMemory(context, runHooks, new Message(Role.ASSISTANT, effectiveResponse.getContent()), runConfiguration.getSessionId(), memoryPolicy, true);
+                    appendToMemory(context, runHooks, new ContextItem(Role.ASSISTANT, effectiveResponse.getContent()), runConfiguration.getSessionId(), memoryPolicy, true);
                     context.getItems().add(new ContextItem(ContextItemType.ASSISTANT_MESSAGE, effectiveResponse.getContent(), effectiveResponse.getStructuredOutput()));
                 }
 
@@ -454,7 +453,7 @@ public class AgentRunner
 
                 if (!effectiveResponse.getToolCalls().isEmpty())
                 {
-                    appendToMemory(context, runHooks, new Message(Role.ASSISTANT, effectiveResponse.getContent(), effectiveResponse.getToolCalls()), runConfiguration.getSessionId(), memoryPolicy, true);
+                    appendToMemory(context, runHooks, new ContextItem(Role.ASSISTANT, effectiveResponse.getContent(), effectiveResponse.getToolCalls()), runConfiguration.getSessionId(), memoryPolicy, true);
                     executeToolCallsInParallel(context, runHooks, effectiveResponse.getToolCalls(), runConfiguration, memoryPolicy);
                     if (context.getCurrentAgent().definition().isResetInputAfterToolCall())
                     {
@@ -783,7 +782,7 @@ public class AgentRunner
             {
                 throw new IllegalStateException("Missing tool result for: " + call.getToolName());
             }
-            appendToMemory(context, runHooks, new Message(Role.TOOL, outcome.result(), call.getToolCallId()), config.getSessionId(), memoryPolicy, true);
+            appendToMemory(context, runHooks, new ContextItem(Role.TOOL, outcome.result(), call.getToolCallId()), config.getSessionId(), memoryPolicy, true);
             context.getItems().add(new ContextItem(ContextItemType.TOOL_CALL, call.getToolName(), call.getArguments()));
             context.getItems().add(new ContextItem(ContextItemType.TOOL_RESULT, outcome.result(), Map.of("tool", call.getToolName())));
             emit(context, runHooks, RunEventType.TOOL_CALL_COMPLETED, Map.of("tool", call.getToolName(), "result", outcome.result()));
@@ -844,14 +843,14 @@ public class AgentRunner
         return new AgentRunnerContext(agent, memory);
     }
 
-    private void appendToMemory(AgentRunnerContext context, IRunHooks hooks, Message message, String sessionId, MemoryLifecyclePolicy memoryPolicy, boolean emitEvent)
+    private void appendToMemory(AgentRunnerContext context, IRunHooks hooks, ContextItem message, String sessionId, MemoryLifecyclePolicy memoryPolicy, boolean emitEvent)
     {
         ITraceSpan span = traceProvider.startSpan("agent.memory.write");
         long started = System.nanoTime();
         try
         {
             context.getMemory().append(message);
-            List<Message> normalized = memoryPolicy.onWrite(context.getCurrentAgent().definition().getId(), sessionId, context.getMemory().messages());
+            List<ContextItem> normalized = memoryPolicy.onWrite(context.getCurrentAgent().definition().getId(), sessionId, context.getMemory().messages());
             if (normalized.size() != context.getMemory().messages().size())
             {
                 rewriteMemory(context.getMemory(), normalized);
@@ -867,13 +866,13 @@ public class AgentRunner
         }
     }
 
-    private List<Message> readFromMemory(AgentRunnerContext context, IRunHooks hooks, String sessionId, MemoryLifecyclePolicy memoryPolicy)
+    private List<ContextItem> readFromMemory(AgentRunnerContext context, IRunHooks hooks, String sessionId, MemoryLifecyclePolicy memoryPolicy)
     {
         ITraceSpan span = traceProvider.startSpan("agent.memory.read");
         long started = System.nanoTime();
         try
         {
-            List<Message> messages = memoryPolicy.onRead(context.getCurrentAgent().definition().getId(), sessionId, context.getMemory().messages());
+            List<ContextItem> messages = memoryPolicy.onRead(context.getCurrentAgent().definition().getId(), sessionId, context.getMemory().messages());
             emit(context, hooks, RunEventType.MEMORY_READ, Map.of("messages", messages.size(), "durationMs", durationMs(started), "cacheHit", false));
             return messages;
         }
@@ -888,28 +887,28 @@ public class AgentRunner
         return Math.max(0, (System.nanoTime() - startedNs) / 1_000_000);
     }
 
-    private void rewriteMemory(IAgentMemory memory, List<Message> messages)
+    private void rewriteMemory(IAgentMemory memory, List<ContextItem> messages)
     {
         memory.replaceAll(messages);
     }
 
     private static final class SnapshotAgentMemory implements IAgentMemory
     {
-        private final List<Message> messages;
+        private final List<ContextItem> messages;
 
-        private SnapshotAgentMemory(List<Message> messages)
+        private SnapshotAgentMemory(List<ContextItem> messages)
         {
             this.messages = List.copyOf(messages);
         }
 
         @Override
-        public List<Message> messages()
+        public List<ContextItem> messages()
         {
             return messages;
         }
 
         @Override
-        public void append(Message message)
+        public void append(ContextItem message)
         {
             throw new UnsupportedOperationException("Snapshot memory is read-only");
         }

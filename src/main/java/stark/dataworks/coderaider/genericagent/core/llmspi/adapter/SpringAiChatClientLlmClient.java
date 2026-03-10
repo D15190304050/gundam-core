@@ -5,7 +5,7 @@ import stark.dataworks.coderaider.genericagent.core.llmspi.IMultimodalLlmClient;
 import stark.dataworks.coderaider.genericagent.core.llmspi.ILlmStreamListener;
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmResponse;
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.multimodal.AudioGenerationRequest;
 import stark.dataworks.coderaider.genericagent.core.multimodal.GeneratedAsset;
 import stark.dataworks.coderaider.genericagent.core.multimodal.ImageGenerationRequest;
@@ -39,13 +39,13 @@ public class SpringAiChatClientLlmClient implements IMultimodalLlmClient
             Object promptSpec = chatClient.prompt();
             String system = request.getMessages().stream()
                 .filter(m -> m.getRole() == Role.SYSTEM)
-                .map(Message::getContent)
+                .map(ContextItem::getContent)
                 .findFirst()
                 .orElse("");
             String user = request.getMessages().stream()
                 .filter(m -> m.getRole() == Role.USER)
                 .reduce((a, b) -> b)
-                .map(Message::getContent)
+                .map(ContextItem::getContent)
                 .orElse("");
 
             if (!system.isBlank())

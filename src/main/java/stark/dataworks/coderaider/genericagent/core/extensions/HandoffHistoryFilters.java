@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.model.Role;
 
 /**
@@ -17,13 +17,13 @@ public final class HandoffHistoryFilters
     {
     }
 
-    public static List<Message> removeToolMessages(List<Message> source)
+    public static List<ContextItem> removeToolMessages(List<ContextItem> source)
     {
         Objects.requireNonNull(source, "source");
         return source.stream().filter(message -> message.getRole() != Role.TOOL).collect(Collectors.toList());
     }
 
-    public static List<Message> lastNMessages(List<Message> source, int limit)
+    public static List<ContextItem> lastNMessages(List<ContextItem> source, int limit)
     {
         Objects.requireNonNull(source, "source");
         if (limit < 0)
@@ -37,7 +37,7 @@ public final class HandoffHistoryFilters
         return List.copyOf(source.subList(source.size() - limit, source.size()));
     }
 
-    public static List<Message> filter(List<Message> source, Predicate<Message> predicate)
+    public static List<ContextItem> filter(List<ContextItem> source, Predicate<ContextItem> predicate)
     {
         Objects.requireNonNull(source, "source");
         Objects.requireNonNull(predicate, "predicate");

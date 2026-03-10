@@ -2,7 +2,7 @@ package stark.dataworks.coderaider.genericagent.core.memory;
 
 import java.util.List;
 
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 
 /**
  * IAgentMemory implements conversation state retention between turns.
@@ -15,7 +15,7 @@ public interface IAgentMemory
      *
      * @return List of message values.
      */
-    List<Message> messages();
+    List<ContextItem> messages();
 
     /**
      * Adds data to internal state consumed by later runtime steps.
@@ -23,7 +23,7 @@ public interface IAgentMemory
      * @param message conversation message.
      */
 
-    void append(Message message);
+    void append(ContextItem message);
 
     /**
      * Replaces all messages when lifecycle policies compact/trim memory state.
@@ -31,7 +31,7 @@ public interface IAgentMemory
      *
      * @param messages The full normalized message list.
      */
-    default void replaceAll(List<Message> messages)
+    default void replaceAll(List<ContextItem> messages)
     {
         throw new UnsupportedOperationException("replaceAll is not supported");
     }

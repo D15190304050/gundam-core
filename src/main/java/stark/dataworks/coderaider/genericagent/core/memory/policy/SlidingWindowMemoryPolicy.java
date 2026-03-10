@@ -3,7 +3,7 @@ package stark.dataworks.coderaider.genericagent.core.memory.policy;
 import java.util.ArrayList;
 import java.util.List;
 
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 
 /**
  * Retains only the last N messages.
@@ -22,18 +22,18 @@ public class SlidingWindowMemoryPolicy implements MemoryLifecyclePolicy
     }
 
     @Override
-    public List<Message> onRead(String agentId, String sessionId, List<Message> messages)
+    public List<ContextItem> onRead(String agentId, String sessionId, List<ContextItem> messages)
     {
         return trim(messages);
     }
 
     @Override
-    public List<Message> onWrite(String agentId, String sessionId, List<Message> messages)
+    public List<ContextItem> onWrite(String agentId, String sessionId, List<ContextItem> messages)
     {
         return trim(messages);
     }
 
-    private List<Message> trim(List<Message> messages)
+    private List<ContextItem> trim(List<ContextItem> messages)
     {
         if (messages.size() <= maxMessages)
         {

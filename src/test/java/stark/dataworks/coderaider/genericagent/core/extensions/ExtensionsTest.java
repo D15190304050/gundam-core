@@ -5,7 +5,7 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.model.Role;
 
 class ExtensionsTest
@@ -13,16 +13,16 @@ class ExtensionsTest
     @Test
     void handoffHistoryFiltersShouldTrimAndFilter()
     {
-        List<Message> messages = List.of(
-            new Message(Role.USER, "u1"),
-            new Message(Role.TOOL, "t1"),
-            new Message(Role.ASSISTANT, "a1"));
+        List<ContextItem> messages = List.of(
+            new ContextItem(Role.USER, "u1"),
+            new ContextItem(Role.TOOL, "t1"),
+            new ContextItem(Role.ASSISTANT, "a1"));
 
-        List<Message> withoutTools = HandoffHistoryFilters.removeToolMessages(messages);
+        List<ContextItem> withoutTools = HandoffHistoryFilters.removeToolMessages(messages);
         Assertions.assertEquals(2, withoutTools.size());
         Assertions.assertEquals(Role.USER, withoutTools.get(0).getRole());
 
-        List<Message> lastOne = HandoffHistoryFilters.lastNMessages(messages, 1);
+        List<ContextItem> lastOne = HandoffHistoryFilters.lastNMessages(messages, 1);
         Assertions.assertEquals("a1", lastOne.get(0).getContent());
     }
 

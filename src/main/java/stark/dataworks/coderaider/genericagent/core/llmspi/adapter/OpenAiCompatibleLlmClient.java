@@ -7,7 +7,7 @@ import stark.dataworks.coderaider.genericagent.core.llmspi.ILlmStreamListener;
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmRequest;
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmResponse;
 import stark.dataworks.coderaider.genericagent.core.metrics.TokenUsage;
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.model.Role;
 import stark.dataworks.coderaider.genericagent.core.model.ToolCall;
 import stark.dataworks.coderaider.genericagent.core.multimodal.AudioGenerationRequest;
@@ -343,7 +343,7 @@ public class OpenAiCompatibleLlmClient implements IMultimodalLlmClient
         return payload;
     }
 
-    private Map<String, Object> toMessage(Message message)
+    private Map<String, Object> toMessage(ContextItem message)
     {
         String role = switch (message.getRole())
         {
@@ -386,7 +386,7 @@ public class OpenAiCompatibleLlmClient implements IMultimodalLlmClient
         return out;
     }
 
-    private Object toMessageContent(Message message)
+    private Object toMessageContent(ContextItem message)
     {
         List<MessagePart> parts = message.getParts();
         boolean hasNonTextPart = parts.stream().anyMatch(p -> p.getType() != MessagePartType.TEXT);

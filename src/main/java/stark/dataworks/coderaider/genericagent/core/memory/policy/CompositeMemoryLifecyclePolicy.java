@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 
 /**
  * Composes multiple lifecycle policies.
@@ -19,9 +19,9 @@ public class CompositeMemoryLifecyclePolicy implements MemoryLifecyclePolicy
     }
 
     @Override
-    public List<Message> onRead(String agentId, String sessionId, List<Message> messages)
+    public List<ContextItem> onRead(String agentId, String sessionId, List<ContextItem> messages)
     {
-        List<Message> result = messages;
+        List<ContextItem> result = messages;
         for (MemoryLifecyclePolicy delegate : delegates)
         {
             result = Objects.requireNonNull(delegate, "delegate").onRead(agentId, sessionId, result);
@@ -30,9 +30,9 @@ public class CompositeMemoryLifecyclePolicy implements MemoryLifecyclePolicy
     }
 
     @Override
-    public List<Message> onWrite(String agentId, String sessionId, List<Message> messages)
+    public List<ContextItem> onWrite(String agentId, String sessionId, List<ContextItem> messages)
     {
-        List<Message> result = messages;
+        List<ContextItem> result = messages;
         for (MemoryLifecyclePolicy delegate : delegates)
         {
             result = Objects.requireNonNull(delegate, "delegate").onWrite(agentId, sessionId, result);

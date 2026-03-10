@@ -3,7 +3,7 @@ package stark.dataworks.coderaider.genericagent.core.llmspi.adapter;
 import org.junit.jupiter.api.Test;
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmOptions;
 import stark.dataworks.coderaider.genericagent.core.llmspi.LlmRequest;
-import stark.dataworks.coderaider.genericagent.core.model.Message;
+import stark.dataworks.coderaider.genericagent.core.context.ContextItem;
 import stark.dataworks.coderaider.genericagent.core.model.Role;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class ModelScopeLlmClientTest
 
         LlmRequest request = new LlmRequest(
             model,
-            List.of(new Message(Role.USER, "Hello")),
+            List.of(new ContextItem(Role.USER, "Hello")),
             List.of(),
             new LlmOptions(0.7, 1000)
         );
