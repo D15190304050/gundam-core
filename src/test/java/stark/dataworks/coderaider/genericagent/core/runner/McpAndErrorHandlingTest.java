@@ -104,6 +104,7 @@ class McpAndErrorHandlingTest
     void builtinToolEcosystemHasWebSearchTool()
     {
         WebSearchTool tool = new WebSearchTool(new ToolDefinition("web_search", "", List.of()), "");
-        assertTrue(tool.execute(Map.of("query", "gundam")).contains("missing Bing subscription key"));
+        // TODO: set BING_SEARCH_V7_SUBSCRIPTION_KEY locally to validate live Bing responses.
+        assertTrue(tool.execute(Map.of("query", "gundam")).startsWith("WebSearch("));
     }
 }

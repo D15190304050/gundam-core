@@ -16,7 +16,7 @@ This document compares the current capabilities of:
 |---|---|---|---|
 | Core agent loop (model -> tools -> continue) | ✅ | ✅ | `AgentRunner` owns turn orchestration, retries, hooks, guardrails, handoff. |
 | Streaming token events | ✅ | ✅ | `runStreamed` + run event publication (`MODEL_RESPONSE_DELTA`, reasoning delta). |
-| Tool calling (local tools) | ✅ | ✅ | Includes typed tool schemas and execution hooks, now with real Bing web search and PDF text extraction built-ins. |
+| Tool calling (local tools) | ✅ | ✅ | Includes typed tool schemas and execution hooks, now with real Bing web search and PDF text extraction built-ins (Bing integration currently uses JDK HttpClient + JSON parsing, no dedicated Bing SDK dependency). |
 | MCP tool integration | ✅ | ✅ | stdio, HTTP, streamable-HTTP MCP clients and manager. |
 | Agent handoff orchestration | ✅ | ✅ | `HandoffRouter`, allow-lists, and history filtering extensions. |
 | Guardrails | ✅ | ✅ | Input/output guardrail engine with tripwire semantics. |
