@@ -334,21 +334,15 @@ public class Example25ComplexReActDebugFixTest
 
         private String verifyCommand(Path workspace)
         {
-            return switch (this)
-            {
-                case WINDOWS ->
-                    "cmd /c \"cd /d \"" + workspace + "\" && javac InvoiceSummaryEngine.java InvoiceSummaryEngineVerifier.java && java InvoiceSummaryEngineVerifier\"";
-                case MACOS, LINUX ->
-                    "cd '" + workspace + "' && javac InvoiceSummaryEngine.java InvoiceSummaryEngineVerifier.java && java InvoiceSummaryEngineVerifier";
-            };
+            return "javac InvoiceSummaryEngine.java InvoiceSummaryEngineVerifier.java && java InvoiceSummaryEngineVerifier";
         }
 
         private String printFileCommand(Path workspace, String fileName)
         {
             return switch (this)
             {
-                case WINDOWS -> "cmd /c \"cd /d \"" + workspace + "\" && type " + fileName + "\"";
-                case MACOS, LINUX -> "cd '" + workspace + "' && cat " + fileName;
+                case WINDOWS -> "type " + fileName;
+                case MACOS, LINUX -> "cat " + fileName;
             };
         }
     }

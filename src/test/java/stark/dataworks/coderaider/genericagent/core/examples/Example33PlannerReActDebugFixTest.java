@@ -299,11 +299,7 @@ public class Example33PlannerReActDebugFixTest
 
         private String verifyCommand(Path workspace)
         {
-            return switch (this)
-            {
-                case WINDOWS -> "cd /d \"" + workspace + "\" && javac BuggyCalcService.java BuggyOrderTotalApp.java && java BuggyOrderTotalApp";
-                case MACOS, LINUX -> "cd '" + workspace + "' && javac BuggyCalcService.java BuggyOrderTotalApp.java && java BuggyOrderTotalApp";
-            };
+            return "javac BuggyCalcService.java BuggyOrderTotalApp.java && java BuggyOrderTotalApp";
         }
     }
 

@@ -455,30 +455,20 @@ public class Example24ReActAgentDebugFixTest
 
         private String compileCommand(Path workspace)
         {
-            return switch (this)
-            {
-                case WINDOWS -> "cmd /c \"cd /d \"\"" + workspace + "\"\" && javac BuggyCalculator.java\"";
-                case MACOS, LINUX -> "cd '" + workspace + "' && javac BuggyCalculator.java";
-            };
+            return "javac BuggyCalculator.java";
         }
 
         private String verifyCommand(Path workspace)
         {
-            return switch (this)
-            {
-                case WINDOWS ->
-                    "cmd /c \"cd /d \"\"" + workspace + "\"\" && javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier\"";
-                case MACOS, LINUX ->
-                    "cd '" + workspace + "' && javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier";
-            };
+            return "javac BuggyCalculator.java BuggyCalculatorVerifier.java && java BuggyCalculatorVerifier";
         }
 
         private String printFileCommand(Path workspace, String fileName)
         {
             return switch (this)
             {
-                case WINDOWS -> "cmd /c \"cd /d \"\"" + workspace + "\"\" && type " + fileName + "\"";
-                case MACOS, LINUX -> "cd '" + workspace + "' && cat " + fileName;
+                case WINDOWS -> "type " + fileName;
+                case MACOS, LINUX -> "cat " + fileName;
             };
         }
     }
