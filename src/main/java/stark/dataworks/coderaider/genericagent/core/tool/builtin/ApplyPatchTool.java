@@ -18,9 +18,9 @@ import stark.dataworks.coderaider.genericagent.core.tool.ToolParameterSchema;
 public class ApplyPatchTool implements ITool
 {
     private static final String TOOL_NAME = "apply_patch";
-    private static final String TOOL_DESCRIPTION = "Apply file operations using unified diffs. " +
-        "Supported types: 'create_file' (or 'create'), 'update_file' (or 'update'), 'delete_file' (or 'delete'). " +
-        "For create_file, provide 'content' or 'diff'. For update_file, provide 'diff'. For delete_file, only 'path' is needed.";
+    private static final String TOOL_DESCRIPTION = "Apply file operations using patch-style operations. " +
+        "Accepted payloads: {type,path,diff|content} or {operation:{type,path,diff|content}}. " +
+        "Supported types: 'create_file' (or 'create'), 'update_file' (or 'update'), 'delete_file' (or 'delete').";
 
     private final IApplyPatchEditor editor;
     private final boolean needsApproval;
@@ -44,9 +44,15 @@ public class ApplyPatchTool implements ITool
             TOOL_NAME,
             TOOL_DESCRIPTION,
             List.of(
-                new ToolParameterSchema("operation", "object", true,
-                    "The patch operation. Must have 'type' (create_file/update_file/delete_file) and 'path'. " +
-                        "For create_file, include 'content' or 'diff'. For update_file, include 'diff'.")
+                new ToolParameterSchema("type", "string", false,
+                    "Operation type: create_file, update_file, delete_file (aliases: create/update/delete)."),
+                new ToolParameterSchema("path", "string", false, "Target file path, relative to workspace when possible."),
+                new ToolParameterSchema("diff", "string", false, "Patch diff content for create/update operations."),
+                new ToolParameterSchema("content", "string", false, "Raw file content for create_file when diff is omitted."),
+                new ToolParameterSchema("operation", "object", false,
+                    "Nested operation object alternative: {type, path, diff|content}."),
+                new ToolParameterSchema("raw", "string", false,
+                    "Raw JSON fallback when the model emits a serialized tool payload.")
             )
         );
     }
@@ -68,7 +74,8 @@ public class ApplyPatchTool implements ITool
 
         if (operationObj == null)
         {
-            return errorResult("Missing 'operation' parameter. Provide: {\"operation\": {\"type\": \"update_file\", \"path\": \"...\", \"diff\": \"...\"}}");
+            return errorResult("Missing patch payload. Provide either {\"type\":\"update_file\",\"path\":\"...\",\"diff\":\"...\"} " +
+                "or {\"operation\":{\"type\":\"update_file\",\"path\":\"...\",\"diff\":\"...\"}}.");
         }
 
         if (!(operationObj instanceof Map))
