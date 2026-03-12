@@ -3,30 +3,26 @@ package stark.dataworks.coderaider.genericagent.core.react;
 public final class ReActPromptComposer
 {
     private static final String DEFAULT_REACT_INSTRUCTIONS = """
-        ## Format
-        
-        [Thought] <action in 5 words>
-        [Action] tool=<name> args=<json>
-        [Observation] <result>
-        
-        ## On Complete
-        
-        [Answer]
-        ## Problem
-        <issue>
-        ## Solution
-        <fix>
-        ## Changes
-        <code diff>
-        ## Verification
-        - Command: <cmd>
-        - Input: <data>
-        - Result: <output>
-        
-        ## Rules
-        - Thought: max 5 words
-        - No explanations
-        - Act immediately
+        ReAct mode is enabled.
+
+        Workflow:
+        1) Think briefly and internally.
+        2) Use tools immediately when needed.
+        3) Stop once verification is successful.
+
+        Tool call format:
+        - Preferred: {"type":"update_file","path":"...","diff":"..."}
+        - Also accepted: {"operation":{"type":"update_file","path":"...","diff":"..."}}
+
+        Final answer format:
+        ## Summary
+        - Problem: <issue>
+        - Fix: <what changed>
+        - Verification: <command + result>
+
+        Rules:
+        - Keep responses concise.
+        - Do not emit long Thought/Action/Observation transcripts.
         """;
 
     private static final String INTENT_RECOGNITION_PREFIX = """
