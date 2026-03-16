@@ -39,10 +39,10 @@ import java.util.Map;
  */
 public class Example25ComplexReActDebugFixTest
 {
+    // Switch model.
+//    public static final String API_KEY_NAME = "MODEL_SCOPE_API_KEY";
     public static final String API_KEY_NAME = "VOLCENGINE_API_KEY";
-
 //    private static final String MODEL = "Qwen/Qwen3-4B";
-//    private static final String MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct";
     private static final String MODEL = "doubao-seed-code-preview-251028";
     private static final Path INPUT_FILE = Path.of("src", "test", "resources", "inputs", "InvoiceSummaryEngine.java");
     private static final Path INPUT_VERIFIER_FILE = Path.of("src", "test", "resources", "inputs", "InvoiceSummaryEngineVerifier.java");
@@ -72,6 +72,7 @@ public class Example25ComplexReActDebugFixTest
         AgentRegistry agentRegistry = createAgentRegistry(runtimeOs, workspace);
 
         AgentRunner runner = AgentRunner.builder()
+            // Switch model.
 //            .llmClient(new ModelScopeLlmClient(apiKey, MODEL))
             .llmClient(new SeedLlmClient(apiKey, MODEL))
             .toolRegistry(toolRegistry)
@@ -260,6 +261,7 @@ public class Example25ComplexReActDebugFixTest
             - Fix the root causes from investigator evidence
             - Run verification after patching
             - Stop only when verification output contains BEHAVIOR_OK
+            - Follow the coding style
 
             OS: %s
             Workspace: %s
