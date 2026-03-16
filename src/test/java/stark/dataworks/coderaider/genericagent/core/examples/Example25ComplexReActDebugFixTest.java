@@ -31,8 +31,10 @@ import java.util.Map;
  * 25) Harder ReAct debug/fix workflow: logical bug fixing with runtime verification.
  * <p>
  * Pattern:
- * - Single debugger agent: inspect, patch, verify by tool calls.
- * - Outer retry loop: rerun agent if verifier still fails.
+ * - Coordinator: decides delegation order.
+ * - Investigator: inspects source + verification evidence.
+ * - Fixer: patches iteratively and runs verification.
+ * - Reviewer: validates verification result and summarizes.
  */
 public class Example25ComplexReActDebugFixTest
 {
@@ -62,44 +64,88 @@ public class Example25ComplexReActDebugFixTest
         toolRegistry.register(createShellTool());
         toolRegistry.register(new ApplyPatchTool(new FileSystemEditor(workspace), false));
 
-        AgentRegistry agentRegistry = new AgentRegistry();
-        // TODO: We need more than 1 agent here.
-        agentRegistry.register(createDebuggerAgent(runtimeOs, workspace));
+        AgentRegistry agentRegistry = createAgentRegistry(runtimeOs, workspace);
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(new ModelScopeLlmClient(apiKey, MODEL))
             .toolRegistry(toolRegistry)
             .agentRegistry(agentRegistry)
-            .eventPublisher(ExampleStreamingPublishers.textWithToolLifecycle("ReAct25 "))
+            .eventPublisher(ExampleStreamingPublishers.reactThoughtActionObservation())
             .build();
 
         String behaviorOutput = runBehaviorVerification(runtimeOs, workspace);
         System.out.println("INITIAL_VERIFICATION: " + behaviorOutput.trim());
+        logSourceSnapshot(targetFile, "INITIAL_SOURCE");
 
-        ContextResult debuggerResult = null;
+        ContextResult coordinatorPlan = runner.chatClient("react25-coordinator")
+            .prompt()
+            .stream(true)
+            .user(buildCoordinatorPrompt(runtimeOs, workspace, behaviorOutput))
+            .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
+            .runHooks(ExampleSupport.noopHooks())
+            .call()
+            .contextResult();
+
+        ContextResult investigatorResult = runner.chatClient("react25-investigator")
+            .prompt()
+            .stream(true)
+            .user(buildInvestigatorPrompt(runtimeOs, workspace, behaviorOutput))
+            .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
+            .runHooks(ExampleSupport.noopHooks())
+            .call()
+            .contextResult();
+
+        System.out.println("COORDINATOR_OUTPUT: " + coordinatorPlan.getFinalOutput());
+        System.out.println("INVESTIGATOR_OUTPUT: " + investigatorResult.getFinalOutput());
+
+        ContextResult fixerResult = null;
+        ContextResult reviewerResult = null;
         for (int attempt = 1; attempt <= 5; attempt++)
         {
             String sourceSnapshot = Files.readString(targetFile);
-            debuggerResult = runner.chatClient("react25-debugger")
+            fixerResult = runner.chatClient("react25-fixer")
                 .prompt()
                 .stream(true)
-                .user(buildDebuggerPrompt(runtimeOs, workspace, attempt, behaviorOutput, sourceSnapshot))
+                .user(buildFixerPrompt(runtimeOs, workspace, attempt, behaviorOutput, investigatorResult.getFinalOutput(), sourceSnapshot))
                 .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
                 .runHooks(ExampleSupport.noopHooks())
                 .call()
                 .contextResult();
 
+            reviewerResult = runner.chatClient("react25-reviewer")
+                .prompt()
+                .stream(true)
+                .user(buildReviewerPrompt(runtimeOs, workspace, fixerResult.getFinalOutput(), behaviorOutput))
+                .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
+                .runHooks(ExampleSupport.noopHooks())
+                .call()
+                .contextResult();
+
+            System.out.println("FIXER_ATTEMPT_" + attempt + "_OUTPUT: " + fixerResult.getFinalOutput());
+            System.out.println("REVIEWER_ATTEMPT_" + attempt + "_OUTPUT: " + reviewerResult.getFinalOutput());
+
             behaviorOutput = runBehaviorVerification(runtimeOs, workspace);
             System.out.println("ATTEMPT_" + attempt + "_VERIFICATION: " + behaviorOutput.trim());
+            logSourceSnapshot(targetFile, "ATTEMPT_" + attempt + "_SOURCE");
             if (behaviorOutput.contains("BEHAVIOR_OK"))
             {
                 break;
             }
         }
 
-        Assertions.assertNotNull(debuggerResult, "Expected debugger output");
-        Assertions.assertTrue(debuggerResult.getFinalOutput() != null && !debuggerResult.getFinalOutput().isBlank(),
-            "Expected debugger summary output");
+        Assertions.assertNotNull(coordinatorPlan, "Expected coordinator output");
+        Assertions.assertNotNull(investigatorResult, "Expected investigator output");
+        Assertions.assertNotNull(fixerResult, "Expected fixer output");
+        Assertions.assertNotNull(reviewerResult, "Expected reviewer output");
+
+        Assertions.assertTrue(coordinatorPlan.getFinalOutput() != null && !coordinatorPlan.getFinalOutput().isBlank(),
+            "Expected coordinator summary output");
+        Assertions.assertTrue(investigatorResult.getFinalOutput() != null && !investigatorResult.getFinalOutput().isBlank(),
+            "Expected investigator summary output");
+        Assertions.assertTrue(fixerResult.getFinalOutput() != null && !fixerResult.getFinalOutput().isBlank(),
+            "Expected fixer summary output");
+        Assertions.assertTrue(reviewerResult.getFinalOutput() != null && !reviewerResult.getFinalOutput().isBlank(),
+            "Expected reviewer summary output");
         
         Assertions.assertTrue(behaviorOutput.contains("BEHAVIOR_OK"), 
             "Agent must fix all bugs successfully. Verification output: " + behaviorOutput);
@@ -134,51 +180,229 @@ public class Example25ComplexReActDebugFixTest
         return targetFile;
     }
 
-    private static AgentDefinition createDebuggerAgent(RuntimeOs runtimeOs, Path workspace)
+    private static AgentRegistry createAgentRegistry(RuntimeOs runtimeOs, Path workspace)
+    {
+        AgentRegistry registry = new AgentRegistry();
+        registry.register(createCoordinatorAgent(runtimeOs, workspace));
+        registry.register(createInvestigatorAgent(runtimeOs, workspace));
+        registry.register(createFixerAgent(runtimeOs, workspace));
+        registry.register(createReviewerAgent(runtimeOs, workspace));
+        return registry;
+    }
+
+    private static AgentDefinition createCoordinatorAgent(RuntimeOs runtimeOs, Path workspace)
     {
         AgentDefinition def = new AgentDefinition();
-        def.setId("react25-debugger");
-        def.setName("Complex ReAct Debugger");
+        def.setId("react25-coordinator");
+        def.setName("Complex ReAct Coordinator");
         def.setModel(MODEL);
         def.setReactEnabled(true);
         def.setSystemPrompt("""
-            You are a code debugger. Find and fix bugs in Java files.
-            
-            Process:
-            1. Read the file to understand its logic
-            2. Identify bugs by analyzing the code
-            3. Apply patches to fix all bugs
-            4. Verify the fixes work correctly
-            
+            You are a workflow coordinator for Java debugging.
+
+            Build a concise execution plan and enforce this order:
+            1) Investigator finds concrete bug evidence
+            2) Fixer patches and verifies
+            3) Reviewer validates verification output
+
+            OS: %s
+            Workspace: %s
+            """.formatted(runtimeOs.displayName, workspace));
+        def.setReactInstructions("Plan the delegation in 3-5 short bullets with concrete commands.");
+        def.setToolNames(List.of("local_shell"));
+        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
+        def.setModelReasoning(Map.of("effort", "low"));
+        return def;
+    }
+
+    private static AgentDefinition createInvestigatorAgent(RuntimeOs runtimeOs, Path workspace)
+    {
+        AgentDefinition def = new AgentDefinition();
+        def.setId("react25-investigator");
+        def.setName("Complex ReAct Investigator");
+        def.setModel(MODEL);
+        def.setReactEnabled(true);
+        def.setSystemPrompt("""
+            You are a Java bug investigator.
+
+            Inspect source and verifier output to identify root causes.
+            Report exact bug locations and expected behavior.
+
             OS: %s
             Workspace: %s
             Verify command: %s
             """.formatted(runtimeOs.displayName, workspace, runtimeOs.verifyCommand(workspace)));
-        def.setReactInstructions("Read → Diagnose → Fix → Verify → Done. No explanations until verification passes.");
+        def.setReactInstructions("Read file + verifier output, then return a concrete root-cause list for each failing behavior.");
+        def.setToolNames(List.of("local_shell"));
+        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
+        def.setModelReasoning(Map.of("effort", "low"));
+        return def;
+    }
+
+    private static AgentDefinition createFixerAgent(RuntimeOs runtimeOs, Path workspace)
+    {
+        AgentDefinition def = new AgentDefinition();
+        def.setId("react25-fixer");
+        def.setName("Complex ReAct Fixer");
+        def.setModel(MODEL);
+        def.setReactEnabled(true);
+        def.setSystemPrompt("""
+            You are a Java code fixer.
+
+            Rules:
+            - Patch only InvoiceSummaryEngine.java
+            - Fix the root causes from investigator evidence
+            - Run verification after patching
+            - Stop only when verification output contains BEHAVIOR_OK
+
+            OS: %s
+            Workspace: %s
+            Verify command: %s
+            """.formatted(runtimeOs.displayName, workspace, runtimeOs.verifyCommand(workspace)));
+        def.setReactInstructions("Read → patch -> verify -> if fail, patch again. Keep final response concise with exact fixes.");
         def.setToolNames(List.of("apply_patch", "local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
         def.setModelReasoning(Map.of("effort", "low"));
         return def;
     }
 
-    private static String buildDebuggerPrompt(RuntimeOs runtimeOs, Path workspace, int attempt, String behaviorOutput, String sourceSnapshot)
+    private static AgentDefinition createReviewerAgent(RuntimeOs runtimeOs, Path workspace)
+    {
+        AgentDefinition def = new AgentDefinition();
+        def.setId("react25-reviewer");
+        def.setName("Complex ReAct Reviewer");
+        def.setModel(MODEL);
+        def.setReactEnabled(true);
+        def.setSystemPrompt("""
+            You are a strict verifier for Java bug-fix tasks.
+
+            Validate with runtime evidence. PASS only when output contains BEHAVIOR_OK.
+
+            OS: %s
+            Workspace: %s
+            Verify command: %s
+            """.formatted(runtimeOs.displayName, workspace, runtimeOs.verifyCommand(workspace)));
+        def.setReactInstructions("Run verifier and return PASS/FAIL with command output evidence.");
+        def.setToolNames(List.of("local_shell"));
+        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
+        def.setModelReasoning(Map.of("effort", "low"));
+        return def;
+    }
+
+    private static String buildCoordinatorPrompt(RuntimeOs runtimeOs, Path workspace, String behaviorOutput)
+    {
+        return """
+            Build a concise execution plan for fixing InvoiceSummaryEngine.java.
+
+            Current verification output:
+            %s
+
+            Required behavior contract:
+            %s
+
+            Require this sequence:
+            - Investigator gathers evidence against the behavior contract
+            - Fixer patches and verifies until BEHAVIOR_OK
+            - Reviewer validates with runtime evidence
+
+            Runtime OS: %s
+            Workspace: %s
+            """.formatted(behaviorOutput.trim(), expectedBehaviorContract(), runtimeOs.displayName, workspace);
+    }
+
+    private static String buildInvestigatorPrompt(RuntimeOs runtimeOs, Path workspace, String behaviorOutput)
+    {
+        return """
+            Investigate root causes in InvoiceSummaryEngine.java.
+
+            Current verification output:
+            %s
+
+            Required behavior contract:
+            %s
+
+            Known likely bug categories to check explicitly:
+            - Subtotal loop skips first item by starting from index 1.
+            - Food tax rate may be wrong (expected 0.08 for this verifier).
+            - round2 may be rounding to 1 decimal instead of 2 decimals.
+
+            Steps:
+            1) Print InvoiceSummaryEngine.java
+            2) Compile and run verifier
+            3) Confirm or reject each likely bug category with evidence
+            4) Produce a concrete fixer checklist
+
+            Runtime OS: %s
+            Workspace: %s
+            File print command: %s
+            Verify command: %s
+            """.formatted(behaviorOutput.trim(), expectedBehaviorContract(), runtimeOs.displayName, workspace,
+            runtimeOs.printFileCommand(workspace, "InvoiceSummaryEngine.java"), runtimeOs.verifyCommand(workspace));
+    }
+
+    private static String buildFixerPrompt(RuntimeOs runtimeOs, Path workspace, int attempt,
+                                           String behaviorOutput, String investigationOutput, String sourceSnapshot)
     {
         return """
             Attempt %d to fix InvoiceSummaryEngine.java.
-            
+
+            Investigator findings:
+            %s
+
+            Required behavior contract:
+            %s
+
             Current verification status:
             %s
-            
+
             Current code:
             %s
-            
+
             Fix all bugs and verify with: %s
             Target: output should contain BEHAVIOR_OK
-            
+            Do not stop at partial fixes. Keep patching until both caseA and caseB pass.
+
             OS: %s
             Workspace: %s
-            """.formatted(attempt, behaviorOutput.trim(), sourceSnapshot, runtimeOs.verifyCommand(workspace), 
-                runtimeOs.displayName, workspace);
+            """.formatted(attempt, investigationOutput, expectedBehaviorContract(), behaviorOutput.trim(), sourceSnapshot,
+            runtimeOs.verifyCommand(workspace), runtimeOs.displayName, workspace);
+    }
+
+
+    private static String expectedBehaviorContract()
+    {
+        return """
+            - caseA: calculateTotal([20.0, 30.0, 50.0], "food", true) must equal 102.6
+            - caseB: calculateTotal([10.0, 40.0], "book", false) must equal 52.0
+            - Verifier must print BEHAVIOR_OK
+            """;
+    }
+
+    private static String buildReviewerPrompt(RuntimeOs runtimeOs, Path workspace, String fixerOutput, String behaviorOutput)
+    {
+        return """
+            Review the fix result for InvoiceSummaryEngine.java.
+
+            Fixer output:
+            %s
+
+            Latest host-side verification output:
+            %s
+
+            Execute verifier again:
+            %s
+
+            Return PASS only when output contains BEHAVIOR_OK, else FAIL with reasons.
+
+            OS: %s
+            Workspace: %s
+            """.formatted(fixerOutput, behaviorOutput.trim(), runtimeOs.verifyCommand(workspace), runtimeOs.displayName, workspace);
+    }
+
+    private static void logSourceSnapshot(Path targetFile, String prefix) throws IOException
+    {
+        String source = Files.readString(targetFile);
+        System.out.println(prefix + ":\n" + source);
     }
 
     private static void stageVerifierSource(Path targetVerifierFile) throws IOException
