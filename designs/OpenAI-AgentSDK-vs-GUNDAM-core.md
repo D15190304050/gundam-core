@@ -79,7 +79,7 @@ Legend: ✅ implemented, 🟡 partial, ⚪ not implemented.
 - `ApplyPatchTool` now advertises a **LLM-friendly dual schema**: both flat payload (`{type,path,diff}`) and nested payload (`{operation:{...}}`) are first-class in tool metadata, reducing malformed patch calls.
 - ReAct default prompt instructions were tightened to prefer concise internal reasoning and short final summaries instead of verbose thought transcripts.
 - `Example24`, `Example25`, and `Example33` debug-fix flows now use lower-turn/lower-token configs and stronger patch-call guidance to reduce wasted deliberation while preserving streaming behavior.
-- `Example25` now includes source snapshots in the debugger prompt and deterministic fallback repair for the three known bugs, improving end-to-end stability.
+- `Example25` now uses a multi-agent ReAct topology (coordinator/investigator/fixer/reviewer), includes source snapshots, and logs thought/action/observation output to make root-cause diagnosis and runtime verification traceable.
 - The same three examples now validate concise runtime and concise structured summaries (`Problem`/`Fix`/`Verification` style) to better enforce “understand + fix + verify + summarize” outcomes.
 
 ## Example coverage alignment
