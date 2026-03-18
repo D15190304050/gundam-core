@@ -63,7 +63,8 @@ public class StepByStepRunnerTest
         }
 
         RuntimeOs runtimeOs = detectRuntimeOs();
-        Path workspace = Path.of("src", "test", "resources", "outputs", "react-agent", "example25");
+//        Path workspace = Path.of("src", "test", "resources", "outputs", "react-agent", "example25");
+        Path workspace = Path.of("D:\\DinoStark\\Projects\\CodeSpaces\\CodeRaider\\GenericAgent\\generic-agent-core\\src\\test\\resources\\outputs\\react-agent\\example25");
         Path targetFile = resetWorkspace(workspace);
 
         ToolRegistry toolRegistry = new ToolRegistry();
