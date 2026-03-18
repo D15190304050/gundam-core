@@ -48,7 +48,7 @@ public class StepByStepRunnerTest
     private static final Path INPUT_FILE = Path.of("src", "test", "resources", "inputs", "InvoiceSummaryEngine.py");
     private static final Path INPUT_VERIFIER_FILE = Path.of("src", "test", "resources", "inputs", "InvoiceSummaryEngineVerifier.py");
     private static final RunConfiguration EXAMPLE_RUN_CONFIGURATION =
-        new RunConfiguration(4, null, 0.0, 1024, "auto", "text", Map.of());
+        new RunConfiguration(8, null, 0.0, 1024, "auto", "text", Map.of());
 
     @Test
     public void run() throws IOException
@@ -196,6 +196,7 @@ public class StepByStepRunnerTest
         def.setReactInstructions("Read file + verifier output, then return a concrete root-cause list for each failing behavior.");
         def.setToolNames(List.of("local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
+        def.setHandoffAgentIds(List.of("react25-fixer"));
 //        def.setModelReasoning(Map.of("effort", "low"));
         return def;
     }
@@ -228,6 +229,7 @@ public class StepByStepRunnerTest
         def.setReactInstructions("Read → patch -> verify -> if fail, patch again. Keep final response concise with exact fixes.");
         def.setToolNames(List.of("apply_patch", "local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
+        def.setHandoffAgentIds(List.of("react25-reviewer"));
 //        def.setModelReasoning(Map.of("effort", "low"));
         return def;
     }
