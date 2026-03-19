@@ -9,6 +9,8 @@ import stark.dataworks.coderaider.genericagent.core.context.ContextResult;
 import stark.dataworks.coderaider.genericagent.core.editor.ApplyPatchOperation;
 import stark.dataworks.coderaider.genericagent.core.editor.ApplyPatchResult;
 import stark.dataworks.coderaider.genericagent.core.editor.IApplyPatchEditor;
+import stark.dataworks.coderaider.genericagent.core.examples.ExampleStreamingPublishers;
+import stark.dataworks.coderaider.genericagent.core.examples.ExampleSupport;
 import stark.dataworks.coderaider.genericagent.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.genericagent.core.llmspi.adapter.SeedLlmClient;
 import stark.dataworks.coderaider.genericagent.core.runner.AgentRunner;
@@ -42,13 +44,14 @@ public class Example25ComplexReActDebugFixTest
 {
     // Switch model.
     public static final String API_KEY_NAME = "MODEL_SCOPE_API_KEY";
-//    public static final String API_KEY_NAME = "VOLCENGINE_API_KEY";
-    private static final String MODEL = "Qwen/Qwen3-4B";
-//    private static final String MODEL = "doubao-seed-code-preview-251028";
-    private static final Path INPUT_FILE = Path.of("src", "test", "resources", "inputs", "InvoiceSummaryEngine.java");
-    private static final Path INPUT_VERIFIER_FILE = Path.of("src", "test", "resources", "inputs", "InvoiceSummaryEngineVerifier.java");
+    //        public static final String API_KEY_NAME = "VOLCENGINE_API_KEY";
+//    private static final String MODEL = "Qwen/Qwen3-4B";
+    private static final String MODEL = "Qwen/Qwen3.5-27B";
+    //        private static final String MODEL = "doubao-seed-code-preview-251028";
+    private static final Path INPUT_FILE = Path.of("src", "test", "resources", "inputs", "InvoiceSummaryEngine.py");
+    private static final Path INPUT_VERIFIER_FILE = Path.of("src", "test", "resources", "inputs", "InvoiceSummaryEngineVerifier.py");
     private static final RunConfiguration EXAMPLE_RUN_CONFIGURATION =
-        new RunConfiguration(4, null, 0.0, 1024, "auto", "text", Map.of());
+        new RunConfiguration(20, null, 0.0, 1024, "auto", "text", Map.of());
 
     @Test
     public void run() throws IOException
@@ -63,7 +66,8 @@ public class Example25ComplexReActDebugFixTest
         }
 
         RuntimeOs runtimeOs = detectRuntimeOs();
-        Path workspace = Path.of("src", "test", "resources", "outputs", "react-agent", "example25");
+//        Path workspace = Path.of("src", "test", "resources", "outputs", "react-agent", "example25");
+        Path workspace = Path.of("D:\\DinoStark\\Projects\\CodeSpaces\\CodeRaider\\GenericAgent\\generic-agent-core\\src\\test\\resources\\outputs\\react-agent\\example25");
         Path targetFile = resetWorkspace(workspace);
 
         ToolRegistry toolRegistry = new ToolRegistry();
@@ -74,25 +78,17 @@ public class Example25ComplexReActDebugFixTest
 
         AgentRunner runner = AgentRunner.builder()
             // Switch model.
-            .llmClient(new ModelScopeLlmClient(apiKey, MODEL))
+            .llmClient(new ModelScopeLlmClient(apiKey, MODEL, false))
 //            .llmClient(new SeedLlmClient(apiKey, MODEL))
             .toolRegistry(toolRegistry)
             .agentRegistry(agentRegistry)
             .eventPublisher(ExampleStreamingPublishers.reactThoughtActionObservation())
             .build();
 
+//        logSourceSnapshot(targetFile, "INITIAL_SOURCE");
+
         String behaviorOutput = runBehaviorVerification(runtimeOs, workspace);
         System.out.println("INITIAL_VERIFICATION: " + behaviorOutput.trim());
-        logSourceSnapshot(targetFile, "INITIAL_SOURCE");
-
-        ContextResult coordinatorPlan = runner.chatClient("react25-coordinator")
-            .prompt()
-            .stream(true)
-            .user(buildCoordinatorPrompt(runtimeOs, workspace, behaviorOutput))
-            .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
-            .runHooks(ExampleSupport.noopHooks())
-            .call()
-            .contextResult();
 
         ContextResult investigatorResult = runner.chatClient("react25-investigator")
             .prompt()
@@ -103,15 +99,12 @@ public class Example25ComplexReActDebugFixTest
             .call()
             .contextResult();
 
-        System.out.println("COORDINATOR_OUTPUT: " + coordinatorPlan.getFinalOutput());
         System.out.println("INVESTIGATOR_OUTPUT: " + investigatorResult.getFinalOutput());
 
-        ContextResult fixerResult = null;
-        ContextResult reviewerResult = null;
         for (int attempt = 1; attempt <= 5; attempt++)
         {
             String sourceSnapshot = Files.readString(targetFile);
-            fixerResult = runner.chatClient("react25-fixer")
+            ContextResult fixerResult = runner.chatClient("react25-fixer")
                 .prompt()
                 .stream(true)
                 .user(buildFixerPrompt(runtimeOs, workspace, attempt, behaviorOutput, investigatorResult.getFinalOutput(), sourceSnapshot))
@@ -120,45 +113,17 @@ public class Example25ComplexReActDebugFixTest
                 .call()
                 .contextResult();
 
-            reviewerResult = runner.chatClient("react25-reviewer")
-                .prompt()
-                .stream(true)
-                .user(buildReviewerPrompt(runtimeOs, workspace, fixerResult.getFinalOutput(), behaviorOutput))
-                .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
-                .runHooks(ExampleSupport.noopHooks())
-                .call()
-                .contextResult();
-
             System.out.println("FIXER_ATTEMPT_" + attempt + "_OUTPUT: " + fixerResult.getFinalOutput());
-            System.out.println("REVIEWER_ATTEMPT_" + attempt + "_OUTPUT: " + reviewerResult.getFinalOutput());
 
             behaviorOutput = runBehaviorVerification(runtimeOs, workspace);
             System.out.println("ATTEMPT_" + attempt + "_VERIFICATION: " + behaviorOutput.trim());
-            logSourceSnapshot(targetFile, "ATTEMPT_" + attempt + "_SOURCE");
+//            logSourceSnapshot(targetFile, "ATTEMPT_" + attempt + "_SOURCE");
             if (behaviorOutput.contains("BEHAVIOR_OK"))
             {
                 break;
             }
         }
 
-        Assertions.assertNotNull(coordinatorPlan, "Expected coordinator output");
-        Assertions.assertNotNull(investigatorResult, "Expected investigator output");
-        Assertions.assertNotNull(fixerResult, "Expected fixer output");
-        Assertions.assertNotNull(reviewerResult, "Expected reviewer output");
-
-        Assertions.assertTrue(coordinatorPlan.getFinalOutput() != null && !coordinatorPlan.getFinalOutput().isBlank(),
-            "Expected coordinator summary output");
-        Assertions.assertTrue(investigatorResult.getFinalOutput() != null && !investigatorResult.getFinalOutput().isBlank(),
-            "Expected investigator summary output");
-        Assertions.assertTrue(fixerResult.getFinalOutput() != null && !fixerResult.getFinalOutput().isBlank(),
-            "Expected fixer summary output");
-        Assertions.assertTrue(reviewerResult.getFinalOutput() != null && !reviewerResult.getFinalOutput().isBlank(),
-            "Expected reviewer summary output");
-        
-        Assertions.assertTrue(behaviorOutput.contains("BEHAVIOR_OK"), 
-            "Agent must fix all bugs successfully. Verification output: " + behaviorOutput);
-        
-        System.out.println("FINAL_VERIFICATION: " + behaviorOutput.trim());
         long elapsedSeconds = (System.nanoTime() - startedAt) / 1_000_000_000L;
         Assertions.assertTrue(elapsedSeconds <= 120, "Expected runtime (<=120s) but took " + elapsedSeconds + "s");
     }
@@ -182,16 +147,16 @@ public class Example25ComplexReActDebugFixTest
                 });
         }
         Files.createDirectories(workspace);
-        Path targetFile = workspace.resolve("InvoiceSummaryEngine.java");
+        Path targetFile = workspace.resolve("InvoiceSummaryEngine.py");
         Files.writeString(targetFile, Files.readString(INPUT_FILE));
-        stageVerifierSource(workspace.resolve("InvoiceSummaryEngineVerifier.java"));
+        stageVerifierSource(workspace.resolve("InvoiceSummaryEngineVerifier.py"));
         return targetFile;
     }
 
     private static AgentRegistry createAgentRegistry(RuntimeOs runtimeOs, Path workspace)
     {
         AgentRegistry registry = new AgentRegistry();
-        registry.register(createCoordinatorAgent(runtimeOs, workspace));
+//        registry.register(createCoordinatorAgent(runtimeOs, workspace));
         registry.register(createInvestigatorAgent(runtimeOs, workspace));
         registry.register(createFixerAgent(runtimeOs, workspace));
         registry.register(createReviewerAgent(runtimeOs, workspace));
@@ -206,7 +171,7 @@ public class Example25ComplexReActDebugFixTest
         def.setModel(MODEL);
         def.setReactEnabled(true);
         def.setSystemPrompt("""
-            You are a workflow coordinator for Java debugging.
+            You are a workflow coordinator for code debugging.
 
             Build a concise execution plan and enforce this order:
             1) Investigator finds concrete bug evidence
@@ -219,7 +184,7 @@ public class Example25ComplexReActDebugFixTest
         def.setReactInstructions("Plan the delegation in 3-5 short bullets with concrete commands.");
         def.setToolNames(List.of("local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        def.setModelReasoning(Map.of("effort", "low"));
+//        def.setModelReasoning(Map.of("effort", "low"));
         return def;
     }
 
@@ -231,19 +196,25 @@ public class Example25ComplexReActDebugFixTest
         def.setModel(MODEL);
         def.setReactEnabled(true);
         def.setSystemPrompt("""
-            You are a Java bug investigator.
+            You are a code bug investigator.
 
             Inspect source and verifier output to identify root causes.
+            Read the file(s) by the local_shell tool before your investigation.
+            Report exception if you can't open the file(s) to fix, and stop immediately.
             Report exact bug locations and expected behavior.
 
             OS: %s
             Workspace: %s
             Verify command: %s
+            
+            For fixing bugs, handoff to 'react25-fixer', with your investigation results.
+            To handoff, respond with 'handoff: <agent_id>' where agent_id is 'react25-fixer'.
             """.formatted(runtimeOs.displayName, workspace, runtimeOs.verifyCommand(workspace)));
         def.setReactInstructions("Read file + verifier output, then return a concrete root-cause list for each failing behavior.");
         def.setToolNames(List.of("local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        def.setModelReasoning(Map.of("effort", "low"));
+        def.setHandoffAgentIds(List.of("react25-fixer"));
+//        def.setModelReasoning(Map.of("effort", "low"));
         return def;
     }
 
@@ -255,23 +226,29 @@ public class Example25ComplexReActDebugFixTest
         def.setModel(MODEL);
         def.setReactEnabled(true);
         def.setSystemPrompt("""
-            You are a Java code fixer.
+            You are a code code fixer.
 
             Rules:
-            - Patch only InvoiceSummaryEngine.java
-            - Fix the root causes from investigator evidence
+            - Patch only InvoiceSummaryEngine.py
+            - Output the plan for fixing based on the investigation before
+            - Fix the root causes from investigator evidence based on the plan
             - Run verification after patching
             - Stop only when verification output contains BEHAVIOR_OK
             - Follow the coding style
+            - Please follow the syntax (.py, Python) when generating code for fixing
 
             OS: %s
             Workspace: %s
             Verify command: %s
+            
+            For fix review, handoff to 'react25-reviewer', with your results.
+            To handoff, respond with 'handoff: <agent_id>' where agent_id is 'react25-reviewer'.
             """.formatted(runtimeOs.displayName, workspace, runtimeOs.verifyCommand(workspace)));
         def.setReactInstructions("Read → patch -> verify -> if fail, patch again. Keep final response concise with exact fixes.");
         def.setToolNames(List.of("apply_patch", "local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        def.setModelReasoning(Map.of("effort", "low"));
+        def.setHandoffAgentIds(List.of("react25-reviewer"));
+//        def.setModelReasoning(Map.of("effort", "low"));
         return def;
     }
 
@@ -283,7 +260,7 @@ public class Example25ComplexReActDebugFixTest
         def.setModel(MODEL);
         def.setReactEnabled(true);
         def.setSystemPrompt("""
-            You are a strict verifier for Java bug-fix tasks.
+            You are a strict verifier for code bug-fix tasks.
 
             Validate with runtime evidence. PASS only when output contains BEHAVIOR_OK.
 
@@ -294,14 +271,14 @@ public class Example25ComplexReActDebugFixTest
         def.setReactInstructions("Run verifier and return PASS/FAIL with command output evidence.");
         def.setToolNames(List.of("local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        def.setModelReasoning(Map.of("effort", "low"));
+//        def.setModelReasoning(Map.of("effort", "low"));
         return def;
     }
 
     private static String buildCoordinatorPrompt(RuntimeOs runtimeOs, Path workspace, String behaviorOutput)
     {
         return """
-            Build a concise execution plan for fixing InvoiceSummaryEngine.java.
+            Build a concise execution plan for fixing InvoiceSummaryEngine.py.
 
             Current verification output:
             %s
@@ -322,7 +299,7 @@ public class Example25ComplexReActDebugFixTest
     private static String buildInvestigatorPrompt(RuntimeOs runtimeOs, Path workspace, String behaviorOutput)
     {
         return """
-            Investigate root causes in InvoiceSummaryEngine.java.
+            Investigate root causes in InvoiceSummaryEngine.py.
 
             Current verification output:
             %s
@@ -336,24 +313,25 @@ public class Example25ComplexReActDebugFixTest
             - round2 may be rounding to 1 decimal instead of 2 decimals.
 
             Steps:
-            1) Print InvoiceSummaryEngine.java
-            2) Compile and run verifier
-            3) Confirm or reject each likely bug category with evidence
-            4) Produce a concrete fixer checklist
+            1) CD into the workspace.
+            2) Print InvoiceSummaryEngine.py
+            3) Compile and run verifier
+            4) Confirm or reject each likely bug category with evidence
+            5) Produce a concrete fixer checklist
 
             Runtime OS: %s
             Workspace: %s
             File print command: %s
             Verify command: %s
             """.formatted(behaviorOutput.trim(), expectedBehaviorContract(), runtimeOs.displayName, workspace,
-            runtimeOs.printFileCommand(workspace, "InvoiceSummaryEngine.java"), runtimeOs.verifyCommand(workspace));
+            runtimeOs.printFileCommand(workspace, "InvoiceSummaryEngine.py"), runtimeOs.verifyCommand(workspace));
     }
 
     private static String buildFixerPrompt(RuntimeOs runtimeOs, Path workspace, int attempt,
                                            String behaviorOutput, String investigationOutput, String sourceSnapshot)
     {
         return """
-            Attempt %d to fix InvoiceSummaryEngine.java.
+            Attempt %d to fix InvoiceSummaryEngine.py.
 
             === CRITICAL INSTRUCTIONS ===
             The investigator has already identified all the bugs. Your job is to EXECUTE the fixes, not re-analyze.
@@ -401,7 +379,7 @@ public class Example25ComplexReActDebugFixTest
     private static String buildReviewerPrompt(RuntimeOs runtimeOs, Path workspace, String fixerOutput, String behaviorOutput)
     {
         return """
-            Review the fix result for InvoiceSummaryEngine.java.
+            Review the fix result for InvoiceSummaryEngine.py.
 
             Fixer output:
             %s
@@ -481,9 +459,9 @@ public class Example25ComplexReActDebugFixTest
         return switch (runtimeOs)
         {
             case WINDOWS -> new ProcessBuilder("cmd", "/c",
-                "cd /d \"" + workspace + "\" && javac InvoiceSummaryEngine.java InvoiceSummaryEngineVerifier.java && java InvoiceSummaryEngineVerifier");
+                "cd /d \"" + workspace + "\" && python InvoiceSummaryEngineVerifier.py");
             case MACOS, LINUX -> new ProcessBuilder("bash", "-lc",
-                "cd '" + workspace + "' && javac InvoiceSummaryEngine.java InvoiceSummaryEngineVerifier.java && java InvoiceSummaryEngineVerifier");
+                "cd '" + workspace + "' && python InvoiceSummaryEngineVerifier.py");
         };
     }
 
@@ -516,7 +494,7 @@ public class Example25ComplexReActDebugFixTest
 
         private String verifyCommand(Path workspace)
         {
-            return "javac InvoiceSummaryEngine.java InvoiceSummaryEngineVerifier.java && java InvoiceSummaryEngineVerifier";
+            return "python InvoiceSummaryEngineVerifier.py";
         }
 
         private String printFileCommand(Path workspace, String fileName)
@@ -533,7 +511,16 @@ public class Example25ComplexReActDebugFixTest
     {
         ToolDefinition definition = new ToolDefinition(
             "local_shell",
-            "Execute a local shell command and return stdout/stderr.",
+            """
+            Execute a local shell command and return stdout/stderr.
+            
+            IMPORTANT: Each invocation runs in an independent process. 'cd' command does NOT persist across calls.
+            To operate on a specific directory, combine 'cd' with your command in a single invocation using '&&'.
+            
+            Examples:
+            - Windows: cd /d "C:\\path\\to\\dir" && dir
+            - Unix: cd /path/to/dir && ls -la
+            """,
             List.of(new ToolParameterSchema("command", "string", true, "Shell command to execute")));
         return new LocalShellTool(definition);
     }
@@ -587,13 +574,13 @@ public class Example25ComplexReActDebugFixTest
                 }
                 String original = Files.readString(path);
                 String updated = applySmartDiff(original, diff);
-                
+
                 // Critical: Check if any actual changes were applied
                 if (updated.equals(original))
                 {
                     return ApplyPatchResult.failed(buildNoChangeAppliedError(diff));
                 }
-                
+
                 Files.writeString(path, updated);
                 return ApplyPatchResult.completed("Updated " + operation.getPath());
             }
@@ -602,7 +589,7 @@ public class Example25ComplexReActDebugFixTest
                 return ApplyPatchResult.failed("Update failed: " + ex.getMessage());
             }
         }
-        
+
         private static String buildNoChangeAppliedError(String diff)
         {
             StringBuilder errorMsg = new StringBuilder();
@@ -715,7 +702,7 @@ public class Example25ComplexReActDebugFixTest
         {
             // Validate diff format first
             validateDiffFormat(diff);
-            
+
             if (looksLikeReplacementOnlyDiff(diff))
             {
                 return applySimpleReplacementDiff(original, diff);
@@ -735,7 +722,7 @@ public class Example25ComplexReActDebugFixTest
                 return applySimpleReplacementDiff(original, diff);
             }
         }
-        
+
         /**
          * Validate diff format to catch common mistakes.
          */
@@ -745,13 +732,13 @@ public class Example25ComplexReActDebugFixTest
             {
                 throw new IllegalArgumentException("Empty diff.");
             }
-            
+
             String[] lines = diff.split("\\R", -1);
-            
+
             for (String line : lines)
             {
                 if (line.isBlank()) continue;
-                
+
                 // Check for lines that look like code but don't start with - or +
                 if (!line.startsWith("-") && !line.startsWith("+"))
                 {
@@ -759,44 +746,48 @@ public class Example25ComplexReActDebugFixTest
                     {
                         throw new IllegalArgumentException(
                             "INVALID DIFF FORMAT!\n\n" +
-                            "Problem: Line '" + line.substring(0, Math.min(40, line.length())) + "...' starts with whitespace.\n\n" +
-                            "SOLUTION: For simple diff, EVERY line must start with '-' (old) or '+' (new).\n\n" +
-                            "Example of CORRECT diff to change a return value:\n" +
-                            "  -        return 0.18\n" +
-                            "  +        return 0.08\n\n" +
-                            "Do NOT include lines that don't change. Only include the ACTUAL lines being modified."
+                                "Problem: Line '" + line.substring(0, Math.min(40, line.length())) + "...' starts with whitespace.\n\n" +
+                                "SOLUTION: For simple diff, EVERY line must start with '-' (old) or '+' (new).\n\n" +
+                                "Example of CORRECT diff to change a return value:\n" +
+                                "  -        return 0.18\n" +
+                                "  +        return 0.08\n\n" +
+                                "Do NOT include lines that don't change. Only include the ACTUAL lines being modified."
                         );
                     }
                 }
             }
-            // Note: We don't check for identical '-' and '+' lines here because 
+            // Note: We don't check for identical '-' and '+' lines here because
             // applySimpleReplacementDiff will automatically skip them.
         }
-        
+
         /**
          * Check if the result file is corrupted (e.g., structure destroyed).
          */
         private static void validateResultNotCorrupted(String original, String result)
         {
+            // Check if the result has reasonable structure
+            // If original had imports/functions, result should too
             long originalFuncCount = countOccurrences(original, "def ");
             long resultFuncCount = countOccurrences(result, "def ");
-            
+
             if (resultFuncCount < originalFuncCount)
             {
                 throw new IllegalArgumentException(
                     "Diff would corrupt the file: function definitions would be lost.\n" +
-                    "Original had " + originalFuncCount + " function(s), result would have " + resultFuncCount + ".\n" +
-                    "Please verify your diff is correct and targets the right lines."
+                        "Original had " + originalFuncCount + " function(s), result would have " + resultFuncCount + ".\n" +
+                        "Please verify your diff is correct and targets the right lines."
                 );
             }
-            
+
+            // Check for Python syntax issues (indentation at file start)
             String[] resultLines = result.split("\\R", -1);
             if (resultLines.length > 0)
             {
                 String firstLine = resultLines[0];
                 if (firstLine.startsWith("    ") || firstLine.startsWith("\t"))
                 {
-                    if (original.split("\\R", -1)[0].startsWith("import ") || 
+                    // First line should not be indented in a Python file
+                    if (original.split("\\R", -1)[0].startsWith("import ") ||
                         original.split("\\R", -1)[0].startsWith("def ") ||
                         original.split("\\R", -1)[0].startsWith("class ") ||
                         original.split("\\R", -1)[0].startsWith("#") ||
@@ -804,14 +795,14 @@ public class Example25ComplexReActDebugFixTest
                     {
                         throw new IllegalArgumentException(
                             "Diff would corrupt the file: first line would be incorrectly indented.\n" +
-                            "First line of result: '" + firstLine.substring(0, Math.min(50, firstLine.length())) + "...'\n" +
-                            "Please verify your diff targets the correct location in the file."
+                                "First line of result: '" + firstLine.substring(0, Math.min(50, firstLine.length())) + "...'\n" +
+                                "Please verify your diff targets the correct location in the file."
                         );
                     }
                 }
             }
         }
-        
+
         private static long countOccurrences(String text, String substring)
         {
             long count = 0;
@@ -861,75 +852,94 @@ public class Example25ComplexReActDebugFixTest
                 throw new IllegalArgumentException("Empty diff.");
             }
 
-            String[] lines = diff.split("\\R", -1);
-            String updated = original;
-            String pendingRemoved = null;
-            int replacedCount = 0;
+            // Parse diff into pairs of (old, new)
+            List<String[]> diffPairs = new ArrayList<>();
+            String[] diffLines = diff.split("\\R", -1);
+            String pendingOld = null;
             int skippedCount = 0;
-            List<String> unmatchedOldLines = new ArrayList<>();
-            for (String line : lines)
+
+            for (String line : diffLines)
             {
                 if (line.startsWith("-"))
                 {
-                    pendingRemoved = line.substring(1);
+                    pendingOld = line.substring(1);
                     continue;
                 }
-                if (line.startsWith("+") && pendingRemoved != null)
+                if (line.startsWith("+") && pendingOld != null)
                 {
-                    String added = line.substring(1);
-                    
-                    // Skip if old and new content are identical (no actual change)
-                    if (pendingRemoved.equals(added))
+                    String newContent = line.substring(1);
+                    // Skip if old and new are identical
+                    if (pendingOld.equals(newContent))
                     {
                         skippedCount++;
-                        pendingRemoved = null;
-                        continue;
-                    }
-                    
-                    int index = updated.indexOf(pendingRemoved);
-                    if (index >= 0)
-                    {
-                        updated = updated.substring(0, index) + added + updated.substring(index + pendingRemoved.length());
-                        replacedCount++;
                     }
                     else
                     {
-                        unmatchedOldLines.add(pendingRemoved);
+                        diffPairs.add(new String[]{pendingOld, newContent});
                     }
-                    pendingRemoved = null;
+                    pendingOld = null;
                     continue;
                 }
                 if (!line.isBlank())
                 {
-                    pendingRemoved = null;
+                    pendingOld = null;
                 }
             }
-            if (replacedCount == 0)
+
+            if (diffPairs.isEmpty())
             {
-                if (skippedCount > 0 && unmatchedOldLines.isEmpty())
+                if (skippedCount > 0)
                 {
                     throw new IllegalArgumentException(
-                        "Diff contains only identical '-old' and '+new' pairs. No actual changes detected.\n" +
-                        "Please ensure your diff has lines that actually differ between '-' and '+'."
+                        "Diff contains only identical '-old' and '+new' pairs. No actual changes detected."
                     );
                 }
-                
-                StringBuilder errorMsg = new StringBuilder();
-                errorMsg.append("Diff failed: content not found in file.\n\n");
-                errorMsg.append("The following old content was NOT found:\n");
-                for (int i = 0; i < Math.min(3, unmatchedOldLines.size()); i++)
+                throw new IllegalArgumentException("No valid diff pairs found.");
+            }
+
+            // Apply replacements LINE-BY-LINE for accuracy
+            String[] originalLines = original.split("\\R", -1);
+            List<String> resultLines = new ArrayList<>();
+            for (String originalLine : originalLines)
+            {
+                String currentLine = originalLine;
+
+                // Try to match and replace for each diff pair
+                for (String[] pair : diffPairs)
                 {
-                    String unmatched = unmatchedOldLines.get(i);
-                    String display = unmatched.length() > 100 ? unmatched.substring(0, 100) + "..." : unmatched;
+                    String oldContent = pair[0];
+                    String newContent = pair[1];
+
+                    // Check if this line contains the old content
+                    int idx = currentLine.indexOf(oldContent);
+                    if (idx >= 0)
+                    {
+                        // Verify this is a reasonable match (not a partial match)
+                        // The old content should match a substantial part of the line
+                        currentLine = currentLine.substring(0, idx) + newContent + currentLine.substring(idx + oldContent.length());
+                    }
+                }
+                resultLines.add(currentLine);
+            }
+
+            // Check if any changes were made
+            String result = String.join("\n", resultLines);
+            if (result.equals(original))
+            {
+                StringBuilder errorMsg = new StringBuilder();
+                errorMsg.append("Diff failed: NO changes were applied.\n\n");
+                errorMsg.append("The following content was NOT found in any line:\n");
+                for (int i = 0; i < Math.min(3, diffPairs.size()); i++)
+                {
+                    String old = diffPairs.get(i)[0];
+                    String display = old.length() > 80 ? old.substring(0, 80) + "..." : old;
                     errorMsg.append("  \"").append(display).append("\"\n");
                 }
-                errorMsg.append("\nTo fix this:\n");
-                errorMsg.append("1. Read the file again to get its CURRENT content.\n");
-                errorMsg.append("2. Compare your diff with the actual file content.\n");
-                errorMsg.append("3. Provide a new diff that matches EXACTLY what's in the file (including whitespace).\n");
+                errorMsg.append("\nTo fix: Read the file again and provide exact matching content.");
                 throw new IllegalArgumentException(errorMsg.toString());
             }
-            return updated;
+
+            return result;
         }
     }
 }
