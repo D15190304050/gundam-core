@@ -75,7 +75,7 @@ public class StepByStepRunnerTest
         }
 
         RuntimeOs runtimeOs = detectRuntimeOs();
-        Path workspace = Path.of("src", "test", "resources", "outputs", "react-agent", "example33");
+        Path workspace = Path.of("D:\\DinoStark\\Projects\\CodeSpaces\\CodeRaider\\GenericAgent\\generic-agent-core\\src\\test\\resources\\outputs\\react-agent\\example33");
         resetWorkspace(workspace);
 
         ToolRegistry toolRegistry = new ToolRegistry();
@@ -88,36 +88,48 @@ public class StepByStepRunnerTest
         agentRegistry.register(createSummarizerAgent(runtimeOs, workspace));
 
         AgentRunner runner = AgentRunner.builder()
-            .llmClient(new ModelScopeLlmClient(apiKey, MODEL))
+            .llmClient(new ModelScopeLlmClient(apiKey, MODEL, false))
             .toolRegistry(toolRegistry)
             .agentRegistry(agentRegistry)
             .eventPublisher(createStreamingPublisher())
             .build();
 
+        String verifyOutput = runBehaviorVerification(runtimeOs, workspace);
         String userRequest = """
-            Fix the bugs in the Python files.
-            
-            Working directory: %s
-            
-            Files to fix:
-            - FinancialCalculator.py
-            - OrderProcessor.py
-            
-            IMPORTANT:
-            - For local_shell (type, python): use FULL PATH like "%s\\FinancialCalculator.py"
-            - For apply_patch: use FILENAME ONLY like "FinancialCalculator.py"
-            
-            Verification:
-            - Run: cd /d "%s" ; python OrderProcessor.py
-            - Expected: output should contain BEHAVIOR_OK
-            """.formatted(workspace.toString(), workspace, workspace);
+            Investigate root causes in FinancialCalculator.py and OrderProcessor.py.
+
+            Current verification output:
+            %s
+
+            Required behavior contract:
+            - Total should be 1958.34, not 2232.71
+            - Verifier must print BEHAVIOR_OK
+
+            Known likely bug categories to check explicitly:
+            - FinancialCalculator.py: calculate_percentage may have wrong division or premature rounding
+            - OrderProcessor.py: calculate_taxable_amount may have inverted shipping tax logic
+
+            Steps:
+            1) CD into the workspace.
+            2) Print FinancialCalculator.py and OrderProcessor.py
+            3) Run verifier to see current output
+            4) Confirm or reject each likely bug category with evidence
+            5) Produce a concrete fixer checklist
+
+            Runtime OS: %s
+            Workspace: %s
+            File print command: %s
+            Verify command: %s
+            """.formatted(verifyOutput.trim(), runtimeOs.displayName, workspace,
+            runtimeOs.printFileCommand(workspace, "FinancialCalculator.py"), runtimeOs.verifyCommand(workspace));
 
         System.out.println("\n========== [PLANNER PHASE] ==========\n");
 
         ContextResult planning = runner.chatClient("react30-planner").prompt().stream(true).user(userRequest)
             .runConfiguration(EXAMPLE_RUN_CONFIGURATION).runHooks(ExampleSupport.noopHooks()).call().contextResult();
 
-        String verifyOutput = runBehaviorVerification(runtimeOs, workspace);
+        System.out.println("\n[PLANNER OUTPUT]: " + planning.getFinalOutput());
+
         ContextResult execution = null;
         String currentPlan = planning.getFinalOutput();
         int maxIterations = 10;
@@ -133,6 +145,8 @@ public class StepByStepRunnerTest
             execution = runner.chatClient("react30-executor").prompt().stream(true)
                 .user(buildExecutorPrompt(currentPlan, verifyOutput, iteration, workspace, sourceSnapshot1, sourceSnapshot2))
                 .runConfiguration(EXAMPLE_RUN_CONFIGURATION).runHooks(ExampleSupport.noopHooks()).call().contextResult();
+
+            System.out.println("\n[EXECUTOR OUTPUT]: " + execution.getFinalOutput());
 
             verifyOutput = runBehaviorVerification(runtimeOs, workspace);
             System.out.println("\n[VERIFICATION - Iteration " + iteration + "]:\n" + verifyOutput.trim());
@@ -189,12 +203,17 @@ public class StepByStepRunnerTest
             The planner has already identified the bugs. Your job is to EXECUTE the fixes, not re-analyze.
             
             1. Read the planner's findings below carefully.
-            2. Apply ALL fixes using apply_patch tool.
-            3. Each patch must contain the EXACT lines to change.
+            2. Apply ALL fixes in ONE or TWO apply_patch calls maximum.
+            3. Each patch must contain the EXACT lines to change (not comments, but actual code).
             4. After patching, run the verifier immediately.
-            
-            === PLANNER FINDINGS ===
+            5. If the first patch attempt fails, re-read the file and try once more with correct content.
+
+            === PLANNER FINDINGS (EXECUTE THESE FIXES) ===
             %s
+
+            === REQUIRED BEHAVIOR CONTRACT ===
+            - Total should be 1958.34, not 2232.71
+            - Verifier must print BEHAVIOR_OK
 
             === CURRENT VERIFICATION STATUS ===
             %s
@@ -206,9 +225,10 @@ public class StepByStepRunnerTest
             %s
 
             === EXECUTION STEPS ===
-            1. Apply patches for ALL bugs (use apply_patch tool with path="FinancialCalculator.py" or "OrderProcessor.py")
+            1. Apply patches for ALL bugs identified by planner (use apply_patch tool)
             2. Run verifier: cd /d "%s" ; python OrderProcessor.py
             3. If output shows BEHAVIOR_OK, stop.
+            4. If still failing, read file again and apply one more targeted fix
             """.formatted(iteration, plan, verifyOutput.trim(), sourceSnapshot1, sourceSnapshot2, workspace);
     }
 
@@ -293,15 +313,55 @@ public class StepByStepRunnerTest
 
             Rules:
             - Fix bugs in FinancialCalculator.py and OrderProcessor.py
-            - Run verification after patching
-            - Stop when verification output contains BEHAVIOR_OK
-            - Follow Python syntax when generating code
+            - Output the plan for fixing based on the investigation before
+            - Fix the root causes from planner evidence based on the plan
+            - Run verification after EACH patch
+            - Stop only when verification output contains BEHAVIOR_OK
+            - Follow the coding style
+            - Follow Python syntax when generating code for fixing
+
+            CRITICAL: After each fix, if verification still shows BEHAVIOR_BAD:
+            1. RE-READ the modified files to see current state
+            2. Compare actual total vs expected total, calculate the difference
+            3. Use Python to calculate expected values for each component (subtotal, discount, tax, shipping)
+            4. Find which component is wrong by comparing expected vs actual
+            5. Trace back to the code that calculates that component
+            6. Look for bugs in that specific calculation (wrong formula, wrong constant, extra/missing operations)
+            7. Do NOT modify code that calculates correct values
+            8. Do NOT rewrite entire functions - fix only the specific bug
+
+            Example analysis process:
+            - If expected=1958.34 but actual=1953.83, difference=4.51
+            - Use Python: expected_tax = ?, expected_discount = ?, expected_shipping = ?
+            - Compare with actual breakdown from verification output
+            - Find which component differs
+            - Read the code for that component
+            - Look for: wrong division factor, extra rounding, inverted logic, wrong constant
+
+            CRITICAL for apply_patch tool:
+            - Use ONLY ONE of these two formats:
+              Format A: {"type":"update_file","path":"filename.py","diff":"-old_line\\n+new_line"}
+              Format B: {"operation":{"type":"update_file","path":"filename.py","diff":"-old_line\\n+new_line"}}
+            - Do NOT mix both formats
+            - Do NOT use 'diff --git', '---', '+++', or '@@' markers
+            - Match EXACT indentation from the file (count spaces carefully)
+            - Each patch should change ONLY the specific lines that need fixing
+            - Use \\n for newlines in the diff string
+
+            Example patch for fixing division:
+            {"type":"update_file","path":"FinancialCalculator.py","diff":"-        rate = percentage / 1000\\n+        rate = percentage / 100"}
+
+            Example patch for removing a line:
+            {"type":"update_file","path":"FinancialCalculator.py","diff":"-        rate = self.round_currency(rate)\\n"}
+
+            Example patch for fixing logic:
+            {"type":"update_file","path":"OrderProcessor.py","diff":"-        is_shipping_taxable = state not in shipping_taxable_states\\n+        is_shipping_taxable = state in shipping_taxable_states"}
 
             OS: %s
             Workspace: %s
             Verify command: %s
             """.formatted(runtimeOs.displayName, workspace, runtimeOs.verifyCommand(workspace)));
-        def.setReactInstructions("Read -> patch -> verify. Keep fixing until BEHAVIOR_OK.");
+        def.setReactInstructions("Read file -> apply ONE patch -> verify -> if failing: re-read files, calculate expected values, find wrong component, trace to bug -> repeat. Match exact indentation in patches.");
         def.setToolNames(List.of("apply_patch", "local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
         return def;
@@ -441,12 +501,12 @@ public class StepByStepRunnerTest
             return "python OrderProcessor.py";
         }
 
-        private String printFileCommand(String fileName)
+        private String printFileCommand(Path workspace, String fileName)
         {
             return switch (this)
             {
-                case WINDOWS -> "type " + fileName;
-                case MACOS, LINUX -> "cat " + fileName;
+                case WINDOWS -> "type " + workspace.resolve(fileName);
+                case MACOS, LINUX -> "cat " + workspace.resolve(fileName);
             };
         }
     }
