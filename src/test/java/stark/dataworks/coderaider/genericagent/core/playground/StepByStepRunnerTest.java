@@ -3,9 +3,8 @@ package stark.dataworks.coderaider.genericagent.core.playground;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
-import stark.dataworks.coderaider.genericagent.core.agent.AgentDefinition;
-import stark.dataworks.coderaider.genericagent.core.agent.AgentRegistry;
 import stark.dataworks.coderaider.genericagent.core.context.ContextResult;
 import stark.dataworks.coderaider.genericagent.core.editor.ApplyPatchOperation;
 import stark.dataworks.coderaider.genericagent.core.editor.ApplyPatchResult;
@@ -13,16 +12,19 @@ import stark.dataworks.coderaider.genericagent.core.editor.IApplyPatchEditor;
 import stark.dataworks.coderaider.genericagent.core.events.RunEvent;
 import stark.dataworks.coderaider.genericagent.core.events.RunEventType;
 import stark.dataworks.coderaider.genericagent.core.examples.ExampleSupport;
+import stark.dataworks.coderaider.genericagent.core.excalibur.ExcaliburAgentFactory;
+import stark.dataworks.coderaider.genericagent.core.excalibur.ExcaliburAgentRole;
+import stark.dataworks.coderaider.genericagent.core.excalibur.ExcaliburAgentSpec;
+import stark.dataworks.coderaider.genericagent.core.excalibur.ExcaliburTaskRequest;
+import stark.dataworks.coderaider.genericagent.core.excalibur.tools.ExcaliburToolRegistrySupport;
 import stark.dataworks.coderaider.genericagent.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.genericagent.core.runner.AgentRunner;
 import stark.dataworks.coderaider.genericagent.core.runner.RunConfiguration;
 import stark.dataworks.coderaider.genericagent.core.streaming.IRunEventListener;
 import stark.dataworks.coderaider.genericagent.core.streaming.RunEventPublisher;
-import stark.dataworks.coderaider.genericagent.core.tool.ToolDefinition;
-import stark.dataworks.coderaider.genericagent.core.tool.ToolParameterSchema;
 import stark.dataworks.coderaider.genericagent.core.tool.ToolRegistry;
 import stark.dataworks.coderaider.genericagent.core.tool.builtin.ApplyPatchTool;
-import stark.dataworks.coderaider.genericagent.core.tool.builtin.LocalShellTool;
+import stark.dataworks.coderaider.genericagent.core.agent.AgentRegistry;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -33,18 +35,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * 33) Dynamic multi-agent debug workflow inspired by Trae, Cursor, Antigravity.
- * <p>
- * Agent architecture:
- * - Planner: Understands problem first, reads files, decides output format based on complexity
- * - Executor: Executes plan, tracks progress, can request plan adjustment
- * - Summarizer: Reports what was done
- * <p>
- * Key design principles:
- * - Generic agents: no hardcoded file paths in system prompts
- * - Dynamic planning: simple problems get solution ideas, complex problems get step-by-step plans
- * - Progress tracking: Executor updates and reports progress
- * - Manual orchestration: Java code controls the flow, not automatic handoff
+ * Dynamic Excalibur-driven multi-agent debug workflow for general-purpose software engineering tasks.
  */
 public class StepByStepRunnerTest
 {
@@ -75,17 +66,23 @@ public class StepByStepRunnerTest
         }
 
         RuntimeOs runtimeOs = detectRuntimeOs();
-        Path workspace = Path.of("D:\\DinoStark\\Projects\\CodeSpaces\\CodeRaider\\GenericAgent\\generic-agent-core\\src\\test\\resources\\outputs\\react-agent\\example33");
+        Path workspace = Path.of("src", "test", "resources", "outputs", "react-agent", "excalibur-step-by-step");
         resetWorkspace(workspace);
+        ExcaliburTaskRequest taskRequest = createTaskRequest(workspace);
 
         ToolRegistry toolRegistry = new ToolRegistry();
-        toolRegistry.register(createShellTool());
-        toolRegistry.register(new ApplyPatchTool(new FileSystemEditor(workspace), false));
+        ExcaliburToolRegistrySupport.registerTraeCompatibleTools(toolRegistry, workspace, new FileSystemEditor(workspace));
+
+        ExcaliburAgentSpec investigatorSpec = createInvestigatorAgent(runtimeOs, workspace, taskRequest);
+        ExcaliburAgentSpec fixerSpec = createFixerAgent(runtimeOs, workspace, taskRequest);
+        ExcaliburAgentSpec reviewerSpec = createReviewerAgent(runtimeOs, workspace, taskRequest);
+        ExcaliburAgentSpec summarizerSpec = createSummarizerAgent(workspace, taskRequest);
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(createPlannerAgent(runtimeOs, workspace));
-        agentRegistry.register(createExecutorAgent(runtimeOs, workspace));
-        agentRegistry.register(createSummarizerAgent(runtimeOs, workspace));
+        agentRegistry.register(investigatorSpec.toAgentDefinition());
+        agentRegistry.register(fixerSpec.toAgentDefinition());
+        agentRegistry.register(reviewerSpec.toAgentDefinition());
+        agentRegistry.register(summarizerSpec.toAgentDefinition());
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(new ModelScopeLlmClient(apiKey, MODEL, false))
@@ -94,89 +91,80 @@ public class StepByStepRunnerTest
             .eventPublisher(createStreamingPublisher())
             .build();
 
-        String verifyOutput = runBehaviorVerification(runtimeOs, workspace);
-        String userRequest = """
-            Investigate root causes in FinancialCalculator.py and OrderProcessor.py.
+        String behaviorOutput = runBehaviorVerification(runtimeOs, workspace);
+        System.out.println("INITIAL_VERIFICATION: " + behaviorOutput.trim());
 
-            Current verification output:
-            %s
+        ContextResult investigation = runner.chatClient(investigatorSpec.toAgentDefinition().getId())
+            .prompt()
+            .stream(true)
+            .user(investigatorSpec.initialUserMessage() + "\n\n" + buildInvestigatorPrompt(runtimeOs, workspace, behaviorOutput))
+            .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
+            .runHooks(ExampleSupport.noopHooks())
+            .call()
+            .contextResult();
 
-            Required behavior contract:
-            - Total should be 1958.34, not 2232.71
-            - Verifier must print BEHAVIOR_OK
+        System.out.println("INVESTIGATION_OUTPUT: " + investigation.getFinalOutput());
+        abortIfProviderUnavailable("investigator", investigation.getFinalOutput());
 
-            Known likely bug categories to check explicitly:
-            - FinancialCalculator.py: calculate_percentage may have wrong division or premature rounding
-            - OrderProcessor.py: calculate_taxable_amount may have inverted shipping tax logic
-
-            Steps:
-            1) CD into the workspace.
-            2) Print FinancialCalculator.py and OrderProcessor.py
-            3) Run verifier to see current output
-            4) Confirm or reject each likely bug category with evidence
-            5) Produce a concrete fixer checklist
-
-            Runtime OS: %s
-            Workspace: %s
-            File print command: %s
-            Verify command: %s
-            """.formatted(verifyOutput.trim(), runtimeOs.displayName, workspace,
-            runtimeOs.printFileCommand(workspace, "FinancialCalculator.py"), runtimeOs.verifyCommand(workspace));
-
-        System.out.println("\n========== [PLANNER PHASE] ==========\n");
-
-        ContextResult planning = runner.chatClient("react30-planner").prompt().stream(true).user(userRequest)
-            .runConfiguration(EXAMPLE_RUN_CONFIGURATION).runHooks(ExampleSupport.noopHooks()).call().contextResult();
-
-        System.out.println("\n[PLANNER OUTPUT]: " + planning.getFinalOutput());
-
-        ContextResult execution = null;
-        String currentPlan = planning.getFinalOutput();
-        int maxIterations = 10;
-        int iteration = 0;
-
-        while (iteration < maxIterations)
+        ContextResult fixerResult = null;
+        ContextResult reviewerResult = null;
+        for (int attempt = 1; attempt <= 5; attempt++)
         {
-            iteration++;
-            String sourceSnapshot1 = Files.readString(workspace.resolve("FinancialCalculator.py"));
-            String sourceSnapshot2 = Files.readString(workspace.resolve("OrderProcessor.py"));
-            System.out.println("\n========== [EXECUTOR PHASE - Iteration " + iteration + "] ==========\n");
+            String financialSnapshot = Files.readString(workspace.resolve("FinancialCalculator.py"));
+            String orderSnapshot = Files.readString(workspace.resolve("OrderProcessor.py"));
 
-            execution = runner.chatClient("react30-executor").prompt().stream(true)
-                .user(buildExecutorPrompt(currentPlan, verifyOutput, iteration, workspace, sourceSnapshot1, sourceSnapshot2))
-                .runConfiguration(EXAMPLE_RUN_CONFIGURATION).runHooks(ExampleSupport.noopHooks()).call().contextResult();
+            fixerResult = runner.chatClient(fixerSpec.toAgentDefinition().getId())
+                .prompt()
+                .stream(true)
+                .user(fixerSpec.initialUserMessage() + "\n\n"
+                    + buildFixerPrompt(runtimeOs, workspace, attempt, behaviorOutput,
+                    investigation.getFinalOutput(), financialSnapshot, orderSnapshot))
+                .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
+                .runHooks(ExampleSupport.noopHooks())
+                .call()
+                .contextResult();
 
-            System.out.println("\n[EXECUTOR OUTPUT]: " + execution.getFinalOutput());
+            System.out.println("FIXER_ATTEMPT_" + attempt + "_OUTPUT: " + fixerResult.getFinalOutput());
+            abortIfProviderUnavailable("fixer attempt " + attempt, fixerResult.getFinalOutput());
 
-            verifyOutput = runBehaviorVerification(runtimeOs, workspace);
-            System.out.println("\n[VERIFICATION - Iteration " + iteration + "]:\n" + verifyOutput.trim());
+            behaviorOutput = runBehaviorVerification(runtimeOs, workspace);
+            System.out.println("ATTEMPT_" + attempt + "_VERIFICATION: " + behaviorOutput.trim());
 
-            if (verifyOutput.contains("BEHAVIOR_OK"))
+            reviewerResult = runner.chatClient(reviewerSpec.toAgentDefinition().getId())
+                .prompt()
+                .stream(true)
+                .user(reviewerSpec.initialUserMessage() + "\n\n"
+                    + buildReviewerPrompt(runtimeOs, workspace, fixerResult.getFinalOutput(), behaviorOutput))
+                .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
+                .runHooks(ExampleSupport.noopHooks())
+                .call()
+                .contextResult();
+
+            System.out.println("REVIEW_ATTEMPT_" + attempt + "_OUTPUT: " + reviewerResult.getFinalOutput());
+            abortIfProviderUnavailable("reviewer attempt " + attempt, reviewerResult.getFinalOutput());
+            if (behaviorOutput.contains("BEHAVIOR_OK"))
             {
-                System.out.println("\n[SUCCESS] Bugs fixed successfully!");
                 break;
-            }
-
-            if (execution.getFinalOutput().contains("NEED_PLAN_ADJUSTMENT"))
-            {
-                System.out.println("\n========== [PLANNER RE-PLAN] ==========\n");
-                ContextResult newPlanning = runner.chatClient("react30-planner").prompt().stream(true)
-                    .user(buildPlanAdjustmentPrompt(currentPlan, execution.getFinalOutput(), verifyOutput))
-                    .runConfiguration(EXAMPLE_RUN_CONFIGURATION).runHooks(ExampleSupport.noopHooks()).call().contextResult();
-                currentPlan = newPlanning.getFinalOutput();
             }
         }
 
-        System.out.println("\n========== [SUMMARIZER PHASE] ==========\n");
+        ContextResult summary = runner.chatClient(summarizerSpec.toAgentDefinition().getId())
+            .prompt()
+            .stream(true)
+            .user(summarizerSpec.initialUserMessage() + "\n\n"
+                + buildSummarizerPrompt(investigation.getFinalOutput(), fixerResult.getFinalOutput(),
+                reviewerResult.getFinalOutput(), behaviorOutput))
+            .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
+            .runHooks(ExampleSupport.noopHooks())
+            .call()
+            .contextResult();
 
-        ContextResult summary = runner.chatClient("react30-summarizer").prompt().stream(true)
-            .user(buildSummarizerPrompt(currentPlan, execution.getFinalOutput(), verifyOutput))
-            .runConfiguration(EXAMPLE_RUN_CONFIGURATION).runHooks(ExampleSupport.noopHooks()).call().contextResult();
-
-        Assertions.assertTrue(verifyOutput.contains("BEHAVIOR_OK"),
-            "Agent must fix the bugs successfully. Verification output: " + verifyOutput);
-        Assertions.assertNotNull(planning.getFinalOutput());
-        Assertions.assertNotNull(execution.getFinalOutput());
+        Assertions.assertTrue(behaviorOutput.contains("BEHAVIOR_OK"),
+            "Agent must fix the bugs successfully. Verification output: " + behaviorOutput);
+        Assertions.assertNotNull(investigation.getFinalOutput());
+        Assertions.assertNotNull(fixerResult.getFinalOutput());
+        Assertions.assertNotNull(reviewerResult.getFinalOutput());
+        Assertions.assertTrue(fixerSpec.hasRequiredPatch(), fixerSpec.taskIncompleteMessage());
 
         String summaryText = summary.getFinalOutput();
         Assertions.assertFalse(summaryText.isBlank());
@@ -194,21 +182,57 @@ public class StepByStepRunnerTest
         return publisher;
     }
 
-    private static String buildExecutorPrompt(String plan, String verifyOutput, int iteration, Path workspace, String sourceSnapshot1, String sourceSnapshot2)
+    private static String buildInvestigatorPrompt(RuntimeOs runtimeOs, Path workspace, String behaviorOutput)
     {
         return """
-            Attempt %d to fix the bugs.
+            Investigate root causes in FinancialCalculator.py and OrderProcessor.py.
+
+            Current verification output:
+            %s
+
+            Required behavior contract:
+            - Total should be 1958.34, not 2232.71
+            - Verifier must print BEHAVIOR_OK
+
+            Known likely bug categories to check explicitly:
+            - FinancialCalculator.py: calculate_percentage may have wrong division or premature rounding
+            - OrderProcessor.py: calculate_taxable_amount may have inverted shipping tax logic
+
+            Steps:
+            1) CD into the workspace.
+            2) Print FinancialCalculator.py and OrderProcessor.py.
+            3) Run verifier to see current output.
+            4) Confirm or reject each likely bug category with evidence.
+            5) Produce a concrete fixer checklist with exact functions/lines to update.
+
+            Runtime OS: %s
+            Workspace: %s
+            File print commands:
+            - %s
+            - %s
+            Verify command: %s
+            """.formatted(behaviorOutput.trim(), runtimeOs.displayName, workspace,
+            runtimeOs.printFileCommand("FinancialCalculator.py"), runtimeOs.printFileCommand("OrderProcessor.py"),
+            runtimeOs.verifyCommand());
+    }
+
+    private static String buildFixerPrompt(RuntimeOs runtimeOs, Path workspace, int attempt,
+                                           String behaviorOutput, String investigationOutput,
+                                           String financialSnapshot, String orderSnapshot)
+    {
+        return """
+            Attempt %d to fix the bugs in FinancialCalculator.py and OrderProcessor.py.
 
             === CRITICAL INSTRUCTIONS ===
-            The planner has already identified the bugs. Your job is to EXECUTE the fixes, not re-analyze.
-            
-            1. Read the planner's findings below carefully.
-            2. Apply ALL fixes in ONE or TWO apply_patch calls maximum.
-            3. Each patch must contain the EXACT lines to change (not comments, but actual code).
-            4. After patching, run the verifier immediately.
-            5. If the first patch attempt fails, re-read the file and try once more with correct content.
+            The investigator already identified the likely root causes. Execute the fixes instead of restarting the analysis.
 
-            === PLANNER FINDINGS (EXECUTE THESE FIXES) ===
+            1. Read the investigator findings carefully.
+            2. Apply all confirmed fixes in one or two apply_patch calls maximum.
+            3. Use exact current file content when constructing the diff.
+            4. After patching, run the verifier immediately.
+            5. If verification still fails, re-read the files, identify the remaining wrong component, and apply one more precise patch.
+
+            === INVESTIGATOR FINDINGS ===
             %s
 
             === REQUIRED BEHAVIOR CONTRACT ===
@@ -218,185 +242,188 @@ public class StepByStepRunnerTest
             === CURRENT VERIFICATION STATUS ===
             %s
 
-            === FinancialCalculator.py ===
+            === CURRENT FinancialCalculator.py ===
             %s
 
-            === OrderProcessor.py ===
+            === CURRENT OrderProcessor.py ===
             %s
+
+            === APPLY_PATCH REMINDER ===
+            Use one of these payload shapes only:
+            - {"type":"update_file","path":"FinancialCalculator.py","diff":"-old\\n+new"}
+            - {"operation":{"type":"update_file","path":"OrderProcessor.py","diff":"-old\\n+new"}}
+            Do not use git diff headers like diff --git, ---, +++, or @@.
 
             === EXECUTION STEPS ===
-            1. Apply patches for ALL bugs identified by planner (use apply_patch tool)
-            2. Run verifier: cd /d "%s" ; python OrderProcessor.py
-            3. If output shows BEHAVIOR_OK, stop.
-            4. If still failing, read file again and apply one more targeted fix
-            """.formatted(iteration, plan, verifyOutput.trim(), sourceSnapshot1, sourceSnapshot2, workspace);
+            1. Patch the confirmed bugs.
+            2. Run verifier: %s
+            3. Stop only when output contains BEHAVIOR_OK.
+
+            Runtime OS: %s
+            Workspace: %s
+            """.formatted(attempt, investigationOutput, behaviorOutput.trim(), financialSnapshot, orderSnapshot,
+            runtimeOs.verifyCommand(), runtimeOs.displayName, workspace);
     }
 
-    private static String buildPlanAdjustmentPrompt(String currentPlan, String executorFeedback, String verifyOutput)
+    private static String buildReviewerPrompt(RuntimeOs runtimeOs, Path workspace, String fixerOutput, String behaviorOutput)
     {
         return """
-            The executor requested a plan adjustment.
-            
-            === CURRENT PLAN ===
+            Review the fix result for FinancialCalculator.py and OrderProcessor.py.
+
+            Fixer output:
             %s
-            
-            === EXECUTOR FEEDBACK ===
+
+            Latest host-side verification output:
             %s
-            
-            === VERIFICATION RESULT ===
+
+            Execute verifier again if needed:
             %s
-            
-            Please adjust the plan based on this feedback.
-            Keep the new plan concise and focused on the remaining issues.
-            """.formatted(currentPlan, executorFeedback, verifyOutput.trim());
+
+            Return PASS only when output contains BEHAVIOR_OK. Otherwise return FAIL with the remaining broken requirement.
+
+            Runtime OS: %s
+            Workspace: %s
+            """.formatted(fixerOutput, behaviorOutput.trim(), runtimeOs.verifyCommand(), runtimeOs.displayName, workspace);
     }
 
-    private static String buildSummarizerPrompt(String plan, String execution, String verifyOutput)
+    private static String buildSummarizerPrompt(String investigation, String fixerOutput,
+                                                String reviewerOutput, String behaviorOutput)
     {
         return """
             Summarize what was done during this debugging session.
-            
-            === PLANNING OUTPUT ===
+
+            === INVESTIGATION OUTPUT ===
             %s
-            
-            === EXECUTION OUTPUT ===
+
+            === FIXER OUTPUT ===
             %s
-            
-            === VERIFICATION RESULT ===
+
+            === REVIEWER OUTPUT ===
             %s
-            
-            === YOUR SUMMARY ===
+
+            === FINAL VERIFICATION RESULT ===
+            %s
+
             Provide a concise summary with:
             - Files modified: [list files]
             - Changes made: [brief description of changes]
-            - Outcome: [success/failure and final result]
-            """.formatted(plan, execution, verifyOutput.trim());
+            - Outcome: [success/failure and final verification result]
+            """.formatted(investigation, fixerOutput, reviewerOutput, behaviorOutput.trim());
     }
 
-    private static AgentDefinition createPlannerAgent(RuntimeOs runtimeOs, Path workspace)
+    private static void abortIfProviderUnavailable(String stage, String output)
     {
-        AgentDefinition def = new AgentDefinition();
-        def.setId("react30-planner");
-        def.setName("Planner");
-        def.setModel(MODEL);
-        def.setReactEnabled(true);
-        def.setSystemPrompt("""
-            You are a code bug investigator.
-
-            Inspect source and verifier output to identify root causes.
-            Read the file(s) by the local_shell tool before your investigation.
-            Report exact bug locations and expected behavior.
-
-            OS: %s
-            Workspace: %s
-            Verify command: %s
-            
-            For fixing bugs, handoff to 'react30-executor', with your investigation results.
-            To handoff, respond with 'handoff: <agent_id>' where agent_id is 'react30-executor'.
-            """.formatted(runtimeOs.displayName, workspace, runtimeOs.verifyCommand(workspace)));
-        def.setReactInstructions("Read file + verifier output, then return a concrete root-cause list for each failing behavior.");
-        def.setToolNames(List.of("local_shell"));
-        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        def.setHandoffAgentIds(List.of("react30-executor"));
-        return def;
+        if (isProviderUnavailable(output))
+        {
+            Assumptions.assumeTrue(false,
+                "Skipping test because Excalibur could not reach the real model provider during " + stage + ": " + output);
+        }
     }
 
-    private static AgentDefinition createExecutorAgent(RuntimeOs runtimeOs, Path workspace)
+    private static boolean isProviderUnavailable(String output)
     {
-        AgentDefinition def = new AgentDefinition();
-        def.setId("react30-executor");
-        def.setName("Executor");
-        def.setModel(MODEL);
-        def.setReactEnabled(true);
-        def.setSystemPrompt("""
-            You are a code fixer.
-
-            Rules:
-            - Fix bugs in FinancialCalculator.py and OrderProcessor.py
-            - Output the plan for fixing based on the investigation before
-            - Fix the root causes from planner evidence based on the plan
-            - Run verification after EACH patch
-            - Stop only when verification output contains BEHAVIOR_OK
-            - Follow the coding style
-            - Follow Python syntax when generating code for fixing
-
-            CRITICAL: After each fix, if verification still shows BEHAVIOR_BAD:
-            1. RE-READ the modified files to see current state
-            2. Compare actual total vs expected total, calculate the difference
-            3. Use Python to calculate expected values for each component (subtotal, discount, tax, shipping)
-            4. Find which component is wrong by comparing expected vs actual
-            5. Trace back to the code that calculates that component
-            6. Look for bugs in that specific calculation (wrong formula, wrong constant, extra/missing operations)
-            7. Do NOT modify code that calculates correct values
-            8. Do NOT rewrite entire functions - fix only the specific bug
-
-            Example analysis process:
-            - If expected=1958.34 but actual=1953.83, difference=4.51
-            - Use Python: expected_tax = ?, expected_discount = ?, expected_shipping = ?
-            - Compare with actual breakdown from verification output
-            - Find which component differs
-            - Read the code for that component
-            - Look for: wrong division factor, extra rounding, inverted logic, wrong constant
-
-            CRITICAL for apply_patch tool:
-            - Use ONLY ONE of these two formats:
-              Format A: {"type":"update_file","path":"filename.py","diff":"-old_line\\n+new_line"}
-              Format B: {"operation":{"type":"update_file","path":"filename.py","diff":"-old_line\\n+new_line"}}
-            - Do NOT mix both formats
-            - Do NOT use 'diff --git', '---', '+++', or '@@' markers
-            - Match EXACT indentation from the file (count spaces carefully)
-            - Each patch should change ONLY the specific lines that need fixing
-            - Use \\n for newlines in the diff string
-
-            Example patch for fixing division:
-            {"type":"update_file","path":"FinancialCalculator.py","diff":"-        rate = percentage / 1000\\n+        rate = percentage / 100"}
-
-            Example patch for removing a line:
-            {"type":"update_file","path":"FinancialCalculator.py","diff":"-        rate = self.round_currency(rate)\\n"}
-
-            Example patch for fixing logic:
-            {"type":"update_file","path":"OrderProcessor.py","diff":"-        is_shipping_taxable = state not in shipping_taxable_states\\n+        is_shipping_taxable = state in shipping_taxable_states"}
-
-            OS: %s
-            Workspace: %s
-            Verify command: %s
-            """.formatted(runtimeOs.displayName, workspace, runtimeOs.verifyCommand(workspace)));
-        def.setReactInstructions("Read file -> apply ONE patch -> verify -> if failing: re-read files, calculate expected values, find wrong component, trace to bug -> repeat. Match exact indentation in patches.");
-        def.setToolNames(List.of("apply_patch", "local_shell"));
-        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        return def;
+        if (output == null || output.isBlank())
+        {
+            return false;
+        }
+        String normalized = output.toLowerCase(Locale.ROOT);
+        return normalized.contains("network is unreachable")
+            || normalized.contains("failed to stream from provider")
+            || normalized.contains("model invocation failed after retries");
     }
 
-    private static AgentDefinition createSummarizerAgent(RuntimeOs runtimeOs, Path workspace)
+    private static ExcaliburAgentSpec createInvestigatorAgent(RuntimeOs runtimeOs, Path workspace, ExcaliburTaskRequest taskRequest)
     {
-        AgentDefinition def = new AgentDefinition();
-        def.setId("react30-summarizer");
-        def.setName("Summarizer");
-        def.setModel(MODEL);
-        def.setReactEnabled(false);
-        def.setSystemPrompt("""
-            You are a task summarizer. Summarize what was done.
-            
-            Your summary should include:
-            1. What files were modified
-            2. What changes were made
-            3. What the outcome was
-            
-            Keep it concise and informative.
-            
-            OS: %s
-            Workspace: %s
-            """.formatted(runtimeOs.displayName, workspace));
-        def.setReactInstructions("""
-            ## Summary
-            - Files modified: [list files]
-            - Changes made: [brief description of changes]
-            - Outcome: [success/failure and final result]
-            """);
-        def.setToolNames(List.of("local_shell"));
-        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        def.setModelReasoning(Map.of("effort", "low"));
-        return def;
+        return ExcaliburAgentFactory.createSpec(
+            "excalibur-investigator",
+            "Excalibur Investigator",
+            MODEL,
+            workspace,
+            ExcaliburAgentRole.INVESTIGATOR,
+            taskRequest,
+            "Read source + verifier output, then return a concrete evidence-backed root-cause list and fixer checklist.",
+            """
+            Target files: FinancialCalculator.py, OrderProcessor.py.
+            Verify command: %s.
+            Check explicitly whether calculate_percentage divides by 1000 instead of 100 and whether shipping tax logic is inverted.
+            Do not propose unrelated refactors.
+            """.formatted(runtimeOs.verifyCommand()),
+            ExcaliburAgentRole.INVESTIGATOR.getDefaultToolNames(),
+            List.of(),
+            true,
+            "low");
+    }
+
+    private static ExcaliburAgentSpec createFixerAgent(RuntimeOs runtimeOs, Path workspace, ExcaliburTaskRequest taskRequest)
+    {
+        return ExcaliburAgentFactory.createSpec(
+            "excalibur-fixer",
+            "Excalibur Fixer",
+            MODEL,
+            workspace,
+            ExcaliburAgentRole.FIXER,
+            taskRequest,
+            "Read -> patch -> verify -> if still failing, re-read and apply one more targeted patch. Keep the final response concise.",
+            """
+            Target files: FinancialCalculator.py, OrderProcessor.py.
+            Use workspace-relative file paths in apply_patch payloads.
+            Verify command: %s.
+            Focus on minimal edits that restore the required order total and BEHAVIOR_OK output.
+            Finish only after producing a real source patch.
+            """.formatted(runtimeOs.verifyCommand()),
+            ExcaliburAgentRole.FIXER.getDefaultToolNames(),
+            List.of(),
+            true,
+            "medium");
+    }
+
+    private static ExcaliburAgentSpec createReviewerAgent(RuntimeOs runtimeOs, Path workspace, ExcaliburTaskRequest taskRequest)
+    {
+        return ExcaliburAgentFactory.createSpec(
+            "excalibur-reviewer",
+            "Excalibur Reviewer",
+            MODEL,
+            workspace,
+            ExcaliburAgentRole.REVIEWER,
+            taskRequest,
+            "Run or inspect the verifier output and return PASS/FAIL with direct evidence.",
+            """
+            Target verification command: %s.
+            PASS requires the exact success marker BEHAVIOR_OK.
+            """.formatted(runtimeOs.verifyCommand()),
+            ExcaliburAgentRole.REVIEWER.getDefaultToolNames(),
+            List.of(),
+            true,
+            "low");
+    }
+
+    private static ExcaliburAgentSpec createSummarizerAgent(Path workspace, ExcaliburTaskRequest taskRequest)
+    {
+        return ExcaliburAgentFactory.createSpec(
+            "excalibur-summarizer",
+            "Excalibur Summarizer",
+            MODEL,
+            workspace,
+            ExcaliburAgentRole.SUMMARIZER,
+            taskRequest,
+            "Return a short structured summary with Files, Changes, Outcome, and Patch sections.",
+            "Summarize the finished debugging session for engineers and mention whether the patch requirement was satisfied.",
+            List.of(),
+            List.of(),
+            false,
+            "low");
+    }
+
+    private static ExcaliburTaskRequest createTaskRequest(Path workspace) throws IOException
+    {
+        return ExcaliburTaskRequest.builder(
+                "Fix the verification failures in FinancialCalculator.py and OrderProcessor.py and leave a non-empty patch.",
+                workspace)
+            .issue("Current verification reports total=2232.71 instead of 1958.34 and must end with BEHAVIOR_OK.")
+            .baseCommit(resolveHeadCommit(workspace))
+            .mustPatch(true)
+            .patchPath(workspace.resolve("excalibur.patch"))
+            .build();
     }
 
     private static void resetWorkspace(Path workspace) throws IOException
@@ -420,15 +447,63 @@ public class StepByStepRunnerTest
         Files.createDirectories(workspace);
         Files.writeString(workspace.resolve("FinancialCalculator.py"), Files.readString(INPUT_FILE_1));
         Files.writeString(workspace.resolve("OrderProcessor.py"), Files.readString(INPUT_FILE_2));
+        initializeWorkspaceGitRepository(workspace);
     }
 
-    private static LocalShellTool createShellTool()
+    private static String resolveHeadCommit(Path workspace) throws IOException
     {
-        return new LocalShellTool(new ToolDefinition(
-            "local_shell",
-            "Execute a local shell command and return stdout/stderr.",
-            List.of(new ToolParameterSchema("command", "string", true, "Shell command to execute"))));
+        ProcessBuilder builder = new ProcessBuilder("git", "rev-parse", "HEAD");
+        builder.directory(workspace.toFile());
+        builder.redirectErrorStream(true);
+        try
+        {
+            Process process = builder.start();
+            String output = new String(process.getInputStream().readAllBytes(), runtimeConsoleCharset()).trim();
+            int exitCode = process.waitFor();
+            if (exitCode != 0 || output.isBlank())
+            {
+                throw new IOException("Failed to resolve HEAD commit: " + output);
+            }
+            return output;
+        }
+        catch (InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while resolving HEAD commit", ex);
+        }
     }
+
+    private static void initializeWorkspaceGitRepository(Path workspace) throws IOException
+    {
+        runGitCommand(workspace, "git", "init");
+        runGitCommand(workspace, "git", "config", "user.email", "excalibur@example.com");
+        runGitCommand(workspace, "git", "config", "user.name", "Excalibur Test");
+        runGitCommand(workspace, "git", "add", "FinancialCalculator.py", "OrderProcessor.py");
+        runGitCommand(workspace, "git", "commit", "-m", "Initial workspace snapshot");
+    }
+
+    private static void runGitCommand(Path workspace, String... command) throws IOException
+    {
+        ProcessBuilder builder = new ProcessBuilder(command);
+        builder.directory(workspace.toFile());
+        builder.redirectErrorStream(true);
+        try
+        {
+            Process process = builder.start();
+            String output = new String(process.getInputStream().readAllBytes(), runtimeConsoleCharset());
+            int exitCode = process.waitFor();
+            if (exitCode != 0)
+            {
+                throw new IOException(String.join(" ", command) + " failed: " + output);
+            }
+        }
+        catch (InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while running git command", ex);
+        }
+    }
+
 
     private static String runBehaviorVerification(RuntimeOs runtimeOs, Path workspace)
     {
@@ -496,17 +571,17 @@ public class StepByStepRunnerTest
             this.displayName = displayName;
         }
 
-        private String verifyCommand(Path workspace)
+        private String verifyCommand()
         {
             return "python OrderProcessor.py";
         }
 
-        private String printFileCommand(Path workspace, String fileName)
+        private String printFileCommand(String fileName)
         {
             return switch (this)
             {
-                case WINDOWS -> "type " + workspace.resolve(fileName);
-                case MACOS, LINUX -> "cat " + workspace.resolve(fileName);
+                case WINDOWS -> "type " + fileName;
+                case MACOS, LINUX -> "cat " + fileName;
             };
         }
     }
@@ -603,7 +678,10 @@ public class StepByStepRunnerTest
                 int shown = 0;
                 for (String line : lines)
                 {
-                    if (shown >= 5) break;
+                    if (shown >= 5)
+                    {
+                        break;
+                    }
                     if (line.startsWith("-") || line.startsWith("+"))
                     {
                         String display = line.length() > 100 ? line.substring(0, 100) + "..." : line;

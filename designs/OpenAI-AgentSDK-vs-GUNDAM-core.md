@@ -81,6 +81,9 @@ Legend: ✅ implemented, 🟡 partial, ⚪ not implemented.
 - `Example24`, `Example25`, and `Example33` debug-fix flows now use lower-turn/lower-token configs and stronger patch-call guidance to reduce wasted deliberation while preserving streaming behavior.
 - `Example25` now uses a multi-agent ReAct topology (coordinator/investigator/fixer/reviewer), includes source snapshots, and logs thought/action/observation output and provides explicit behavior-contract bug hints to make root-cause diagnosis and runtime verification traceable.
 - The same three examples now validate concise runtime and concise structured summaries (`Problem`/`Fix`/`Verification` style) to better enforce “understand + fix + verify + summarize” outcomes.
+- Added the `stark.dataworks.coderaider.genericagent.core.excalibur` package, which ports Trae-agent-style software-engineering guidance into reusable Java agent profiles (investigator/fixer/reviewer/summarizer) with shared workspace-aware prompts and defaults.
+- `StepByStepRunnerTest` now exercises the Excalibur profiles end-to-end for a two-file Python debugging task, replacing the previous platform-specific planner/executor wiring with a reusable general-purpose software-engineering agent setup.
+- Excalibur now also registers Trae-compatible tool names (`bash`, `sequentialthinking`, `task_done`, `str_replace_based_edit_tool`, `json_edit_tool`) and mirrors Trae's absolute-path/tool-usage contract more closely so the Java runner can execute Trae-style prompts with much higher fidelity.
 
 ## Example coverage alignment
 
