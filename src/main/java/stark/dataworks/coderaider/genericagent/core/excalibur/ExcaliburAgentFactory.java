@@ -10,10 +10,6 @@ import java.util.List;
  */
 public final class ExcaliburAgentFactory
 {
-    private ExcaliburAgentFactory()
-    {
-    }
-
     public static AgentDefinition create(
         String id,
         String model,
