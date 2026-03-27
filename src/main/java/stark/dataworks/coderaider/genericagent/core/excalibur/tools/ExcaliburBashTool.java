@@ -32,11 +32,11 @@ public final class ExcaliburBashTool extends AbstractBuiltinTool
     public ExcaliburBashTool(Path workingDirectory)
     {
         super(new ToolDefinition(
-            "bash",
-            "Execute shell commands in the project workspace using a shared shell session. Supports Trae-compatible `command` and `restart` fields.",
-            List.of(
-                new ToolParameterSchema("command", "string", true, "Shell command to execute."),
-                new ToolParameterSchema("restart", "boolean", false, "Restart the persistent shell session before executing the command."))),
+                "bash",
+                "Execute shell commands in the project workspace using a shared shell session. Supports Trae-compatible `command` and `restart` fields.",
+                List.of(
+                    new ToolParameterSchema("command", "string", true, "Shell command to execute."),
+                    new ToolParameterSchema("restart", "boolean", false, "Restart the persistent shell session before executing the command."))),
             ToolCategory.SHELL);
         this.workingDirectory = workingDirectory.toAbsolutePath().normalize();
     }
