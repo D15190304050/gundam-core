@@ -33,7 +33,7 @@ public class Example33PlannerReActDebugFixTest
     private static final Path INPUT_FILE_1 = Path.of("src", "test", "resources", "inputs", "FinancialCalculator.py");
     private static final Path INPUT_FILE_2 = Path.of("src", "test", "resources", "inputs", "OrderProcessor.py");
     private static final RunConfiguration EXAMPLE_RUN_CONFIGURATION =
-        new RunConfiguration(15, null, 0.0, 1024, "auto", "text", Map.of());
+        new RunConfiguration(15, null, 0.0, 4096, "auto", "text", Map.of());
 
     @Test
     public void run() throws IOException
