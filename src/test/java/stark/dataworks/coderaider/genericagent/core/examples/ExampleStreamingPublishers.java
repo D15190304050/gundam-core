@@ -15,7 +15,7 @@ public final class ExampleStreamingPublishers
     {
     }
 
-    static RunEventPublisher textOnly()
+    public static RunEventPublisher textOnly()
     {
         RunEventPublisher publisher = new RunEventPublisher();
         publisher.subscribe(new TextDeltaListener());

@@ -68,4 +68,9 @@ public class OpenAiCompatibleConfiguration
     {
         return new OpenAiCompatibleConfiguration("nvidia", "https://integrate.api.nvidia.com/v1", apiKey, model, Duration.ofSeconds(120), Map.of());
     }
+
+    public static OpenAiCompatibleConfiguration miniMax(String apiKey, String model)
+    {
+        return new OpenAiCompatibleConfiguration("minimax", "https://api.minimaxi.com/v1", apiKey, model, Duration.ofSeconds(120), Map.of());
+    }
 }
