@@ -22,19 +22,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
- * 33) Planner-first ReAct debug workflow with 4 agents: understand -> plan -> execute -> summarize.
+ * 33) Single agent debug workflow for Python files.
  */
 public class Example33PlannerReActDebugFixTest
 {
     private static final String MODEL = "Qwen/Qwen3-4B";
-    private static final Path INPUT_FILE_1 = Path.of("src", "test", "resources", "inputs", "BuggyCalcService.java");
-    private static final Path INPUT_FILE_2 = Path.of("src", "test", "resources", "inputs", "BuggyOrderTotalApp.java");
+    private static final Path INPUT_FILE_1 = Path.of("src", "test", "resources", "inputs", "FinancialCalculator.py");
+    private static final Path INPUT_FILE_2 = Path.of("src", "test", "resources", "inputs", "OrderProcessor.py");
     private static final RunConfiguration EXAMPLE_RUN_CONFIGURATION =
-        new RunConfiguration(4, null, 0.0, 900, "auto", "text", Map.of());
+        new RunConfiguration(15, null, 0.0, 1024, "auto", "text", Map.of());
 
     @Test
     public void run() throws IOException
@@ -48,193 +47,148 @@ public class Example33PlannerReActDebugFixTest
             return;
         }
 
-        RuntimeOs runtimeOs = detectRuntimeOs();
-        Path workspace = Path.of("src", "test", "resources", "outputs", "react-agent", "example33");
-        resetWorkspace(workspace);
+        Path workspace = Path.of("src", "test", "resources", "outputs", "react-agent", "example33").toAbsolutePath();
+        Path targetFile1 = resetWorkspace(workspace);
 
         ToolRegistry toolRegistry = new ToolRegistry();
         toolRegistry.register(createShellTool());
         toolRegistry.register(new ApplyPatchTool(new FileSystemEditor(workspace), false));
 
         AgentRegistry agentRegistry = new AgentRegistry();
-        agentRegistry.register(createUnderstandingAgent(runtimeOs, workspace));
-        agentRegistry.register(createPlannerAgent(runtimeOs, workspace));
-        agentRegistry.register(createExecutorAgent(runtimeOs, workspace));
-        agentRegistry.register(createSummarizerAgent(runtimeOs, workspace));
+        agentRegistry.register(createFixerAgent(workspace));
 
         AgentRunner runner = AgentRunner.builder()
             .llmClient(new ModelScopeLlmClient(apiKey, MODEL))
             .toolRegistry(toolRegistry)
             .agentRegistry(agentRegistry)
-            .eventPublisher(ExampleStreamingPublishers.textWithToolLifecycle("ReAct33 "))
+            .eventPublisher(ExampleStreamingPublishers.textWithToolLifecycle("Fixer "))
             .build();
 
-        // TODO: Need to describe the bugs in detail, otherwise, the agent will not even understand the problem.
-        String userRequest = "Fix both Java files quickly and provide a short summary at the end.";
-        ContextResult understanding = runner.chatClient("react30-understanding").prompt().stream(true).user(userRequest)
-            .runConfiguration(EXAMPLE_RUN_CONFIGURATION).runHooks(ExampleSupport.noopHooks()).call().contextResult();
+        String initialVerify = runBehaviorVerification(workspace);
+        System.out.println("INITIAL_VERIFICATION: " + initialVerify.trim());
 
-        ContextResult planning = runner.chatClient("react30-planner").prompt().stream(true)
-            .user(understanding.getFinalOutput())
-            .runConfiguration(EXAMPLE_RUN_CONFIGURATION).runHooks(ExampleSupport.noopHooks()).call().contextResult();
-
-        String verifyOutput = runBehaviorVerification(runtimeOs, workspace);
-        ContextResult execution = null;
-        for (int attempt = 1; attempt <= 6; attempt++)
+        ContextResult fixerResult = null;
+        String verifyOutput = initialVerify;
+        
+        for (int attempt = 1; attempt <= 5; attempt++)
         {
-            execution = runner.chatClient("react30-executor").prompt().stream(true)
-                .user(buildExecutorPrompt(runtimeOs, workspace, planning.getFinalOutput(), verifyOutput, attempt))
-                .runConfiguration(EXAMPLE_RUN_CONFIGURATION).runHooks(ExampleSupport.noopHooks()).call().contextResult();
-            verifyOutput = runBehaviorVerification(runtimeOs, workspace);
+            String sourceSnapshot1 = Files.readString(workspace.resolve("FinancialCalculator.py"));
+            String sourceSnapshot2 = Files.readString(workspace.resolve("OrderProcessor.py"));
+            
+            fixerResult = runner.chatClient("react33-fixer")
+                .prompt()
+                .stream(true)
+                .user(buildFixerPrompt(workspace, attempt, verifyOutput, sourceSnapshot1, sourceSnapshot2))
+                .runConfiguration(EXAMPLE_RUN_CONFIGURATION)
+                .runHooks(ExampleSupport.noopHooks())
+                .call()
+                .contextResult();
+
+            System.out.println("ATTEMPT_" + attempt + "_OUTPUT: " + fixerResult.getFinalOutput());
+
+            verifyOutput = runBehaviorVerification(workspace);
+            System.out.println("ATTEMPT_" + attempt + "_VERIFICATION: " + verifyOutput.trim());
+            
             if (verifyOutput.contains("BEHAVIOR_OK"))
             {
                 break;
             }
         }
 
-        ContextResult summary = null;
-        if (!userRequest.toLowerCase(Locale.ROOT).contains("no summary"))
-        {
-            summary = runner.chatClient("react30-summarizer").prompt().stream(true)
-                .user("Plan:\n" + planning.getFinalOutput() + "\nExecution:\n" + execution.getFinalOutput() + "\nVerify:\n" + verifyOutput)
-                .runConfiguration(EXAMPLE_RUN_CONFIGURATION).runHooks(ExampleSupport.noopHooks()).call().contextResult();
-        }
-
-        Assertions.assertTrue(verifyOutput.contains("BEHAVIOR_OK"), 
+        Assertions.assertNotNull(fixerResult, "Expected fixer output");
+        Assertions.assertTrue(verifyOutput.contains("BEHAVIOR_OK"),
             "Agent must fix the bugs successfully. Verification output: " + verifyOutput);
-        Assertions.assertNotNull(understanding.getFinalOutput());
-        Assertions.assertNotNull(planning.getFinalOutput());
-        Assertions.assertNotNull(execution.getFinalOutput());
-        
-        if (summary != null)
-        {
-            String summaryText = summary.getFinalOutput();
-            Assertions.assertFalse(summaryText.isBlank());
-            Assertions.assertTrue(summaryText.contains("Problem") || summaryText.contains("Fix") || summaryText.contains("Verification"),
-                "Expected summary with relevant sections. Got: " + summaryText);
-        }
-        
+
         long elapsedSeconds = (System.nanoTime() - startedAt) / 1_000_000_000L;
-        Assertions.assertTrue(elapsedSeconds <= 150, "Expected runtime (<=150s) but took " + elapsedSeconds + "s");
+        Assertions.assertTrue(elapsedSeconds <= 300, "Expected runtime (<=300s) but took " + elapsedSeconds + "s");
     }
 
-    private static String buildExecutorPrompt(RuntimeOs runtimeOs, Path workspace, String plan, String verifyOutput, int attempt)
-    {
-        return """
-            Attempt %d to fix the bugs.
-            
-            Fix plan:
-            %s
-            
-            Current verification status:
-            %s
-            
-            Verify command: %s
-            Target: output should contain BEHAVIOR_OK
-            
-            OS: %s
-            Workspace: %s
-            """.formatted(attempt, plan, verifyOutput.trim(), runtimeOs.verifyCommand(workspace), 
-                runtimeOs.displayName, workspace);
-    }
-
-    private static AgentDefinition createUnderstandingAgent(RuntimeOs runtimeOs, Path workspace)
+    private static AgentDefinition createFixerAgent(Path workspace)
     {
         AgentDefinition def = new AgentDefinition();
-        def.setId("react30-understanding");
-        def.setName("Task Understanding Agent");
+        def.setId("react33-fixer");
+        def.setName("Python Bug Fixer");
         def.setModel(MODEL);
         def.setReactEnabled(true);
         def.setSystemPrompt("""
-            You are a task analyzer. Quickly understand the debugging task.
-            
-            Identify:
-            - Which files need to be fixed
-            - What the expected behavior is
-            - How to verify the fix
-            
-            OS: %s
-            Workspace: %s
-            """.formatted(runtimeOs.displayName, workspace));
-        def.setReactInstructions("Briefly state: files, expected behavior, verification method. Keep it under 4 lines.");
-        def.setToolNames(List.of("local_shell"));
-        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        def.setModelReasoning(Map.of("effort", "low"));
-        return def;
-    }
-
-    private static AgentDefinition createPlannerAgent(RuntimeOs runtimeOs, Path workspace)
-    {
-        AgentDefinition def = new AgentDefinition();
-        def.setId("react30-planner");
-        def.setName("Step Planner Agent");
-        def.setModel(MODEL);
-        def.setReactEnabled(true);
-        def.setSystemPrompt("""
-            You are a debugging planner. Create a concise fix plan.
+            You are a Python code fixer. Debug and fix bugs in Python files.
             
             Process:
-            1. Read the buggy files
-            2. Identify the bugs by analyzing code logic
-            3. List the fixes needed
+            1. Read the buggy files to understand the code
+            2. Run the code to see the current (buggy) output
+            3. Identify the bugs by analyzing the code logic
+            4. Apply patches to fix the bugs
+            5. Verify the fix by running the code again
             
-            OS: %s
             Workspace: %s
-            """.formatted(runtimeOs.displayName, workspace));
-        def.setReactInstructions("Read files → Identify bugs → List fixes in numbered steps. Keep plan under 6 steps.");
-        def.setToolNames(List.of("local_shell"));
-        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        def.setModelReasoning(Map.of("effort", "low"));
-        return def;
-    }
-
-    private static AgentDefinition createExecutorAgent(RuntimeOs runtimeOs, Path workspace)
-    {
-        AgentDefinition def = new AgentDefinition();
-        def.setId("react30-executor");
-        def.setName("Step Executor Agent");
-        def.setModel(MODEL);
-        def.setReactEnabled(true);
-        def.setSystemPrompt("""
-            You are a code fixer. Execute the fix plan and verify it works.
             
-            Process:
-            1. Apply patches to fix the bugs
-            2. Verify the fixes work correctly
-            3. Iterate if needed
-            
-            OS: %s
-            Workspace: %s
-            Verify: %s
-            """.formatted(runtimeOs.displayName, workspace, runtimeOs.verifyCommand(workspace)));
-        def.setReactInstructions("Apply patches → Verify → Retry if fails → Done. No explanations until verification passes.");
+            Important: Use apply_patch tool to fix files. The patch format is:
+            --- file.py
+            +++ file.py
+            @@ -line,count +line,count @@
+            -old line
+            +new line
+            """.formatted(workspace));
+        def.setReactInstructions("Read files → Run to see error → Find bugs → Apply patches → Verify → Done.");
         def.setToolNames(List.of("apply_patch", "local_shell"));
         def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        def.setModelReasoning(Map.of("effort", "low"));
+        def.setModelReasoning(Map.of("effort", "medium"));
         return def;
     }
 
-    private static AgentDefinition createSummarizerAgent(RuntimeOs runtimeOs, Path workspace)
+    private static String buildFixerPrompt(Path workspace, int attempt, String verifyOutput, String source1, String source2)
     {
-        AgentDefinition def = new AgentDefinition();
-        def.setId("react30-summarizer");
-        def.setName("Task Summary Agent");
-        def.setModel(MODEL);
-        def.setReactEnabled(true);
-        def.setSystemPrompt("""
-            You are a result summarizer. Briefly report the debugging outcome.
+        return """
+            Attempt %d to fix the Python bugs.
             
-            OS: %s
+            Files to fix:
+            - FinancialCalculator.py
+            - OrderProcessor.py
+            
+            Current verification output:
+            %s
+            
+            Expected: Running "python OrderProcessor.py" should output "BEHAVIOR_OK total=1958.34"
+            
+            Current FinancialCalculator.py (first 100 lines):
+            %s
+            
+            Current OrderProcessor.py (first 100 lines):
+            %s
+            
+            Steps:
+            1. Read both files completely using local_shell (cat or type command)
+            2. Run "python OrderProcessor.py" to see current output
+            3. Analyze the code to find bugs
+            4. Apply patches to fix the bugs
+            5. Verify by running "python OrderProcessor.py" again
+            
             Workspace: %s
-            """.formatted(runtimeOs.displayName, workspace));
-        def.setReactInstructions("Summarize in 2-3 lines: Problem, Fix, Verification result.");
-        def.setToolNames(List.of("local_shell"));
-        def.setModelProviderOptions(Map.of("working_directory", workspace.toString()));
-        def.setModelReasoning(Map.of("effort", "low"));
-        return def;
+            """.formatted(attempt, verifyOutput.trim(), 
+                truncate(source1, 100), truncate(source2, 100), 
+                workspace);
     }
 
-    private static void resetWorkspace(Path workspace) throws IOException
+    private static String truncate(String text, int maxLines)
+    {
+        String[] lines = text.split("\n", -1);
+        if (lines.length <= maxLines)
+        {
+            return text;
+        }
+        return String.join("\n", java.util.Arrays.copyOf(lines, maxLines)) + "\n... (truncated)";
+    }
+
+    private static LocalShellTool createShellTool()
+    {
+        ToolDefinition definition = new ToolDefinition(
+            "local_shell",
+            "Execute a local shell command and return stdout/stderr.",
+            List.of(new ToolParameterSchema("command", "string", true, "Shell command to execute")));
+        return new LocalShellTool(definition);
+    }
+
+    private static Path resetWorkspace(Path workspace) throws IOException
     {
         if (Files.exists(workspace))
         {
@@ -253,30 +207,20 @@ public class Example33PlannerReActDebugFixTest
                 });
         }
         Files.createDirectories(workspace);
-        Files.writeString(workspace.resolve("BuggyCalcService.java"), Files.readString(INPUT_FILE_1));
-        Files.writeString(workspace.resolve("BuggyOrderTotalApp.java"), Files.readString(INPUT_FILE_2));
+        Path targetFile1 = workspace.resolve("FinancialCalculator.py");
+        Path targetFile2 = workspace.resolve("OrderProcessor.py");
+        Files.writeString(targetFile1, Files.readString(INPUT_FILE_1));
+        Files.writeString(targetFile2, Files.readString(INPUT_FILE_2));
+        return targetFile1;
     }
 
-    private static LocalShellTool createShellTool()
+    private static String runBehaviorVerification(Path workspace)
     {
-        return new LocalShellTool(new ToolDefinition(
-            "local_shell",
-            "Execute a local shell command and return stdout/stderr.",
-            List.of(new ToolParameterSchema("command", "string", true, "Shell command to execute"))));
-    }
-
-    private static String runBehaviorVerification(RuntimeOs runtimeOs, Path workspace)
-    {
-        ProcessBuilder builder = switch (runtimeOs)
-        {
-            case WINDOWS -> new ProcessBuilder("cmd", "/c",
-                "cd /d \"" + workspace + "\" && javac BuggyCalcService.java BuggyOrderTotalApp.java && java BuggyOrderTotalApp");
-            case MACOS, LINUX -> new ProcessBuilder("bash", "-lc",
-                "cd '" + workspace + "' && javac BuggyCalcService.java BuggyOrderTotalApp.java && java BuggyOrderTotalApp");
-        };
-        builder.redirectErrorStream(true);
         try
         {
+            ProcessBuilder builder = new ProcessBuilder("python", "OrderProcessor.py");
+            builder.directory(workspace.toFile());
+            builder.redirectErrorStream(true);
             Process process = builder.start();
             String output = new String(process.getInputStream().readAllBytes());
             process.waitFor();
@@ -285,39 +229,6 @@ public class Example33PlannerReActDebugFixTest
         catch (Exception ex)
         {
             return "VERIFY_ERROR: " + ex.getMessage();
-        }
-    }
-
-    private static RuntimeOs detectRuntimeOs()
-    {
-        String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
-        if (osName.contains("win"))
-        {
-            return RuntimeOs.WINDOWS;
-        }
-        if (osName.contains("mac"))
-        {
-            return RuntimeOs.MACOS;
-        }
-        return RuntimeOs.LINUX;
-    }
-
-    private enum RuntimeOs
-    {
-        WINDOWS("Windows"),
-        MACOS("macOS"),
-        LINUX("Linux");
-
-        private final String displayName;
-
-        RuntimeOs(String displayName)
-        {
-            this.displayName = displayName;
-        }
-
-        private String verifyCommand(Path workspace)
-        {
-            return "javac BuggyCalcService.java BuggyOrderTotalApp.java && java BuggyOrderTotalApp";
         }
     }
 
@@ -387,13 +298,12 @@ public class Example33PlannerReActDebugFixTest
                 }
                 String source = Files.exists(target) ? Files.readString(target) : "";
                 String patched = ApplyPatchTool.applyDiff(source, operation.getDiff());
-                
-                // Check if any actual changes were applied
+
                 if (patched.equals(source))
                 {
                     return ApplyPatchResult.failed(buildDiffNotMatchError(operation.getDiff()));
                 }
-                
+
                 Files.writeString(target, patched);
                 return ApplyPatchResult.completed("Updated " + operation.getPath());
             }
@@ -402,7 +312,7 @@ public class Example33PlannerReActDebugFixTest
                 return ApplyPatchResult.failed("Patch failed: " + ex.getMessage());
             }
         }
-        
+
         private static String buildDiffNotMatchError(String diff)
         {
             StringBuilder errorMsg = new StringBuilder();
