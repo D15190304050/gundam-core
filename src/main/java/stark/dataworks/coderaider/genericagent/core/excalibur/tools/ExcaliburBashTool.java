@@ -25,6 +25,7 @@ public final class ExcaliburBashTool extends AbstractBuiltinTool
     private static final boolean WINDOWS = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
 
     private final Path workingDirectory;
+    private Path currentDirectory;
     private Process persistentProcess;
     private BufferedWriter persistentStdin;
     private BufferedReader persistentStdout;
@@ -39,6 +40,7 @@ public final class ExcaliburBashTool extends AbstractBuiltinTool
                     new ToolParameterSchema("restart", "boolean", false, "Restart the persistent shell session before executing the command."))),
             ToolCategory.SHELL);
         this.workingDirectory = workingDirectory.toAbsolutePath().normalize();
+        this.currentDirectory = this.workingDirectory;
     }
 
     @Override
@@ -54,9 +56,26 @@ public final class ExcaliburBashTool extends AbstractBuiltinTool
             {
                 if (restart)
                 {
+                    currentDirectory = workingDirectory;
                     return "tool has been restarted.";
                 }
-                return result.append(executeStateless(command)).toString();
+                String output = executeWindowsCommand(command, currentDirectory);
+                result.append(output);
+                if (command.trim().toLowerCase().startsWith("cd "))
+                {
+                    String newPath = parseCdPath(command);
+                    if (newPath != null)
+                    {
+                        Path target = newPath.startsWith("/") || newPath.matches("^[a-zA-Z]:.*")
+                            ? Path.of(newPath)
+                            : currentDirectory.resolve(newPath).normalize();
+                        if (target.toFile().exists())
+                        {
+                            currentDirectory = target;
+                        }
+                    }
+                }
+                return result.toString();
             }
             if (restart)
             {
@@ -106,10 +125,10 @@ public final class ExcaliburBashTool extends AbstractBuiltinTool
         persistentStdout = new BufferedReader(new InputStreamReader(persistentProcess.getInputStream(), StandardCharsets.UTF_8));
     }
 
-    private String executeStateless(String command) throws IOException, InterruptedException
+    private String executeWindowsCommand(String command, Path directory) throws IOException, InterruptedException
     {
         ProcessBuilder builder = new ProcessBuilder("cmd", "/c", "chcp 65001 >nul && " + command);
-        builder.directory(workingDirectory.toFile());
+        builder.directory(directory.toFile());
         builder.redirectErrorStream(true);
         Process process = builder.start();
         String output;
@@ -123,6 +142,28 @@ public final class ExcaliburBashTool extends AbstractBuiltinTool
             output += "\n";
         }
         return output + "EXIT=" + exitCode;
+    }
+
+    private String parseCdPath(String cdCommand)
+    {
+        String trimmed = cdCommand.trim();
+        if (trimmed.toLowerCase().startsWith("cd "))
+        {
+            String path = trimmed.substring(3).trim();
+            if (path.endsWith("&&"))
+            {
+                path = path.substring(0, path.length() - 2).trim();
+            }
+            if (path.endsWith(";"))
+            {
+                path = path.substring(0, path.length() - 1).trim();
+            }
+            if (!path.isEmpty())
+            {
+                return path;
+            }
+        }
+        return null;
     }
 
     private void resetPersistentShell()

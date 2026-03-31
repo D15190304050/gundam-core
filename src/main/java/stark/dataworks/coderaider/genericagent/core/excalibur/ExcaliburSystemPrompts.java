@@ -64,11 +64,9 @@ public final class ExcaliburSystemPrompts
     {
     }
 
-    public static String build(Path workspace, ExcaliburAgentRole role, String additionalInstructions)
+    public static String build(Path workspace, String additionalInstructions)
     {
         StringBuilder prompt = new StringBuilder(BASE_SOFTWARE_ENGINEERING_PROMPT)
-            .append("\n\n")
-            .append(role.getRolePrompt().trim())
             .append("\n\nWorkspace: ")
             .append(workspace.toAbsolutePath().normalize());
 

@@ -12,13 +12,15 @@ public final class ExcaliburTraeToolNames
     public static final String JSON_EDIT_TOOL = "json_edit_tool";
     public static final String TASK_DONE = "task_done";
     public static final String BASH = "bash";
+    public static final String CKG = "ckg";
 
     public static final List<String> ALL = List.of(
         STR_REPLACE_BASED_EDIT_TOOL,
         SEQUENTIAL_THINKING,
         JSON_EDIT_TOOL,
         TASK_DONE,
-        BASH);
+        BASH,
+        CKG);
 
     private ExcaliburTraeToolNames()
     {

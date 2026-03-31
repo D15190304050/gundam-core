@@ -39,7 +39,7 @@ public final class ExcaliburTaskMessages
         return message.toString();
     }
 
-    public static String buildRoleSpecificInstructions(ExcaliburTaskRequest request, ExcaliburAgentRole role)
+    public static String buildRoleSpecificInstructions(ExcaliburTaskRequest request)
     {
         StringBuilder instructions = new StringBuilder()
             .append("Task bootstrap semantics (ported from trae-agent):\n")
@@ -52,10 +52,6 @@ public final class ExcaliburTaskMessages
             instructions.append("- Compare against base commit ")
                 .append(request.getBaseCommit())
                 .append(" when reviewing the final diff.\n");
-        }
-        if (role == ExcaliburAgentRole.SUMMARIZER)
-        {
-            instructions.append("- Summaries should mention whether a diff or patch was produced.\n");
         }
         return instructions.toString();
     }

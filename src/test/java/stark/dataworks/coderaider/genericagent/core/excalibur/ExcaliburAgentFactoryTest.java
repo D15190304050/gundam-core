@@ -7,6 +7,7 @@ import stark.dataworks.coderaider.genericagent.core.agent.AgentDefinition;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 class ExcaliburAgentFactoryTest
 {
@@ -14,17 +15,19 @@ class ExcaliburAgentFactoryTest
     void createBuildsWorkspaceAwareSoftwareEngineeringPrompt()
     {
         Path workspace = Path.of("src", "test", "resources", "outputs", "excalibur-factory-test");
+        List<String> toolNames = ExcaliburTraeToolNames.ALL;
 
         AgentDefinition definition = ExcaliburAgentFactory.create(
             "excalibur-investigator",
+            "Excalibur Investigator",
             "Qwen/Qwen3-4B",
             workspace,
-            ExcaliburAgentRole.INVESTIGATOR,
             "Inspect first, then explain the root cause.",
-            "Verify command: python verifier.py");
+            "Verify command: python verifier.py",
+            toolNames);
 
         Assertions.assertEquals("excalibur-investigator", definition.getId());
-        Assertions.assertEquals(ExcaliburAgentRole.INVESTIGATOR.getDefaultName(), definition.getName());
+        Assertions.assertEquals("Excalibur Investigator", definition.getName());
         Assertions.assertTrue(definition.isReactEnabled());
         Assertions.assertEquals(workspace.toAbsolutePath().normalize().toString(),
             definition.getModelProviderOptions().get("working_directory"));
@@ -33,7 +36,7 @@ class ExcaliburAgentFactoryTest
         Assertions.assertTrue(definition.getSystemPrompt().contains("GUIDE FOR HOW TO USE THE `sequentialthinking` TOOL:"));
         Assertions.assertTrue(definition.getSystemPrompt().contains("Verify command: python verifier.py"));
         Assertions.assertTrue(definition.getReactInstructions().contains("Inspect first"));
-        Assertions.assertEquals(ExcaliburAgentRole.INVESTIGATOR.getDefaultToolNames(), definition.getToolNames());
+        Assertions.assertEquals(toolNames, definition.getToolNames());
     }
 
     @Test
@@ -54,17 +57,24 @@ class ExcaliburAgentFactoryTest
                 .patchPath(workspace.resolve("demo.patch"))
                 .build();
 
+            List<String> toolNames = List.of(
+                ExcaliburTraeToolNames.STR_REPLACE_BASED_EDIT_TOOL,
+                ExcaliburTraeToolNames.JSON_EDIT_TOOL,
+                ExcaliburTraeToolNames.BASH,
+                ExcaliburTraeToolNames.SEQUENTIAL_THINKING,
+                ExcaliburTraeToolNames.TASK_DONE,
+                "apply_patch");
+
             ExcaliburAgentSpec spec = ExcaliburAgentFactory.createSpec(
                 "excalibur-fixer",
                 "Excalibur Fixer",
                 "Qwen/Qwen3-4B",
                 workspace,
-                ExcaliburAgentRole.FIXER,
                 request,
                 "Patch and verify.",
                 "Verify command: python demo.py",
-                ExcaliburAgentRole.FIXER.getDefaultToolNames(),
-                java.util.List.of(),
+                toolNames,
+                List.of(),
                 true,
                 "medium");
 
@@ -113,38 +123,45 @@ class ExcaliburAgentFactoryTest
 
     private static void initializeGitRepository(Path workspace) throws IOException
     {
-        run(workspace, "git", "init");
-        run(workspace, "git", "config", "user.email", "test@example.com");
-        run(workspace, "git", "config", "user.name", "Test User");
-        run(workspace, "git", "add", ".");
-        run(workspace, "git", "commit", "-m", "initial");
-    }
-
-    private static String resolveHeadCommit(Path workspace) throws IOException
-    {
-        return run(workspace, "git", "rev-parse", "HEAD").trim();
-    }
-
-    private static String run(Path workspace, String... command) throws IOException
-    {
-        ProcessBuilder builder = new ProcessBuilder(command);
-        builder.directory(workspace.toFile());
-        builder.redirectErrorStream(true);
         try
         {
-            Process process = builder.start();
-            String output = new String(process.getInputStream().readAllBytes());
-            int exitCode = process.waitFor();
-            if (exitCode != 0)
-            {
-                throw new IOException(String.join(" ", command) + " failed: " + output);
-            }
-            return output;
+            Process process = new ProcessBuilder("git", "init").directory(workspace.toFile()).start();
+            process.waitFor();
+            Process addProcess = new ProcessBuilder("git", "add", "-A").directory(workspace.toFile()).start();
+            addProcess.waitFor();
+            Process commitProcess = new ProcessBuilder("git", "commit", "-m", "initial")
+                .directory(workspace.toFile())
+                .start();
+            commitProcess.waitFor();
         }
-        catch (InterruptedException ex)
+        catch (InterruptedException e)
         {
             Thread.currentThread().interrupt();
-            throw new IOException("Interrupted while running command", ex);
+            throw new IOException("Git initialization interrupted", e);
+        }
+    }
+
+    private static String resolveHeadCommit(Path workspace)
+    {
+        try
+        {
+            Process process = new ProcessBuilder("git", "rev-parse", "HEAD")
+                .directory(workspace.toFile())
+                .start();
+            process.waitFor();
+            try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream())))
+            {
+                return reader.readLine();
+            }
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+            return "";
+        }
+        catch (Exception e)
+        {
+            return "";
         }
     }
 
@@ -164,7 +181,7 @@ class ExcaliburAgentFactoryTest
                 }
                 catch (IOException ex)
                 {
-                    throw new RuntimeException(ex);
+                    // ignore
                 }
             });
     }

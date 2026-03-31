@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Workspace-aware Excalibur agent spec that bundles the prompt, task bootstrap message, and patch semantics.
- */
 public final class ExcaliburAgentSpec
 {
     private final AgentDefinition definition;
@@ -20,15 +17,16 @@ public final class ExcaliburAgentSpec
         this.taskRequest = Objects.requireNonNull(builder.taskRequest, "taskRequest");
         AgentDefinition agentDefinition = new AgentDefinition();
         agentDefinition.setId(Objects.requireNonNull(builder.id, "id"));
-        agentDefinition.setName(builder.name == null ? builder.role.getDefaultName() : builder.name);
+        agentDefinition.setName(Objects.requireNonNull(builder.name, "name"));
         agentDefinition.setModel(Objects.requireNonNull(builder.model, "model"));
         agentDefinition.setReactEnabled(builder.reactEnabled);
-        agentDefinition.setSystemPrompt(ExcaliburSystemPrompts.build(builder.workspace, builder.role,
-            ExcaliburTaskMessages.buildRoleSpecificInstructions(taskRequest, builder.role)
+        String systemPrompt = ExcaliburSystemPrompts.build(builder.workspace,
+            ExcaliburTaskMessages.buildRoleSpecificInstructions(taskRequest)
                 + "\n\n"
-                + (builder.additionalInstructions == null ? "" : builder.additionalInstructions)));
+                + (builder.additionalInstructions == null ? "" : builder.additionalInstructions));
+        agentDefinition.setSystemPrompt(systemPrompt);
         agentDefinition.setReactInstructions(builder.reactInstructions);
-        agentDefinition.setToolNames(builder.toolNames == null ? builder.role.getDefaultToolNames() : builder.toolNames);
+        agentDefinition.setToolNames(builder.toolNames);
         agentDefinition.setHandoffAgentIds(builder.handoffAgentIds == null ? List.of() : builder.handoffAgentIds);
         agentDefinition.setModelProviderOptions(Map.of("working_directory", builder.workspace.toAbsolutePath().normalize().toString()));
         agentDefinition.setModelReasoning(Map.of("effort", builder.reasoningEffort));
@@ -60,9 +58,9 @@ public final class ExcaliburAgentSpec
         return ExcaliburPatchUtils.getGitDiff(taskRequest.getProjectPath(), taskRequest.getBaseCommit());
     }
 
-    public static Builder builder(String id, String model, Path workspace, ExcaliburAgentRole role, ExcaliburTaskRequest taskRequest)
+    public static Builder builder(String id, String model, Path workspace, String name, List<String> toolNames, ExcaliburTaskRequest taskRequest)
     {
-        return new Builder(id, model, workspace, role, taskRequest);
+        return new Builder(id, model, workspace, name, toolNames, taskRequest);
     }
 
     public static final class Builder
@@ -70,33 +68,23 @@ public final class ExcaliburAgentSpec
         private final String id;
         private final String model;
         private final Path workspace;
-        private final ExcaliburAgentRole role;
+        private final String name;
+        private final List<String> toolNames;
         private final ExcaliburTaskRequest taskRequest;
-        private String name;
         private String reactInstructions;
         private String additionalInstructions = "";
-        private List<String> toolNames;
         private List<String> handoffAgentIds;
         private boolean reactEnabled = true;
         private String reasoningEffort = "low";
 
-        private Builder(String id, String model, Path workspace, ExcaliburAgentRole role, ExcaliburTaskRequest taskRequest)
+        private Builder(String id, String model, Path workspace, String name, List<String> toolNames, ExcaliburTaskRequest taskRequest)
         {
             this.id = id;
             this.model = model;
             this.workspace = workspace.toAbsolutePath().normalize();
-            this.role = role;
-            this.taskRequest = taskRequest;
-            if (role == ExcaliburAgentRole.FIXER)
-            {
-                this.reasoningEffort = "medium";
-            }
-        }
-
-        public Builder name(String name)
-        {
             this.name = name;
-            return this;
+            this.toolNames = toolNames;
+            this.taskRequest = taskRequest;
         }
 
         public Builder reactInstructions(String reactInstructions)
@@ -108,12 +96,6 @@ public final class ExcaliburAgentSpec
         public Builder additionalInstructions(String additionalInstructions)
         {
             this.additionalInstructions = additionalInstructions;
-            return this;
-        }
-
-        public Builder toolNames(List<String> toolNames)
-        {
-            this.toolNames = toolNames;
             return this;
         }
 

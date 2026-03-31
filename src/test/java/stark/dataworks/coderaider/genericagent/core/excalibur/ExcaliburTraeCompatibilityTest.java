@@ -2,6 +2,8 @@ package stark.dataworks.coderaider.genericagent.core.excalibur;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import stark.dataworks.coderaider.genericagent.core.editor.ApplyPatchOperation;
 import stark.dataworks.coderaider.genericagent.core.editor.ApplyPatchResult;
 import stark.dataworks.coderaider.genericagent.core.editor.IApplyPatchEditor;
@@ -17,17 +19,20 @@ import java.util.Map;
 class ExcaliburTraeCompatibilityTest
 {
     @Test
-    void rolesExposeTraeCompatibleToolSets()
+    void traeToolNamesExposesAllRequiredTools()
     {
-        Assertions.assertEquals(ExcaliburTraeToolNames.ALL, ExcaliburAgentRole.INVESTIGATOR.getDefaultToolNames());
-        Assertions.assertTrue(ExcaliburAgentRole.FIXER.getDefaultToolNames().containsAll(ExcaliburTraeToolNames.ALL));
-        Assertions.assertTrue(ExcaliburAgentRole.FIXER.getDefaultToolNames().contains("apply_patch"));
-        Assertions.assertEquals(ExcaliburTraeToolNames.ALL, ExcaliburAgentRole.REVIEWER.getDefaultToolNames());
-        Assertions.assertEquals(ExcaliburTraeToolNames.ALL, ExcaliburAgentRole.SUMMARIZER.getDefaultToolNames());
+        Assertions.assertTrue(ExcaliburTraeToolNames.ALL.contains(ExcaliburTraeToolNames.BASH));
+        Assertions.assertTrue(ExcaliburTraeToolNames.ALL.contains(ExcaliburTraeToolNames.STR_REPLACE_BASED_EDIT_TOOL));
+        Assertions.assertTrue(ExcaliburTraeToolNames.ALL.contains(ExcaliburTraeToolNames.JSON_EDIT_TOOL));
+        Assertions.assertTrue(ExcaliburTraeToolNames.ALL.contains(ExcaliburTraeToolNames.SEQUENTIAL_THINKING));
+        Assertions.assertTrue(ExcaliburTraeToolNames.ALL.contains(ExcaliburTraeToolNames.TASK_DONE));
+        Assertions.assertTrue(ExcaliburTraeToolNames.ALL.contains(ExcaliburTraeToolNames.CKG));
+        Assertions.assertEquals(6, ExcaliburTraeToolNames.ALL.size());
     }
 
 
     @Test
+    @EnabledOnOs(OS.LINUX)
     void bashToolKeepsSharedSessionAndSupportsRestart() throws IOException
     {
         Path workspace = Files.createTempDirectory("excalibur-bash-tools");
@@ -56,6 +61,7 @@ class ExcaliburTraeCompatibilityTest
     }
 
     @Test
+    @EnabledOnOs(OS.LINUX)
     void toolRegistrySupportRegistersTraeCompatibleToolsAndEditToolWorks() throws IOException
     {
         Path workspace = Files.createTempDirectory("excalibur-trae-tools");

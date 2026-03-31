@@ -13,9 +13,9 @@ import stark.dataworks.coderaider.genericagent.core.events.RunEvent;
 import stark.dataworks.coderaider.genericagent.core.events.RunEventType;
 import stark.dataworks.coderaider.genericagent.core.examples.ExampleSupport;
 import stark.dataworks.coderaider.genericagent.core.excalibur.ExcaliburAgentFactory;
-import stark.dataworks.coderaider.genericagent.core.excalibur.ExcaliburAgentRole;
 import stark.dataworks.coderaider.genericagent.core.excalibur.ExcaliburAgentSpec;
 import stark.dataworks.coderaider.genericagent.core.excalibur.ExcaliburTaskRequest;
+import stark.dataworks.coderaider.genericagent.core.excalibur.ExcaliburTraeToolNames;
 import stark.dataworks.coderaider.genericagent.core.excalibur.tools.ExcaliburToolRegistrySupport;
 import stark.dataworks.coderaider.genericagent.core.llmspi.adapter.ModelScopeLlmClient;
 import stark.dataworks.coderaider.genericagent.core.runner.AgentRunner;
@@ -339,7 +339,6 @@ public class StepByStepRunnerTest
             "Excalibur Investigator",
             MODEL,
             workspace,
-            ExcaliburAgentRole.INVESTIGATOR,
             taskRequest,
             "Read source + verifier output, then return a concrete evidence-backed root-cause list and fixer checklist.",
             """
@@ -348,7 +347,7 @@ public class StepByStepRunnerTest
             Check explicitly whether calculate_percentage divides by 1000 instead of 100 and whether shipping tax logic is inverted.
             Do not propose unrelated refactors.
             """.formatted(runtimeOs.verifyCommand()),
-            ExcaliburAgentRole.INVESTIGATOR.getDefaultToolNames(),
+            ExcaliburTraeToolNames.ALL,
             List.of(),
             true,
             "low");
@@ -361,7 +360,6 @@ public class StepByStepRunnerTest
             "Excalibur Fixer",
             MODEL,
             workspace,
-            ExcaliburAgentRole.FIXER,
             taskRequest,
             "Read -> patch -> verify -> if still failing, re-read and apply one more targeted patch. Keep the final response concise.",
             """
@@ -371,7 +369,13 @@ public class StepByStepRunnerTest
             Focus on minimal edits that restore the required order total and BEHAVIOR_OK output.
             Finish only after producing a real source patch.
             """.formatted(runtimeOs.verifyCommand()),
-            ExcaliburAgentRole.FIXER.getDefaultToolNames(),
+            List.of(
+                ExcaliburTraeToolNames.STR_REPLACE_BASED_EDIT_TOOL,
+                ExcaliburTraeToolNames.JSON_EDIT_TOOL,
+                ExcaliburTraeToolNames.BASH,
+                ExcaliburTraeToolNames.SEQUENTIAL_THINKING,
+                ExcaliburTraeToolNames.TASK_DONE,
+                "apply_patch"),
             List.of(),
             true,
             "medium");
@@ -384,14 +388,13 @@ public class StepByStepRunnerTest
             "Excalibur Reviewer",
             MODEL,
             workspace,
-            ExcaliburAgentRole.REVIEWER,
             taskRequest,
             "Run or inspect the verifier output and return PASS/FAIL with direct evidence.",
             """
             Target verification command: %s.
             PASS requires the exact success marker BEHAVIOR_OK.
             """.formatted(runtimeOs.verifyCommand()),
-            ExcaliburAgentRole.REVIEWER.getDefaultToolNames(),
+            ExcaliburTraeToolNames.ALL,
             List.of(),
             true,
             "low");
@@ -404,11 +407,10 @@ public class StepByStepRunnerTest
             "Excalibur Summarizer",
             MODEL,
             workspace,
-            ExcaliburAgentRole.SUMMARIZER,
             taskRequest,
             "Return a short structured summary with Files, Changes, Outcome, and Patch sections.",
             "Summarize the finished debugging session for engineers and mention whether the patch requirement was satisfied.",
-            List.of(),
+            ExcaliburTraeToolNames.ALL,
             List.of(),
             false,
             "low");

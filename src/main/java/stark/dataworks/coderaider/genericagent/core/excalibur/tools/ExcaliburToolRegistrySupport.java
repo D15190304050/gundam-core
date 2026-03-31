@@ -26,6 +26,7 @@ public final class ExcaliburToolRegistrySupport
         toolRegistry.register(new ExcaliburTaskDoneTool());
         toolRegistry.register(new ExcaliburStrReplaceBasedEditTool(workspace));
         toolRegistry.register(new ExcaliburJsonEditTool(workspace));
+        toolRegistry.register(new ExcaliburCKGTool());
         toolRegistry.register(new LocalShellTool(new ToolDefinition(
             "local_shell",
             "Execute a local shell command and return stdout/stderr.",
