@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // TODO: add support for more languages.
+// To be implemented (for current roadmap): Java, Python, JS, TS, C#, Go.
 public class CodeParser
 {
     public static List<FunctionEntry> parseFunctions(String content, Path filePath, String language)
