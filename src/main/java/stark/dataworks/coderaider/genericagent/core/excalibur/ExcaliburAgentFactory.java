@@ -5,6 +5,9 @@ import stark.dataworks.coderaider.genericagent.core.agent.AgentDefinition;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * The {@link ExcaliburAgentFactory} class provides static methods to create an instance of Excalibur agent.
+ */
 public final class ExcaliburAgentFactory
 {
     public static AgentDefinition create(
