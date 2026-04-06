@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 /**
  * Code Knowledge Graph DB.
  */
+// TODO: Introduce graph data structure.
 public class CKGDatabase
 {
     private final Map<Path, CKGDatabaseEntry> databases = new HashMap<>();
