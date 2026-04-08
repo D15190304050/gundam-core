@@ -191,7 +191,7 @@ public class CKGDatabase
         {
             Files.walk(codebasePath, 10)
                 .filter(Files::isRegularFile)
-                .filter(p -> isSourceFile(p))
+                .filter(this::isSourceFile)
                 .sorted()
                 .forEach(p ->
                 {
