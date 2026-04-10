@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+// TODO: Add architecture references for different types of tasks, systems.
 public final class ExcaliburAgentSpec
 {
     private final AgentDefinition definition;
