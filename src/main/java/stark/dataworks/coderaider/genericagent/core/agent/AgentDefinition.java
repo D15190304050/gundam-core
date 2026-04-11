@@ -17,8 +17,7 @@ import java.util.Objects;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AgentDefinition
-    implements IAgent
+public class AgentDefinition implements IAgent
 {
 
     /**
